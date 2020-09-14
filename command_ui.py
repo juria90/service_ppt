@@ -1,0 +1,952 @@
+'''This file contains classes for Command UI that can edit the command settings.
+'''
+
+import json
+import pickle
+import re
+import wx
+import wx.propgrid as wxpg
+
+from bible import fileformat as bibfileformat
+import command as cmd
+
+
+_ = lambda s: s
+
+DEFAULT_SPAN = (1, 1)
+BORDER_STYLE_EXCEPT_TOP = (wx.LEFT|wx.RIGHT|wx.BOTTOM)
+DEFAULT_BORDER = 5
+
+POWERPOINT_FILES_WILDCARD = _('Powerpoint files (*.ppt;*.pptx)|*.ppt;*.pptx')
+
+def set_translation(trans):
+    global _
+    _ = trans.gettext
+
+    cmd.set_translation(trans)
+
+
+class CommandUI(wx.EvtHandler):
+    def __init__(self, uimgr, name, proc=None):
+        super().__init__()
+
+        self.uimgr = uimgr
+        self.name = name
+        self.command = proc
+        self.ui = None
+
+    def get_flattened_dict(self):
+        return {'type': self.__class__.proc_class.__name__,
+                'name': self.name,
+                'data': self.command}
+
+    def activate(self, parent):
+        if self.ui is None:
+            self.construct_ui(parent)
+
+        # append or use existing spacer at the end if needed.
+        sizer = parent.GetSizer()
+        count = sizer.GetItemCount()
+        if self.need_stretch_spacer():
+            si = sizer.GetItem(count-1)
+            if not si.IsSpacer():
+                sizer.AddStretchSpacer()
+        else:
+            si = sizer.GetItem(count-1)
+            if si.IsSpacer():
+                sizer.Remove(count-1)
+
+        self.TransferToWindow()
+        self.ui.Show()
+        return True
+
+    def deactivate(self):
+        if not self.TransferFromWindow():
+            return False
+
+        self.ui.Hide()
+        return True
+
+    def construct_ui(self, parent):
+        self.ui = self.uimgr.get_ui_mapping(self.__class__.__name__)
+        if self.ui is None:
+            self.ui = self.construct_toplevel_ui(parent)
+            sizer = parent.GetSizer()
+            # insert ui at the beginning
+            sizer.Prepend(self.ui, 1, wx.ALIGN_TOP|wx.EXPAND)
+            self.uimgr.set_ui_mapping(self.__class__.__name__, self.ui)
+
+    def construct_toplevel_ui(self, _parent):
+        '''Override this function in derived class to provide the own UI.
+        '''
+        result = None
+        return result
+
+    def need_stretch_spacer(self):
+        return False
+
+    def TransferFromWindow(self):
+        return True
+
+    def TransferToWindow(self):
+        return True
+
+    def set_modified(self, a, b):
+        '''set_modified() calls set_modified if different and return the latter.
+        '''
+        if a != b:
+            self.uimgr.set_modified()
+        return b
+
+    @staticmethod
+    def create_openfile_property(prop_name, wildcard):
+        file_prop = wxpg.FileProperty(prop_name)
+        # PG_DIALOG_TITLE
+        file_prop.SetAttribute(wxpg.PG_FILE_DIALOG_STYLE, wx.FD_OPEN|wx.FD_FILE_MUST_EXIST)
+        file_prop.SetAttribute(wxpg.PG_FILE_WILDCARD, wildcard)
+
+        return file_prop
+
+    @staticmethod
+    def create_savefile_property(prop_name, wildcard):
+        file_prop = wxpg.FileProperty(prop_name)
+        # PG_DIALOG_TITLE
+        file_prop.SetAttribute(wxpg.PG_FILE_DIALOG_STYLE, wx.FD_SAVE)
+        file_prop.SetAttribute(wxpg.PG_FILE_WILDCARD, wildcard)
+
+        return file_prop
+
+
+class PopupMessage(cmd.Command):
+    def __init__(self, message):
+        super().__init__()
+
+        self.message = message
+
+    def execute(self, cm, prs):
+        cm.progress_message(0, _('Displaying PopupMessage.'))
+
+        title = wx.App.Get().GetAppDisplayName()
+        wx.MessageBox(self.message, caption=title,
+                      style=wx.OK|wx.ICON_INFORMATION|wx.STAY_ON_TOP)
+
+        prs.check_modified()
+
+
+class PopupMessageUI(CommandUI):
+    proc_class = PopupMessage
+
+    def __init__(self, uimgr, name, proc=None):
+        super().__init__(uimgr, name, proc=proc)
+
+        if self.command is None:
+            self.command = PopupMessage('')
+
+    def construct_toplevel_ui(self, parent):
+        return wx.TextCtrl(parent)
+
+    def TransferFromWindow(self):
+        self.command.message = self.set_modified(self.command.message, self.ui.GetValue())
+        return True
+
+    def TransferToWindow(self):
+        self.ui.SetValue(self.command.message)
+        return True
+
+
+class PropertyGridUI(CommandUI):
+    TIMER_ID = 100
+
+    def __init__(self, uimgr, name, proc=None):
+        super().__init__(uimgr, name, proc=proc)
+
+        self.fixed_count = 0
+        self.dynamic_count = 0
+
+        self.timer = wx.Timer(self, self.TIMER_ID)
+        self.Bind(wx.EVT_TIMER, self.on_timer)
+
+    def construct_toplevel_ui(self, parent):
+        # Difference between using PropertyGridManager vs PropertyGrid is that
+        # the manager supports multiple pages and a description box.
+        style = wxpg.PG_SPLITTER_AUTO_CENTER | wxpg.PG_TOOLBAR
+        prop_grid = wxpg.PropertyGrid(parent, style=style)
+
+        # Show help as tooltips
+        prop_grid.SetExtraStyle(wxpg.PG_EX_HELP_AS_TOOLTIPS)
+
+        prop_grid.Bind(wxpg.EVT_PG_CHANGED, self.on_property_changed, prop_grid)
+
+        self.initialize_fixed_properties(prop_grid)
+
+        self.initialize_dynamic_properties(prop_grid)
+
+        return prop_grid
+
+    def initialize_fixed_properties(self, pg):
+        pass
+
+    def initialize_dynamic_properties(self, pg):
+        pass
+
+    def get_dynamic_label(self, _index):
+        return ''
+
+    def get_dynamic_property(self, _index):
+        return None
+
+    def get_dynamic_properties_from_window(self):
+        plist = []
+        i = 0
+        while True:
+            name = self.get_dynamic_label(i)
+            if self.ui.GetProperty(name) is None:
+                break
+            plist.append(self.ui.GetPropertyValueAsString(name))
+            i += 1
+
+        while len(plist) and not plist[-1]:
+            del plist[-1]
+
+        return plist
+
+    def set_dynamic_properties_to_window(self, plist):
+        for i in range(len(plist) + 1):
+            name = self.get_dynamic_label(i)
+            if self.ui.GetProperty(name) is None:
+                self.ui.Append(self.get_dynamic_property(i))
+
+            self.ui.SetPropertyValueString(name, plist[i] if i < len(plist) else '')
+
+        i = len(plist) + 1
+        while True:
+            name = self.get_dynamic_label(i)
+            if self.ui.GetProperty(name) is None:
+                break
+
+            self.ui.RemoveProperty(name)
+            i += 1
+
+        self.dynamic_count = len(plist)+1
+
+    def SetPropertyValueString(self, name, value):
+        if value is None:
+            value = ''
+        self.ui.SetPropertyValueString(name, value)
+
+    def on_property_changed(self, event):
+        name = event.GetPropertyName()
+        value = event.GetPropertyValue()
+        label = self.get_dynamic_label(self.dynamic_count - 1)
+        if value and name == label:
+            # if last file and non empty value entered,
+            # create new entry.
+            # But, creating new entry here, causes recursion somehow,
+            # so, do it in timer callback.
+            self.timer.StartOnce(100)
+
+    def on_timer(self, _event):
+        self.ui.Append(self.get_dynamic_property(self.dynamic_count))
+        self.dynamic_count = self.dynamic_count + 1
+
+
+class OpenFileUI(PropertyGridUI):
+    proc_class = cmd.OpenFile
+
+    PRESENTATION_FILE = _('Presentation file')
+    NOTES_FILE = _('Notes file')
+
+    def __init__(self, uimgr, name, proc=None):
+        super().__init__(uimgr, name, proc=proc)
+
+        if self.command is None:
+            self.command = cmd.OpenFile('', '')
+        self.wildcard = POWERPOINT_FILES_WILDCARD
+
+    def initialize_fixed_properties(self, pg):
+        pg.Append(wxpg.PropertyCategory(_('File paths')))
+
+        file_prop = self.create_openfile_property(self.PRESENTATION_FILE, self.wildcard)
+        pg.Append(file_prop)
+ 
+        file_prop = self.create_openfile_property(self.NOTES_FILE, _('Text files (*.txt)|*.txt'))
+        pg.Append(file_prop)
+
+        self.fixed_count = 2
+
+    def TransferFromWindow(self):
+        self.command.filename = self.set_modified(self.command.filename, self.ui.GetPropertyValueAsString(self.PRESENTATION_FILE))
+        self.command.notes_filename = self.set_modified(self.command.notes_filename, self.ui.GetPropertyValueAsString(self.NOTES_FILE))
+        return True
+
+    def TransferToWindow(self):
+        self.ui.SetPropertyValueString(self.PRESENTATION_FILE, self.command.filename)
+        self.ui.SetPropertyValueString(self.NOTES_FILE, self.command.notes_filename)
+        return True
+
+
+class SaveFilesUI(PropertyGridUI):
+    proc_class = cmd.SaveFiles
+
+    PRESENTATION_FILE = _('Presentation file')
+    NOTES_FILE = _('Notes file')
+    VERSES_FILE = _('Verses file')
+
+    def __init__(self, uimgr, name, proc=None):
+        super().__init__(uimgr, name, proc=proc)
+
+        if self.command is None:
+            self.command = cmd.SaveFiles('', '', '')
+        self.wildcard = POWERPOINT_FILES_WILDCARD
+
+    def initialize_fixed_properties(self, pg):
+        pg.Append(wxpg.PropertyCategory(_('File paths')))
+
+        file_prop = self.create_savefile_property(self.PRESENTATION_FILE, self.wildcard)
+        pg.Append(file_prop)
+
+        file_prop = self.create_savefile_property(self.NOTES_FILE, _('Text files (*.txt)|*.txt'))
+        pg.Append(file_prop)
+
+        file_prop = self.create_savefile_property(self.VERSES_FILE, _('Text files (*.txt)|*.txt'))
+        pg.Append(file_prop)
+
+        self.fixed_count = 3
+
+    def TransferFromWindow(self):
+        self.command.filename = self.set_modified(self.command.filename, self.ui.GetPropertyValueAsString(self.PRESENTATION_FILE))
+        self.command.notes_filename = self.set_modified(self.command.notes_filename, self.ui.GetPropertyValueAsString(self.NOTES_FILE))
+        self.command.verses_filename = self.set_modified(self.command.verses_filename, self.ui.GetPropertyValueAsString(self.VERSES_FILE))
+        return True
+
+    def TransferToWindow(self):
+        self.ui.SetPropertyValueString(self.PRESENTATION_FILE, self.command.filename)
+        self.ui.SetPropertyValueString(self.NOTES_FILE, self.command.notes_filename)
+        self.ui.SetPropertyValueString(self.VERSES_FILE, self.command.verses_filename)
+        return True
+
+
+class FindReplaceTextUI(PropertyGridUI):
+    proc_class = cmd.FindReplaceText
+
+    FIND_D = _('Text to find %d')
+    REPLACE_D = _('Text to replace %d')
+
+    def __init__(self, uimgr, name, proc=None):
+        super().__init__(uimgr, name, proc=proc)
+
+        if self.command is None:
+            self.command = cmd.FindReplaceText({})
+
+    def get_dynamic_label(self, index):
+        if (index%2) == 0:
+            return self.FIND_D % (index/2+1)
+        else:
+            return self.REPLACE_D % (index/2+1)
+
+    def get_dynamic_property(self, index):
+        return wxpg.StringProperty(self.get_dynamic_label(index))
+
+    def initialize_fixed_properties(self, pg):
+        pg.Append(wxpg.PropertyCategory(_('Fill the texts to find and replace')))
+        self.fixed_count = 1
+
+    def initialize_dynamic_properties(self, pg):
+        pg.Append(self.get_dynamic_property(0))
+        pg.Append(self.get_dynamic_property(1))
+        self.dynamic_count = 2
+
+    def get_dynamic_properties_from_window(self):
+        plist = []
+        i = 0
+        while True:
+            name = self.get_dynamic_label(i)
+            if self.ui.GetProperty(name) is None:
+                break
+            plist.append(self.ui.GetPropertyValueAsString(name))
+            i += 1
+
+        if len(plist) > 2 and not plist[-2] and not plist[-1]:
+            del plist[-2]
+            del plist[-1]
+        return plist
+
+    def set_dynamic_properties_to_window(self, plist):
+        for i in range(len(plist) + 2):
+            name = self.get_dynamic_label(i)
+            if self.ui.GetProperty(name) is None:
+                self.ui.Append(self.get_dynamic_property(i))
+
+            self.ui.SetPropertyValueString(name, plist[i] if i < len(plist) else '')
+
+        i = len(plist) + 2
+        while True:
+            name = self.get_dynamic_label(i)
+            if self.ui.GetProperty(name) is None:
+                break
+
+            self.ui.RemoveProperty(name)
+            i += 1
+
+        self.dynamic_count = len(plist)+2
+
+    def TransferFromWindow(self):
+        plist = self.get_dynamic_properties_from_window()
+        texts = {}
+        for i in range(0, len(plist), 2):
+            f = plist[i]
+            r = plist[i+1]
+            if f:
+                texts[f] = r
+
+        self.command.texts = self.set_modified(self.command.texts, texts)
+
+        return True
+
+    def TransferToWindow(self):
+        plist = []
+        for k, v in self.command.texts.items():
+            plist.append(k)
+            plist.append(v)
+
+        self.set_dynamic_properties_to_window(plist)
+
+        return True
+
+    def on_property_changed(self, event):
+        name = event.GetPropertyName()
+        value = event.GetPropertyValue()
+        label = self.get_dynamic_label(self.dynamic_count - 2)
+        if value and name == label:
+            # if last file and non empty value entered,
+            # create new entry.
+            self.ui.Append(self.get_dynamic_property(self.dynamic_count))
+            self.ui.Append(self.get_dynamic_property(self.dynamic_count + 1))
+            self.dynamic_count = self.dynamic_count + 2
+
+
+class InsertSlidesUI(PropertyGridUI):
+    proc_class = cmd.InsertSlides
+
+    INSERT_LOCATION = _('Insert location')
+    SEPARATOR_SLIDES = _('Separator slides')
+    FILE_D = _('File %d')
+
+    def __init__(self, uimgr, name, proc=None):
+        super().__init__(uimgr, name, proc=proc)
+
+        if self.command is None:
+            self.command = cmd.InsertSlides(None, None, [])
+
+    def get_dynamic_label(self, index):
+        return self.FILE_D % (index+1)
+
+    def get_dynamic_property(self, index):
+        return self.create_openfile_property(self.get_dynamic_label(index), POWERPOINT_FILES_WILDCARD)
+
+    def initialize_fixed_properties(self, pg):
+        pg.Append(wxpg.PropertyCategory(_('1 - Basic Settings')))
+        pg.Append(wxpg.StringProperty(self.INSERT_LOCATION))
+        pg.Append(wxpg.StringProperty(self.SEPARATOR_SLIDES))
+
+        pg.Append(wxpg.PropertyCategory(_('2 - List of files to insert')))
+        self.fixed_count = 4
+
+    def initialize_dynamic_properties(self, pg):
+        pg.Append(self.get_dynamic_property(0))
+        self.dynamic_count = 1
+
+    def TransferFromWindow(self):
+        self.command.insert_location = self.set_modified(self.command.insert_location,
+                                                           self.ui.GetPropertyValueAsString(self.INSERT_LOCATION))
+        self.command.separator_slides = self.set_modified(self.command.separator_slides,
+                                                            self.ui.GetPropertyValueAsString(self.SEPARATOR_SLIDES))
+
+        self.command.filelist = self.set_modified(self.command.filelist, self.get_dynamic_properties_from_window())
+
+        return True
+
+    def TransferToWindow(self):
+        self.SetPropertyValueString(self.INSERT_LOCATION, self.command.insert_location)
+        self.SetPropertyValueString(self.SEPARATOR_SLIDES, self.command.separator_slides)
+
+        self.set_dynamic_properties_to_window(self.command.filelist)
+
+        return True
+
+
+class InsertLyricsUI(PropertyGridUI):
+    proc_class = cmd.InsertLyrics
+
+    FILE_TYPE = _('Lyric file types')
+    FILE_TYPE_LIST = [_('Lyric slide files'), _('Lyric text files'), _('Lyric slide and text files')]
+
+    SLIDE_REPEAT_RANGE = _('Score repeat range')
+    SLIDE_SEPARATOR_SLIDES = _('Score separator slides')
+
+    LYRIC_REPEAT_RANGE = _('Lyric repeat range')
+    LYRIC_SEPARATOR_SLIDES = _('Lyric separator slides')
+    LYRIC_PATTERN = _('Lyric pattern')
+
+    FILE_D = _('File %d')
+    LYRIC_FILES_WILDCARD = _('Powerpoint files (*.ppt;*.pptx)|*.ppt;*.pptx|Lyric xml files (*.xml)|*.xml')
+
+    def __init__(self, uimgr, name, proc=None):
+        super().__init__(uimgr, name, proc=proc)
+
+        if self.command is None:
+            self.command = cmd.InsertLyrics('', None, '', None, '', [], 2)
+
+    def get_dynamic_label(self, index):
+        return self.FILE_D % (index+1)
+
+    def get_dynamic_property(self, index):
+        return self.create_openfile_property(self.get_dynamic_label(index), self.LYRIC_FILES_WILDCARD)
+
+    def initialize_fixed_properties(self, pg):
+        pg.Append(wxpg.EnumProperty(self.FILE_TYPE, labels=self.FILE_TYPE_LIST, value=2))
+
+        pg.Append(wxpg.PropertyCategory(_('1 - Slide settings')))
+        pg.Append(wxpg.StringProperty(self.SLIDE_REPEAT_RANGE))
+        pg.Append(wxpg.StringProperty(self.SLIDE_SEPARATOR_SLIDES))
+
+        pg.Append(wxpg.PropertyCategory(_('2 - Lyric settings')))
+        pg.Append(wxpg.StringProperty(self.LYRIC_REPEAT_RANGE))
+        pg.Append(wxpg.StringProperty(self.LYRIC_SEPARATOR_SLIDES))
+        pg.Append(wxpg.StringProperty(self.LYRIC_PATTERN))
+
+        pg.Append(wxpg.PropertyCategory(_('3 - List of lyric files to insert')))
+        self.fixed_count = 9
+
+    def initialize_dynamic_properties(self, pg):
+        pg.Append(self.get_dynamic_property(0))
+        self.dynamic_count = 1
+
+    def TransferFromWindow(self):
+        index = self.ui.GetPropertyValueAsInt(self.FILE_TYPE)
+        self.command.flags = self.set_modified(self.command.flags, index + 1)
+
+        self.command.slide_insert_location = self.set_modified(self.command.slide_insert_location,
+                                                         self.ui.GetPropertyValueAsString(self.SLIDE_REPEAT_RANGE))
+        self.command.slide_separator_slides = self.set_modified(self.command.slide_separator_slides,
+                                                          self.ui.GetPropertyValueAsString(self.SLIDE_SEPARATOR_SLIDES))
+
+        self.command.lyric_insert_location = self.set_modified(self.command.lyric_insert_location,
+                                                         self.ui.GetPropertyValueAsString(self.LYRIC_REPEAT_RANGE))
+        self.command.lyric_separator_slides = self.set_modified(self.command.lyric_separator_slides,
+                                                          self.ui.GetPropertyValueAsString(self.LYRIC_SEPARATOR_SLIDES))
+        self.command.lyric_pattern = self.set_modified(self.command.lyric_pattern,
+                                                       self.ui.GetPropertyValueAsString(self.LYRIC_PATTERN))
+
+        self.command.filelist = self.set_modified(self.command.filelist, self.get_dynamic_properties_from_window())
+
+        return True
+
+    def TransferToWindow(self):
+        index = 0
+        if self.command.flags > 0:
+            index = self.command.flags - 1
+        self.SetPropertyValueString(self.FILE_TYPE, self.FILE_TYPE_LIST[index])
+
+        self.SetPropertyValueString(self.SLIDE_REPEAT_RANGE, self.command.slide_insert_location)
+        self.SetPropertyValueString(self.SLIDE_SEPARATOR_SLIDES, self.command.slide_separator_slides)
+
+        self.SetPropertyValueString(self.LYRIC_REPEAT_RANGE, self.command.lyric_insert_location)
+        self.SetPropertyValueString(self.LYRIC_SEPARATOR_SLIDES, self.command.lyric_separator_slides)
+        self.SetPropertyValueString(self.LYRIC_PATTERN, self.command.lyric_pattern)
+
+        self.set_dynamic_properties_to_window(self.command.filelist)
+
+        return True
+
+
+class DuplicateWithTextUI(PropertyGridUI):
+    proc_class = cmd.DuplicateWithText
+
+    SLIDE_RANGE = _('Slide range')
+    REPEAT_RANGE = _('Repeat range')
+    FIND_TEXT = _('Text to find')
+    REPLACE_TEXT = _('Texts to replace (a blank line for a separation)')
+
+    def __init__(self, uimgr, name, proc=None):
+        super().__init__(uimgr, name, proc=proc)
+
+        if self.command is None:
+            self.command = cmd.DuplicateWithText('', '', '', [])
+
+    def initialize_fixed_properties(self, pg):
+        pg.Append(wxpg.PropertyCategory(_('1 - Range specification')))
+        pg.Append(wxpg.StringProperty(self.SLIDE_RANGE))
+        pg.Append(wxpg.StringProperty(self.REPEAT_RANGE))
+
+        pg.Append(wxpg.PropertyCategory(_('2 - Text to find and replace')))
+        pg.Append(wxpg.StringProperty(self.FIND_TEXT))
+        pg.Append(wxpg.LongStringProperty(self.REPLACE_TEXT))
+        self.fixed_count = 6
+
+    def TransferFromWindow(self):
+        self.command.slide_range = self.set_modified(self.command.slide_range,
+                                                       self.ui.GetPropertyValueAsString(self.SLIDE_RANGE))
+        self.command.repeat_range = self.set_modified(self.command.repeat_range,
+                                                        self.ui.GetPropertyValueAsString(self.REPEAT_RANGE))
+
+        self.command.find_text = self.ui.GetPropertyValueAsString(self.FIND_TEXT)
+        text = self.ui.GetPropertyValueAsString(self.REPLACE_TEXT)
+        text = text.replace('\\n', '\n')
+        lines = re.split(r'(\n){2}', text)
+        lines = [l for l in lines if l.strip()]
+        self.command.replace_texts = self.set_modified(self.command.replace_texts, lines)
+
+        return True
+
+    def TransferToWindow(self):
+        self.SetPropertyValueString(self.SLIDE_RANGE, self.command.slide_range)
+        self.SetPropertyValueString(self.REPEAT_RANGE, self.command.repeat_range)
+
+        self.ui.SetPropertyValueString(self.FIND_TEXT, self.command.find_text)
+        replace_texts = '\n\n'.join(self.command.replace_texts)
+        self.ui.SetPropertyValueString(self.REPLACE_TEXT, replace_texts)
+
+        return True
+
+
+class GenerateBibleVerseUI(PropertyGridUI):
+    proc_class = cmd.GenerateBibleVerse
+    current_bible_format = bibfileformat.FORMAT_MYBIBLE
+
+    BIBLE_VERSION = _('Bible Version')
+    MAIN_VERSES = _('Main Bible verses')
+    ADDITONAL_VERSES = _('Additional Bible verses')
+    REPEAT_RANGE = _('Repeating slides range')
+
+    BIBLE_VERSE_PATTERN = _('Bible verse pattern')
+    BOOKNAME_PATTERN = _('Book name pattern')
+    SHORT_BOOKNAME_PATTERN = _('Short book name pattern')
+    CHAPTER_PATTERN = _('Chapter pattern')
+    VERSE_NUMBER_PATTERN = _('Verse number pattern')
+    VERSE_TEXT_PATTERN = _('Verse text pattern')
+
+    def __init__(self, uimgr, name, proc=None):
+        super().__init__(uimgr, name, proc=proc)
+
+        if self.command is None:
+            self.command = cmd.GenerateBibleVerse(GenerateBibleVerseUI.current_bible_format,
+                                                  '', ['']*6, '', '', '')
+
+    def initialize_fixed_properties(self, pg):
+        pg.Append(wxpg.PropertyCategory(_('1 - Bible specification')))
+        versions = bibfileformat.enum_versions(GenerateBibleVerseUI.current_bible_format)
+        pg.Append(wxpg.EnumProperty(self.BIBLE_VERSION, labels=versions, value=0))
+        pg.Append(wxpg.StringProperty(self.MAIN_VERSES))
+        pg.Append(wxpg.StringProperty(self.ADDITONAL_VERSES))
+        pg.Append(wxpg.StringProperty(self.REPEAT_RANGE))
+
+        pg.Append(wxpg.PropertyCategory(_('2 - Pattern specification')))
+        pg.Append(wxpg.StringProperty(self.BIBLE_VERSE_PATTERN))
+        pg.Append(wxpg.StringProperty(self.BOOKNAME_PATTERN))
+        pg.Append(wxpg.StringProperty(self.SHORT_BOOKNAME_PATTERN))
+        pg.Append(wxpg.StringProperty(self.CHAPTER_PATTERN))
+        pg.Append(wxpg.StringProperty(self.VERSE_NUMBER_PATTERN))
+        pg.Append(wxpg.StringProperty(self.VERSE_TEXT_PATTERN))
+
+        self.fixed_count = 11
+
+    def TransferFromWindow(self):
+        self.command.bible_version = self.set_modified(self.command.bible_version, self.ui.GetPropertyValueAsString(self.BIBLE_VERSION))
+        self.command.main_verses = self.set_modified(self.command.main_verses, self.ui.GetPropertyValueAsString(self.MAIN_VERSES))
+        self.command.additional_verses = self.set_modified(self.command.additional_verses, self.ui.GetPropertyValueAsString(self.ADDITONAL_VERSES))
+        self.command.repeat_range = self.set_modified(self.command.repeat_range, self.ui.GetPropertyValueAsString(self.REPEAT_RANGE))
+
+        patterns = [None] * 6
+        patterns[0] = self.ui.GetPropertyValueAsString(self.BIBLE_VERSE_PATTERN)
+        patterns[1] = self.ui.GetPropertyValueAsString(self.BOOKNAME_PATTERN)
+        patterns[2] = self.ui.GetPropertyValueAsString(self.SHORT_BOOKNAME_PATTERN)
+        patterns[3] = self.ui.GetPropertyValueAsString(self.CHAPTER_PATTERN)
+        patterns[4] = self.ui.GetPropertyValueAsString(self.VERSE_NUMBER_PATTERN)
+        patterns[5] = self.ui.GetPropertyValueAsString(self.VERSE_TEXT_PATTERN)
+
+        self.command.verse_patterns = self.set_modified(self.command.verse_patterns, patterns)
+
+        return True
+
+    def TransferToWindow(self):
+        self.SetPropertyValueString(self.BIBLE_VERSION, self.command.bible_version)
+        self.SetPropertyValueString(self.MAIN_VERSES, self.command.main_verses)
+        self.SetPropertyValueString(self.ADDITONAL_VERSES, self.command.additional_verses)
+        self.SetPropertyValueString(self.REPEAT_RANGE, self.command.repeat_range)
+
+        self.SetPropertyValueString(self.BIBLE_VERSE_PATTERN, self.command.verse_patterns[0])
+        self.SetPropertyValueString(self.BOOKNAME_PATTERN, self.command.verse_patterns[1])
+        self.SetPropertyValueString(self.SHORT_BOOKNAME_PATTERN, self.command.verse_patterns[2])
+        self.SetPropertyValueString(self.CHAPTER_PATTERN, self.command.verse_patterns[3])
+        self.SetPropertyValueString(self.VERSE_NUMBER_PATTERN, self.command.verse_patterns[4])
+        self.SetPropertyValueString(self.VERSE_TEXT_PATTERN, self.command.verse_patterns[5])
+
+        return True
+
+
+class ExportSlidesUI(PropertyGridUI):
+    proc_class = cmd.ExportSlides
+
+    SLIDE_RANGE = _('Slides to export')
+    IMAGE_TYPE = _('Image type')
+    OUTPUT_DIR = _('Output directory')
+    CLEANUP_OUTPUT_DIR = _('Clean up output directory')
+    TRANSPARENT_IMAGE = _('Generate transparent image')
+    TRANSPARENT_COLOR = _('Color to make transparent')
+
+    def __init__(self, uimgr, name, proc=None):
+        super().__init__(uimgr, name, proc=proc)
+
+        if self.command is None:
+            self.command = cmd.ExportSlides('', '', 'PNG', 0, '#FFFFFF')
+
+    def initialize_fixed_properties(self, pg):
+        pg.Append(wxpg.StringProperty(self.SLIDE_RANGE))
+        pg.Append(wxpg.EnumProperty(self.IMAGE_TYPE, labels=['GIF', 'JPEG', 'PNG', 'TIF'], value=1))
+        pg.Append(wxpg.DirProperty(self.OUTPUT_DIR))
+
+        pg.Append(wxpg.BoolProperty(self.CLEANUP_OUTPUT_DIR))
+        pg.Append(wxpg.BoolProperty(self.TRANSPARENT_IMAGE))
+        pg.Append(wxpg.ColourProperty(self.TRANSPARENT_COLOR))
+
+        self.fixed_count = 6
+
+    def TransferFromWindow(self):
+        self.command.slide_range = self.set_modified(self.command.slide_range, self.ui.GetPropertyValueAsString(self.SLIDE_RANGE))
+        self.command.image_type = self.set_modified(self.command.image_type, self.ui.GetPropertyValueAsString(self.IMAGE_TYPE))
+        self.command.out_dirname = self.set_modified(self.command.out_dirname, self.ui.GetPropertyValueAsString(self.OUTPUT_DIR))
+
+        cleanup_output_dir = self.ui.GetPropertyValueAsBool(self.CLEANUP_OUTPUT_DIR)
+        transparent_image = self.ui.GetPropertyValueAsBool(self.TRANSPARENT_IMAGE)
+        flags = 0
+        if cleanup_output_dir:
+            flags = flags | cmd.Export_CleanupFiles
+        if transparent_image:
+            flags = flags | cmd.Export_Transparent
+        self.command.flags = self.set_modified(self.command.flags, flags)
+        color = self.ui.GetPropertyValue(self.TRANSPARENT_COLOR)
+        str_color = color.GetAsString(wx.C2S_HTML_SYNTAX)
+        self.command.color = self.set_modified(self.command.color, str_color)
+
+        return True
+
+    def TransferToWindow(self):
+        self.SetPropertyValueString(self.SLIDE_RANGE, self.command.slide_range)
+        self.SetPropertyValueString(self.IMAGE_TYPE, self.command.image_type)
+        self.SetPropertyValueString(self.OUTPUT_DIR, self.command.out_dirname)
+
+        value = (self.command.flags | cmd.Export_CleanupFiles) != 0
+        self.ui.SetPropertyValue(self.CLEANUP_OUTPUT_DIR, value)
+        value = (self.command.flags | cmd.Export_Transparent) != 0
+        self.ui.SetPropertyValue(self.TRANSPARENT_IMAGE, value)
+        self.SetPropertyValueString(self.TRANSPARENT_COLOR, self.command.color)
+
+        return True
+
+
+class ExportShapesUI(PropertyGridUI):
+    proc_class = cmd.ExportShapes
+
+    SLIDE_RANGE = _('Slides to export')
+    IMAGE_TYPE = _('Image type')
+    OUTPUT_DIR = _('Output directory')
+    CLEANUP_OUTPUT_DIR = _('Clean up output directory')
+
+    def __init__(self, uimgr, name, proc=None):
+        super().__init__(uimgr, name, proc=proc)
+
+        if self.command is None:
+            self.command = cmd.ExportShapes('', '', 'PNG', 0)
+
+    def initialize_fixed_properties(self, pg):
+        pg.Append(wxpg.StringProperty(self.SLIDE_RANGE))
+        pg.Append(wxpg.EnumProperty(self.IMAGE_TYPE, labels=['GIF', 'PNG'], value=1))
+        pg.Append(wxpg.DirProperty(self.OUTPUT_DIR))
+
+        pg.Append(wxpg.BoolProperty(self.CLEANUP_OUTPUT_DIR))
+
+        self.fixed_count = 4
+
+    def TransferFromWindow(self):
+        self.command.slide_range = self.set_modified(self.command.slide_range, self.ui.GetPropertyValueAsString(self.SLIDE_RANGE))
+        self.command.image_type = self.set_modified(self.command.image_type, self.ui.GetPropertyValueAsString(self.IMAGE_TYPE))
+        self.command.out_dirname = self.set_modified(self.command.out_dirname, self.ui.GetPropertyValueAsString(self.OUTPUT_DIR))
+
+        cleanup_output_dir = self.ui.GetPropertyValueAsBool(self.CLEANUP_OUTPUT_DIR)
+        flags = 0
+        if cleanup_output_dir:
+            flags = flags | cmd.Export_CleanupFiles
+        self.command.flags = self.set_modified(self.command.flags, flags)
+
+        return True
+
+    def TransferToWindow(self):
+        self.SetPropertyValueString(self.SLIDE_RANGE, self.command.slide_range)
+        self.SetPropertyValueString(self.IMAGE_TYPE, self.command.image_type)
+        self.SetPropertyValueString(self.OUTPUT_DIR, self.command.out_dirname)
+
+        value = (self.command.flags | cmd.Export_CleanupFiles) != 0
+        self.ui.SetPropertyValue(self.CLEANUP_OUTPUT_DIR, value)
+
+        return True
+
+
+class CommandEncoder(json.JSONEncoder):
+
+    proc_ui_list = [DuplicateWithTextUI, ExportSlidesUI, ExportShapesUI, FindReplaceTextUI,
+                    GenerateBibleVerseUI, InsertLyricsUI, InsertSlidesUI, OpenFileUI, PopupMessageUI,
+                    SaveFilesUI
+                   ]
+
+    proc_map = {ui.proc_class.__name__: ui for ui in proc_ui_list}
+
+    def default(self, o):
+        if isinstance(o, CommandUI):
+            return o.get_flattened_dict()
+        elif isinstance(o, cmd.GenerateBibleVerse):
+            return o.get_flattened_dict()
+        elif isinstance(o, cmd.Command):
+            return o.__dict__
+        else:
+            super().default(o)
+
+        return o
+
+    @staticmethod
+    def decoder(o):
+        if 'type' in o:
+            proc_type = o['type']
+            ui_name = o['name']
+            enabled = True
+            if 'enabled' in o:
+                enabled = o['enabled']
+            data = o['data']
+            if proc_type in CommandEncoder.proc_map:
+                uicls = CommandEncoder.proc_map[proc_type]
+                ui = uicls(None, ui_name)
+
+                ui.command.__dict__.update(data)
+                ui.command.enabled = enabled
+
+                return ui
+            else:
+                # unsupported type
+                return None
+
+        return o
+
+
+class UIManager:
+    def __init__(self):
+        self.ui_map = {}
+        self.active_ui = None
+        self.command_ui_list = []
+        self.modified = False
+
+    def get_ui_mapping(self, name):
+        if name in self.ui_map:
+            return self.ui_map[name]
+
+        return None
+
+    def set_ui_mapping(self, name, ui):
+        self.ui_map[name] = ui
+
+    def activate(self, parent, ui):
+        if self.active_ui == ui:
+            return
+
+        if self.active_ui is not None:
+            if not self.active_ui.deactivate():
+                return
+
+        if ui is not None:
+            self.active_ui = ui
+            self.active_ui.activate(parent)
+
+        sizer = parent.GetSizer()
+        sizer.Layout()
+
+    def deactivate(self):
+        if self.active_ui is not None:
+            if not self.active_ui.deactivate():
+                return
+
+        self.active_ui = None
+
+    def get_modified(self):
+        return self.modified
+
+    def check_modified(self):
+        if self.active_ui is not None:
+            self.active_ui.TransferFromWindow()
+
+        return self.modified
+
+    def set_modified(self, modified=True):
+        self.modified = modified
+
+    def set_item_name(self, index, name):
+        self.command_ui_list[index].name = name
+        self.set_modified()
+
+    def insert_item(self, index, ui):
+        self.command_ui_list.insert(index, ui)
+        self.set_modified()
+
+    def delete_item(self, index):
+        del self.command_ui_list[index]
+        self.set_modified()
+
+    def move_down_item(self, index):
+        ui = self.command_ui_list.pop(index)
+        self.command_ui_list.insert(index+1, ui)
+        self.set_modified()
+
+    def move_up_item(self, index):
+        ui = self.command_ui_list.pop(index)
+        self.command_ui_list.insert(index-1, ui)
+        self.set_modified()
+
+    def open(self, filename):
+        command_ui_list = []
+        with open(filename, 'r', encoding='utf-8') as f:
+            command_ui_list = json.load(f, object_hook=CommandEncoder.decoder)
+
+        for ui in command_ui_list:
+            ui.uimgr = self
+
+        self.command_ui_list = command_ui_list
+
+    def open_pickle(self, filename):
+        with open(filename, 'rb') as f:
+            proc_list = pickle.load(f)
+
+        command_ui_list = []
+        for pair in proc_list:
+            name, proc = pair
+            for uicls in CommandEncoder.proc_ui_list:
+                if isinstance(proc, uicls.proc_class):
+                    ui = uicls(self, name, proc)
+                    command_ui_list.append(ui)
+
+        self.command_ui_list = command_ui_list
+
+    def save(self, filename):
+        self.check_modified()
+
+        with open(filename, 'w', encoding='utf-8') as f:
+            json.dump(self.command_ui_list, f, indent=2, cls=CommandEncoder, ensure_ascii=False)
+
+    def save_pickle(self, filename):
+        proc_list = [(x.name, x.command) for x in self.command_ui_list]
+        with open(filename, 'wb') as f:
+            pickle.dump(proc_list, f, protocol=pickle.HIGHEST_PROTOCOL)
+
+    def execute_commands(self, monitor):
+        self.check_modified()
+
+        proc_list = [x.command for x in self.command_ui_list]
+        cm = cmd.CommandManager()
+        cm.execute_commands(proc_list, monitor=monitor)

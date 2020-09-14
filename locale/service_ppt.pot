@@ -1,0 +1,553 @@
+# SOME DESCRIPTIVE TITLE.
+# Copyright (C) YEAR THE PACKAGE'S COPYRIGHT HOLDER
+# This file is distributed under the same license as the PACKAGE package.
+# FIRST AUTHOR <EMAIL@ADDRESS>, YEAR.
+#
+#, fuzzy
+msgid ""
+msgstr ""
+"Project-Id-Version: PACKAGE VERSION\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2020-08-02 16:31-0700\n"
+"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
+"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
+"Language-Team: LANGUAGE <LL@li.org>\n"
+"Language: \n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=CHARSET\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=INTEGER; plural=EXPRESSION;\n"
+
+#: mainframe.py:41
+msgid "Duplicate slides"
+msgstr ""
+
+#: mainframe.py:42
+msgid "Export slides as images"
+msgstr ""
+
+#: mainframe.py:43
+msgid "Export shapes in slide as images"
+msgstr ""
+
+#: mainframe.py:44
+msgid "Find and replace texts"
+msgstr ""
+
+#: mainframe.py:45
+msgid "Generate Bible verses slides"
+msgstr ""
+
+#: mainframe.py:46
+msgid "Insert lyrics from files"
+msgstr ""
+
+#: mainframe.py:47
+msgid "Insert slides from files"
+msgstr ""
+
+#: mainframe.py:48
+msgid "Open a presentation file"
+msgstr ""
+
+#: mainframe.py:49
+msgid "Pop up a message"
+msgstr ""
+
+#: mainframe.py:50
+msgid "Save the presentation and other files"
+msgstr ""
+
+#: mainframe.py:93
+msgid "Service Presentation Generator"
+msgstr ""
+
+#: mainframe.py:119
+msgid "&File"
+msgstr ""
+
+#: mainframe.py:122
+msgid "&Open...\tCtrl+O"
+msgstr ""
+
+#: mainframe.py:122
+msgid "Open an existing file."
+msgstr ""
+
+#: mainframe.py:126
+msgid "Open &recent"
+msgstr ""
+
+#: mainframe.py:126
+msgid "Open a recently used file."
+msgstr ""
+
+#: mainframe.py:133
+msgid "&Save\tCtrl+S"
+msgstr ""
+
+#: mainframe.py:133
+msgid "Save to a file."
+msgstr ""
+
+#: mainframe.py:137
+msgid "Save &as...\tCtrl+Shift+S"
+msgstr ""
+
+#: mainframe.py:137
+msgid "Save as a file."
+msgstr ""
+
+#: mainframe.py:143
+msgid "&Execute...\tCtrl+E"
+msgstr ""
+
+#: mainframe.py:143
+msgid "Executes the commands."
+msgstr ""
+
+#: mainframe.py:148
+msgid "&Preferences...\tCtrl+,"
+msgstr ""
+
+#: mainframe.py:149
+msgid "Show and edit preferences."
+msgstr ""
+
+#: mainframe.py:154
+msgid "E&xit\tCtrl+Q"
+msgstr ""
+
+#: mainframe.py:155
+msgid "Close window and exit the program."
+msgstr ""
+
+#: mainframe.py:170
+msgid "Open"
+msgstr ""
+
+#: mainframe.py:171
+msgid "Save"
+msgstr ""
+
+#: mainframe.py:172
+msgid "Execute"
+msgstr ""
+
+#: mainframe.py:174
+msgid "Exit"
+msgstr ""
+
+#: mainframe.py:188
+msgid "Add Command"
+msgstr ""
+
+#: mainframe.py:192
+msgid "Delete Command"
+msgstr ""
+
+#: mainframe.py:196
+msgid "Move Down"
+msgstr ""
+
+#: mainframe.py:200
+msgid "Move Up"
+msgstr ""
+
+#: mainframe.py:261
+msgid ""
+"The document is modified.\n"
+"Do you want to save it?"
+msgstr ""
+
+#: mainframe.py:288
+msgid ""
+"The document is modified.\n"
+"Do you want to continue?"
+msgstr ""
+
+#: mainframe.py:296
+msgid "Open File"
+msgstr ""
+
+#: mainframe.py:298 mainframe.py:350
+msgid "Service definition files (*.sdf)|*.sdf"
+msgstr ""
+
+#: mainframe.py:310
+#, python-brace-format
+msgid "Failed to open file '{filename}'."
+msgstr ""
+
+#: mainframe.py:335
+msgid "Save to a file"
+msgstr ""
+
+#: mainframe.py:338
+msgid "Save as a file"
+msgstr ""
+
+#: mainframe.py:377
+msgid "Running commands."
+msgstr ""
+
+#: mainframe.py:378
+msgid "Intializing commands."
+msgstr ""
+
+#: mainframe.py:384
+msgid "(Untitled)"
+msgstr ""
+
+#: mainframe.py:409
+msgid "Please choose a slide command."
+msgstr ""
+
+#: mainframe.py:410
+msgid "Add slide command"
+msgstr ""
+
+#: preferences_dialog.py:42
+msgid "Preferences"
+msgstr ""
+
+#: preferences_dialog.py:60
+msgid "Bible settings"
+msgstr ""
+
+#: preferences_dialog.py:64
+msgid "Directory settings"
+msgstr ""
+
+#: preferences_dialog.py:92
+msgid "Bible &Format:"
+msgstr ""
+
+#: preferences_dialog.py:104
+msgid "Root &directory for MyBible, MySword, Zefania:"
+msgstr ""
+
+#: preferences_dialog.py:114
+msgid "&Browse..."
+msgstr ""
+
+#: preferences_dialog.py:118
+msgid "Current Bible &Version:"
+msgstr ""
+
+#: command.py:209
+msgid "Creating a new presentation."
+msgstr ""
+
+#: command.py:213
+#, python-brace-format
+msgid "Opening a template presentation file '{filename}'."
+msgstr ""
+
+#: command.py:216
+#, python-brace-format
+msgid "Cannot open a template presentation file '{filename}'."
+msgstr ""
+
+#: command.py:224
+#, python-brace-format
+msgid "Opening a template notes file '{filename}'."
+msgstr ""
+
+#: command.py:227
+#, python-brace-format
+msgid "Cannot open a template notes file '{filename}'."
+msgstr ""
+
+#: command.py:248
+#, python-brace-format
+msgid "Saving the presentation to the file '{filename}'."
+msgstr ""
+
+#: command.py:252
+#, python-brace-format
+msgid "Saving the notes to the file '{filename}'."
+msgstr ""
+
+#: command.py:259
+#, python-brace-format
+msgid "Cannot save the notes file '{filename}'."
+msgstr ""
+
+#: command.py:262
+#, python-brace-format
+msgid "Saving Bible verses to file '{filename}'."
+msgstr ""
+
+#: command.py:275
+#, python-brace-format
+msgid "Cannot save bible verses to the file '{filename}'."
+msgstr ""
+
+#: command.py:292
+#, python-brace-format
+msgid "Inserting slides from {file_count} file."
+msgid_plural "Inserting slides from {file_count} files."
+msgstr[0] ""
+msgstr[1] ""
+
+#: command.py:307
+#, python-brace-format
+msgid "Inserting slides from file '{filename}'."
+msgstr ""
+
+#: command.py:355
+#, python-brace-format
+msgid "Inserting lyrics from {file_count} file."
+msgid_plural "Inserting lyrics from {file_count} files."
+msgstr[0] ""
+msgstr[1] ""
+
+#: command.py:361
+msgid "No repeatable slides are found. Aborting the command."
+msgstr ""
+
+#: command.py:380
+#, python-brace-format
+msgid "Inserting lyric from '{filename}'."
+msgstr ""
+
+#: command.py:429
+#, python-brace-format
+msgid "Replacing {text_count} text."
+msgid_plural "Replacing {text_count} texts."
+msgstr[0] ""
+msgstr[1] ""
+
+#: command.py:453 command.py:592
+msgid "Duplicating slides and replacing texts."
+msgstr ""
+
+#: command.py:491
+msgid "Replacing texts."
+msgstr ""
+
+#: command.py:571
+msgid "Processing Bible Verse."
+msgstr ""
+
+#: command.py:585
+#, python-brace-format
+msgid "Duplicating {repeat_count} slide for Bible Verse."
+msgid_plural "Duplicating {repeat_count} slides for Bible Verse."
+msgstr[0] ""
+msgstr[1] ""
+
+#: command.py:691
+msgid "Processing PromptCommand."
+msgstr ""
+
+#: command.py:710
+#, python-brace-format
+msgid "Exporting slide images to '{dirname}'."
+msgstr ""
+
+#: command.py:723
+msgid "Converting to transparent images."
+msgstr ""
+
+#: command.py:746
+#, python-brace-format
+msgid "Exporting slide shapes as images to '{dirname}'."
+msgstr ""
+
+#: command.py:806
+#, python-brace-format
+msgid "Cannot open a lyric file '{filename}'."
+msgstr ""
+
+#: command.py:869
+msgid "Start processing commands."
+msgstr ""
+
+#: command.py:890
+msgid "Cleaning up after running all the commands."
+msgstr ""
+
+#: command.py:893
+msgid "Processing is done successfully."
+msgstr ""
+
+#: command_ui.py:21
+msgid "Powerpoint files (*.ppt;*.pptx)|*.ppt;*.pptx"
+msgstr ""
+
+#: command_ui.py:128
+msgid "Displaying PopupMessage."
+msgstr ""
+
+#: command_ui.py:257 command_ui.py:292
+msgid "Presentation file"
+msgstr ""
+
+#: command_ui.py:258 command_ui.py:293
+msgid "Notes file"
+msgstr ""
+
+#: command_ui.py:268 command_ui.py:304
+msgid "File paths"
+msgstr ""
+
+#: command_ui.py:273 command_ui.py:309 command_ui.py:312
+msgid "Text files (*.txt)|*.txt"
+msgstr ""
+
+#: command_ui.py:294
+msgid "Verses file"
+msgstr ""
+
+#: command_ui.py:333
+#, python-format
+msgid "Text to find %d"
+msgstr ""
+
+#: command_ui.py:334
+#, python-format
+msgid "Text to replace %d"
+msgstr ""
+
+#: command_ui.py:352
+msgid "Fill the texts to find and replace"
+msgstr ""
+
+#: command_ui.py:432
+msgid "Insert location"
+msgstr ""
+
+#: command_ui.py:433
+msgid "Separator slides"
+msgstr ""
+
+#: command_ui.py:434 command_ui.py:489
+#, python-format
+msgid "File %d"
+msgstr ""
+
+#: command_ui.py:449
+msgid "1 - Basic Settings"
+msgstr ""
+
+#: command_ui.py:453
+msgid "2 - List of files to insert"
+msgstr ""
+
+#: command_ui.py:482
+msgid "Score repeat range"
+msgstr ""
+
+#: command_ui.py:483
+msgid "Score separator slides"
+msgstr ""
+
+#: command_ui.py:485
+msgid "Lyric repeat range"
+msgstr ""
+
+#: command_ui.py:486
+msgid "Lyric separator slides"
+msgstr ""
+
+#: command_ui.py:487
+msgid "Lyric pattern"
+msgstr ""
+
+#: command_ui.py:504
+msgid "1 - Score settings"
+msgstr ""
+
+#: command_ui.py:508
+msgid "2 - Lyric settings"
+msgstr ""
+
+#: command_ui.py:513
+msgid "3 - List of lyric files to insert"
+msgstr ""
+
+#: command_ui.py:553
+msgid "Slide range"
+msgstr ""
+
+#: command_ui.py:554
+msgid "Repeat range"
+msgstr ""
+
+#: command_ui.py:555
+msgid "Text to find"
+msgstr ""
+
+#: command_ui.py:556
+msgid "Texts to replace (a blank line for a separation)"
+msgstr ""
+
+#: command_ui.py:565
+msgid "1 - Range specification"
+msgstr ""
+
+#: command_ui.py:569
+msgid "2 - Text to find and replace"
+msgstr ""
+
+#: command_ui.py:604
+msgid "Bible Version"
+msgstr ""
+
+#: command_ui.py:605
+msgid "Main Bible verses"
+msgstr ""
+
+#: command_ui.py:606
+msgid "Additional Bible verses"
+msgstr ""
+
+#: command_ui.py:607
+msgid "Repeating slides range"
+msgstr ""
+
+#: command_ui.py:609
+msgid "Bible verse pattern"
+msgstr ""
+
+#: command_ui.py:610
+msgid "Verse number pattern"
+msgstr ""
+
+#: command_ui.py:611
+msgid "Verse text pattern"
+msgstr ""
+
+#: command_ui.py:621
+msgid "1 - Bible specification"
+msgstr ""
+
+#: command_ui.py:628
+msgid "2 - Pattern specification"
+msgstr ""
+
+#: command_ui.py:666 command_ui.py:726
+msgid "Slides to export"
+msgstr ""
+
+#: command_ui.py:667 command_ui.py:727
+msgid "Image type"
+msgstr ""
+
+#: command_ui.py:668 command_ui.py:728
+msgid "Output directory"
+msgstr ""
+
+#: command_ui.py:669 command_ui.py:729
+msgid "Clean up output directory"
+msgstr ""
+
+#: command_ui.py:670
+msgid "Generate transparent image"
+msgstr ""
+
+#: command_ui.py:671
+msgid "Color to make transparent"
+msgstr ""

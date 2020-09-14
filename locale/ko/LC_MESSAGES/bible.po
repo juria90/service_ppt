@@ -1,0 +1,580 @@
+# SOME DESCRIPTIVE TITLE.
+# Copyright (C) 2020 by James Lee
+# FIRST AUTHOR juria90@yahoo.com, 2020.
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: PACKAGE VERSION\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2020-06-06 23:54-0700\n"
+"PO-Revision-Date: 2020-05-24 15:37+08\n"
+"Last-Translator: James Lee <juria90@yahoo.com>\n"
+"Language-Team: LANGUAGE <LL@li.org>\n"
+"Language: ko_kr\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=utf-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Generated-By: pygettext.py 1.5\n"
+
+#: bible\biblang.py:66
+msgid "(.*?) ?(\\d+):(\\d+)(-(\\d+))?"
+msgstr "(.*?) *(\\d+)[장|:] *(\\d+)(-(\\d+))?[절]?"
+
+#: bible\biblang.py:83
+msgid "1 Chron"
+msgstr "대상"
+
+#: bible\biblang.py:83
+msgid "1 Chronicles"
+msgstr "역대상"
+
+#: bible\biblang.py:117
+msgid "1 Cor"
+msgstr "고전"
+
+#: bible\biblang.py:117
+msgid "1 Corinthians"
+msgstr "고린도전서"
+
+#: bible\biblang.py:133
+msgid "1 John"
+msgstr "요한일서"
+
+#: bible\biblang.py:133
+msgctxt "short_name"
+msgid "1 John"
+msgstr "요일"
+
+#: bible\biblang.py:81
+msgid "1 Kings"
+msgstr "열왕기상"
+
+#: bible\biblang.py:81
+msgctxt "short_name"
+msgid "1 Kings"
+msgstr "왕상"
+
+#: bible\biblang.py:131
+msgid "1 Pet"
+msgstr "벧전"
+
+#: bible\biblang.py:131
+msgid "1 Peter"
+msgstr "베드로전서"
+
+#: bible\biblang.py:79
+msgid "1 Sam"
+msgstr "삼상"
+
+#: bible\biblang.py:79
+msgid "1 Samuel"
+msgstr "사무엘상"
+
+#: bible\biblang.py:123
+msgid "1 Thess"
+msgstr "살전"
+
+#: bible\biblang.py:123
+msgid "1 Thessalonians"
+msgstr "데살로니가전서"
+
+#: bible\biblang.py:125
+msgid "1 Tim"
+msgstr "딤전"
+
+#: bible\biblang.py:125
+msgid "1 Timothy"
+msgstr "디모데전서"
+
+#: bible\biblang.py:84
+msgid "2 Chron"
+msgstr "대하"
+
+#: bible\biblang.py:84
+msgid "2 Chronicles"
+msgstr "역대하"
+
+#: bible\biblang.py:118
+msgid "2 Cor"
+msgstr "고후"
+
+#: bible\biblang.py:118
+msgid "2 Corinthians"
+msgstr "고린도후서"
+
+#: bible\biblang.py:134
+msgid "2 John"
+msgstr "요한이서"
+
+#: bible\biblang.py:134
+msgctxt "short_name"
+msgid "2 John"
+msgstr "요이"
+
+#: bible\biblang.py:82
+msgid "2 Kings"
+msgstr "열왕기하"
+
+#: bible\biblang.py:82
+msgctxt "short_name"
+msgid "2 Kings"
+msgstr "왕하"
+
+#: bible\biblang.py:132
+msgid "2 Pet"
+msgstr "벧후"
+
+#: bible\biblang.py:132
+msgid "2 Peter"
+msgstr "베드로전서"
+
+#: bible\biblang.py:80
+msgid "2 Sam"
+msgstr "삼하"
+
+#: bible\biblang.py:80
+msgid "2 Samuel"
+msgstr "사무엘하"
+
+#: bible\biblang.py:124
+msgid "2 Thess"
+msgstr "살후"
+
+#: bible\biblang.py:124
+msgid "2 Thessalonians"
+msgstr "데살로니가후서"
+
+#: bible\biblang.py:126
+msgid "2 Tim"
+msgstr "딤후"
+
+#: bible\biblang.py:126
+msgid "2 Timothy"
+msgstr "디모데전서"
+
+#: bible\biblang.py:135
+msgid "3 John"
+msgstr "요한삼서"
+
+#: bible\biblang.py:135
+msgctxt "short_name"
+msgid "3 John"
+msgstr "요삼"
+
+#: bible\biblang.py:115
+msgid "Acts"
+msgstr "사도행전"
+
+#: bible\biblang.py:115
+msgctxt "short_name"
+msgid "Acts"
+msgstr "행"
+
+#: bible\biblang.py:100
+msgid "Amos"
+msgstr "아모스"
+
+#: bible\biblang.py:100
+msgctxt "short_name"
+msgid "Amos"
+msgstr "암"
+
+#: bible\biblang.py:122
+msgid "Col"
+msgstr "골"
+
+#: bible\biblang.py:122
+msgid "Colossians"
+msgstr "골로새서"
+
+#: bible\biblang.py:97
+msgid "Dan"
+msgstr "단"
+
+#: bible\biblang.py:97
+msgid "Daniel"
+msgstr "다니엘"
+
+#: bible\biblang.py:75
+msgid "Deut"
+msgstr "신"
+
+#: bible\biblang.py:75
+msgid "Deuteronomy"
+msgstr "신명기"
+
+#: bible\biblang.py:91
+msgid "Eccles"
+msgstr "전"
+
+#: bible\biblang.py:91
+msgid "Ecclesiastes"
+msgstr "전도서"
+
+#: bible\biblang.py:120
+msgid "Eph"
+msgstr "엡"
+
+#: bible\biblang.py:120
+msgid "Ephesians"
+msgstr "에베소서"
+
+#: bible\biblang.py:87
+msgid "Est"
+msgstr "에"
+
+#: bible\biblang.py:87
+msgid "Esther"
+msgstr "에스더"
+
+#: bible\biblang.py:72
+msgid "Ex"
+msgstr "출"
+
+#: bible\biblang.py:72
+msgid "Exodus"
+msgstr "출애굽기"
+
+#: bible\biblang.py:96
+msgid "Ezek"
+msgstr "겔"
+
+#: bible\biblang.py:96
+msgid "Ezekiel"
+msgstr "에스겔"
+
+#: bible\biblang.py:85
+msgid "Ezra"
+msgstr "에스라"
+
+#: bible\biblang.py:85
+msgctxt "short_name"
+msgid "Ezra"
+msgstr "스"
+
+#: bible\biblang.py:119
+msgid "Gal"
+msgstr "갈"
+
+#: bible\biblang.py:119
+msgid "Galatians"
+msgstr "갈라디아서"
+
+#: bible\biblang.py:71
+msgid "Gen"
+msgstr "창"
+
+#: bible\biblang.py:71
+msgid "Genesis"
+msgstr "창세기"
+
+#: bible\biblang.py:105
+msgid "Hab"
+msgstr "합"
+
+#: bible\biblang.py:105
+msgid "Habakkuk"
+msgstr "하박국"
+
+#: bible\biblang.py:107
+msgid "Hag"
+msgstr "학"
+
+#: bible\biblang.py:107
+msgid "Haggai"
+msgstr "학개"
+
+#: bible\biblang.py:129
+msgid "Heb"
+msgstr "히"
+
+#: bible\biblang.py:129
+msgid "Hebrews"
+msgstr "히브리서"
+
+#: bible\biblang.py:98
+msgid "Hos"
+msgstr "호"
+
+#: bible\biblang.py:98
+msgid "Hosea"
+msgstr "호세아"
+
+#: bible\biblang.py:93
+msgid "Isa"
+msgstr "사"
+
+#: bible\biblang.py:93
+msgid "Isaiah"
+msgstr "이사야"
+
+#: bible\biblang.py:130
+msgid "James"
+msgstr "야고보서"
+
+#: bible\biblang.py:130
+msgctxt "short_name"
+msgid "James"
+msgstr "약"
+
+#: bible\biblang.py:94
+msgid "Jer"
+msgstr "렘"
+
+#: bible\biblang.py:94
+msgid "Jeremiah"
+msgstr "예레미야"
+
+#: bible\biblang.py:88
+msgid "Job"
+msgstr "욥기"
+
+#: bible\biblang.py:88
+msgctxt "short_name"
+msgid "Job"
+msgstr "욥"
+
+#: bible\biblang.py:99
+msgid "Joel"
+msgstr "요엘"
+
+#: bible\biblang.py:99
+msgctxt "short_name"
+msgid "Joel"
+msgstr "욜"
+
+#: bible\biblang.py:114
+msgid "John"
+msgstr "요한복음"
+
+#: bible\biblang.py:114
+msgctxt "short_name"
+msgid "John"
+msgstr "요"
+
+#: bible\biblang.py:102
+msgid "Jonah"
+msgstr "요나"
+
+#: bible\biblang.py:102
+msgctxt "short_name"
+msgid "Jonah"
+msgstr "욘"
+
+#: bible\biblang.py:76
+msgid "Josh"
+msgstr "여"
+
+#: bible\biblang.py:76
+msgid "Joshua"
+msgstr "여호수아"
+
+#: bible\biblang.py:136
+msgid "Jude"
+msgstr "유다서"
+
+#: bible\biblang.py:136
+msgctxt "short_name"
+msgid "Jude"
+msgstr "유"
+
+#: bible\biblang.py:77
+msgid "Judg"
+msgstr "삿"
+
+#: bible\biblang.py:77
+msgid "Judges"
+msgstr "사사기"
+
+#: bible\biblang.py:95
+msgid "Lam"
+msgstr "애"
+
+#: bible\biblang.py:95
+msgid "Lamentations"
+msgstr "예레미야애가"
+
+#: bible\biblang.py:73
+msgid "Lev"
+msgstr "레"
+
+#: bible\biblang.py:73
+msgid "Leviticus"
+msgstr "레위기"
+
+#: bible\biblang.py:113
+msgid "Luke"
+msgstr "누가복음"
+
+#: bible\biblang.py:113
+msgctxt "short_name"
+msgid "Luke"
+msgstr "눅"
+
+#: bible\biblang.py:109
+msgid "Mal"
+msgstr "말"
+
+#: bible\biblang.py:109
+msgid "Malachi"
+msgstr "말라기"
+
+#: bible\biblang.py:112
+msgid "Mark"
+msgstr "마가복음"
+
+#: bible\biblang.py:112
+msgctxt "short_name"
+msgid "Mark"
+msgstr "막"
+
+#: bible\biblang.py:111
+msgid "Matt"
+msgstr "마"
+
+#: bible\biblang.py:111
+msgid "Matthew"
+msgstr "마태복음"
+
+#: bible\biblang.py:103
+msgid "Mic"
+msgstr "미"
+
+#: bible\biblang.py:103
+msgid "Micah"
+msgstr "미가"
+
+#: bible\biblang.py:104
+msgid "Nah"
+msgstr "나"
+
+#: bible\biblang.py:104
+msgid "Nahum"
+msgstr "나훔"
+
+#: bible\biblang.py:86
+msgid "Neh"
+msgstr "느"
+
+#: bible\biblang.py:86
+msgid "Nehemiah"
+msgstr "느헤미야"
+
+#: bible\biblang.py:65
+msgid "New Testament"
+msgstr "신약 전서"
+
+#: bible\biblang.py:74
+msgid "Num"
+msgstr "민"
+
+#: bible\biblang.py:74
+msgid "Numbers"
+msgstr "민수기"
+
+#: bible\biblang.py:101
+msgid "Obad"
+msgstr "옵"
+
+#: bible\biblang.py:101
+msgid "Obadiah"
+msgstr "오바댜"
+
+#: bible\biblang.py:65
+msgid "Old Testament"
+msgstr "구약 전서"
+
+#: bible\biblang.py:121
+msgid "Phil"
+msgstr "빌"
+
+#: bible\biblang.py:128
+msgid "Philem"
+msgstr "몬"
+
+#: bible\biblang.py:128
+msgid "Philemon"
+msgstr "빌레몬"
+
+#: bible\biblang.py:121
+msgid "Philippians"
+msgstr "빌립보서"
+
+#: bible\biblang.py:90
+msgid "Prov"
+msgstr "잠"
+
+#: bible\biblang.py:90
+msgid "Proverbs"
+msgstr "잠언"
+
+#: bible\biblang.py:89
+msgid "Ps"
+msgstr "시"
+
+#: bible\biblang.py:89
+msgid "Psalms"
+msgstr "시편"
+
+#: bible\biblang.py:137
+msgid "Rev"
+msgstr "계"
+
+#: bible\biblang.py:137
+msgid "Revelation of John"
+msgstr "요한계시록"
+
+#: bible\biblang.py:116
+msgid "Rom"
+msgstr "롬"
+
+#: bible\biblang.py:116
+msgid "Romans"
+msgstr "로마서"
+
+#: bible\biblang.py:78
+msgid "Ruth"
+msgstr "룻기"
+
+#: bible\biblang.py:78
+msgctxt "short_name"
+msgid "Ruth"
+msgstr "룻"
+
+#: bible\biblang.py:92
+msgid "Song"
+msgstr "아"
+
+#: bible\biblang.py:92
+msgid "Song of Solomon"
+msgstr "아가서"
+
+#: bible\biblang.py:127
+msgid "Titus"
+msgstr "디도서"
+
+#: bible\biblang.py:127
+msgctxt "short_name"
+msgid "Titus"
+msgstr "딛"
+
+#: bible\biblang.py:108
+msgid "Zech"
+msgstr "슥"
+
+#: bible\biblang.py:108
+msgid "Zechariah"
+msgstr "스가랴"
+
+#: bible\biblang.py:106
+msgid "Zeph"
+msgstr "습"
+
+#: bible\biblang.py:106
+msgid "Zephaniah"
+msgstr "스바냐"
+
+#: bible\biblang.py:67
+#, python-brace-format
+msgid "{book} {chapter}"
+msgstr "{book} {chapter}장"

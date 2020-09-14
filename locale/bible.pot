@@ -1,0 +1,581 @@
+# SOME DESCRIPTIVE TITLE.
+# Copyright (C) YEAR THE PACKAGE'S COPYRIGHT HOLDER
+# This file is distributed under the same license as the PACKAGE package.
+# FIRST AUTHOR <EMAIL@ADDRESS>, YEAR.
+#
+#, fuzzy
+msgid ""
+msgstr ""
+"Project-Id-Version: PACKAGE VERSION\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2020-08-02 16:31-0700\n"
+"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
+"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
+"Language-Team: LANGUAGE <LL@li.org>\n"
+"Language: \n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=CHARSET\n"
+"Content-Transfer-Encoding: 8bit\n"
+
+#: bible\biblang.py:65
+msgid "Old Testament"
+msgstr ""
+
+#: bible\biblang.py:65
+msgid "New Testament"
+msgstr ""
+
+#: bible\biblang.py:66
+msgid "(.*?) ?(\\d+):(\\d+)(-(\\d+))?"
+msgstr ""
+
+#: bible\biblang.py:67
+#, python-brace-format
+msgid "{book} {chapter}"
+msgstr ""
+
+#: bible\biblang.py:71
+msgid "Genesis"
+msgstr ""
+
+#: bible\biblang.py:71
+msgid "Gen"
+msgstr ""
+
+#: bible\biblang.py:72
+msgid "Exodus"
+msgstr ""
+
+#: bible\biblang.py:72
+msgid "Ex"
+msgstr ""
+
+#: bible\biblang.py:73
+msgid "Leviticus"
+msgstr ""
+
+#: bible\biblang.py:73
+msgid "Lev"
+msgstr ""
+
+#: bible\biblang.py:74
+msgid "Numbers"
+msgstr ""
+
+#: bible\biblang.py:74
+msgid "Num"
+msgstr ""
+
+#: bible\biblang.py:75
+msgid "Deuteronomy"
+msgstr ""
+
+#: bible\biblang.py:75
+msgid "Deut"
+msgstr ""
+
+#: bible\biblang.py:76
+msgid "Joshua"
+msgstr ""
+
+#: bible\biblang.py:76
+msgid "Josh"
+msgstr ""
+
+#: bible\biblang.py:77
+msgid "Judges"
+msgstr ""
+
+#: bible\biblang.py:77
+msgid "Judg"
+msgstr ""
+
+#: bible\biblang.py:78
+msgid "Ruth"
+msgstr ""
+
+#: bible\biblang.py:78
+msgctxt "short_name"
+msgid "Ruth"
+msgstr ""
+
+#: bible\biblang.py:79
+msgid "1 Samuel"
+msgstr ""
+
+#: bible\biblang.py:79
+msgid "1 Sam"
+msgstr ""
+
+#: bible\biblang.py:80
+msgid "2 Samuel"
+msgstr ""
+
+#: bible\biblang.py:80
+msgid "2 Sam"
+msgstr ""
+
+#: bible\biblang.py:81
+msgid "1 Kings"
+msgstr ""
+
+#: bible\biblang.py:81
+msgctxt "short_name"
+msgid "1 Kings"
+msgstr ""
+
+#: bible\biblang.py:82
+msgid "2 Kings"
+msgstr ""
+
+#: bible\biblang.py:82
+msgctxt "short_name"
+msgid "2 Kings"
+msgstr ""
+
+#: bible\biblang.py:83
+msgid "1 Chronicles"
+msgstr ""
+
+#: bible\biblang.py:83
+msgid "1 Chron"
+msgstr ""
+
+#: bible\biblang.py:84
+msgid "2 Chronicles"
+msgstr ""
+
+#: bible\biblang.py:84
+msgid "2 Chron"
+msgstr ""
+
+#: bible\biblang.py:85
+msgid "Ezra"
+msgstr ""
+
+#: bible\biblang.py:85
+msgctxt "short_name"
+msgid "Ezra"
+msgstr ""
+
+#: bible\biblang.py:86
+msgid "Nehemiah"
+msgstr ""
+
+#: bible\biblang.py:86
+msgid "Neh"
+msgstr ""
+
+#: bible\biblang.py:87
+msgid "Esther"
+msgstr ""
+
+#: bible\biblang.py:87
+msgid "Est"
+msgstr ""
+
+#: bible\biblang.py:88
+msgid "Job"
+msgstr ""
+
+#: bible\biblang.py:88
+msgctxt "short_name"
+msgid "Job"
+msgstr ""
+
+#: bible\biblang.py:89
+msgid "Psalms"
+msgstr ""
+
+#: bible\biblang.py:89
+msgid "Ps"
+msgstr ""
+
+#: bible\biblang.py:90
+msgid "Proverbs"
+msgstr ""
+
+#: bible\biblang.py:90
+msgid "Prov"
+msgstr ""
+
+#: bible\biblang.py:91
+msgid "Ecclesiastes"
+msgstr ""
+
+#: bible\biblang.py:91
+msgid "Eccles"
+msgstr ""
+
+#: bible\biblang.py:92
+msgid "Song of Solomon"
+msgstr ""
+
+#: bible\biblang.py:92
+msgid "Song"
+msgstr ""
+
+#: bible\biblang.py:93
+msgid "Isaiah"
+msgstr ""
+
+#: bible\biblang.py:93
+msgid "Isa"
+msgstr ""
+
+#: bible\biblang.py:94
+msgid "Jeremiah"
+msgstr ""
+
+#: bible\biblang.py:94
+msgid "Jer"
+msgstr ""
+
+#: bible\biblang.py:95
+msgid "Lamentations"
+msgstr ""
+
+#: bible\biblang.py:95
+msgid "Lam"
+msgstr ""
+
+#: bible\biblang.py:96
+msgid "Ezekiel"
+msgstr ""
+
+#: bible\biblang.py:96
+msgid "Ezek"
+msgstr ""
+
+#: bible\biblang.py:97
+msgid "Daniel"
+msgstr ""
+
+#: bible\biblang.py:97
+msgid "Dan"
+msgstr ""
+
+#: bible\biblang.py:98
+msgid "Hosea"
+msgstr ""
+
+#: bible\biblang.py:98
+msgid "Hos"
+msgstr ""
+
+#: bible\biblang.py:99
+msgid "Joel"
+msgstr ""
+
+#: bible\biblang.py:99
+msgctxt "short_name"
+msgid "Joel"
+msgstr ""
+
+#: bible\biblang.py:100
+msgid "Amos"
+msgstr ""
+
+#: bible\biblang.py:100
+msgctxt "short_name"
+msgid "Amos"
+msgstr ""
+
+#: bible\biblang.py:101
+msgid "Obadiah"
+msgstr ""
+
+#: bible\biblang.py:101
+msgid "Obad"
+msgstr ""
+
+#: bible\biblang.py:102
+msgid "Jonah"
+msgstr ""
+
+#: bible\biblang.py:102
+msgctxt "short_name"
+msgid "Jonah"
+msgstr ""
+
+#: bible\biblang.py:103
+msgid "Micah"
+msgstr ""
+
+#: bible\biblang.py:103
+msgid "Mic"
+msgstr ""
+
+#: bible\biblang.py:104
+msgid "Nahum"
+msgstr ""
+
+#: bible\biblang.py:104
+msgid "Nah"
+msgstr ""
+
+#: bible\biblang.py:105
+msgid "Habakkuk"
+msgstr ""
+
+#: bible\biblang.py:105
+msgid "Hab"
+msgstr ""
+
+#: bible\biblang.py:106
+msgid "Zephaniah"
+msgstr ""
+
+#: bible\biblang.py:106
+msgid "Zeph"
+msgstr ""
+
+#: bible\biblang.py:107
+msgid "Haggai"
+msgstr ""
+
+#: bible\biblang.py:107
+msgid "Hag"
+msgstr ""
+
+#: bible\biblang.py:108
+msgid "Zechariah"
+msgstr ""
+
+#: bible\biblang.py:108
+msgid "Zech"
+msgstr ""
+
+#: bible\biblang.py:109
+msgid "Malachi"
+msgstr ""
+
+#: bible\biblang.py:109
+msgid "Mal"
+msgstr ""
+
+#: bible\biblang.py:111
+msgid "Matthew"
+msgstr ""
+
+#: bible\biblang.py:111
+msgid "Matt"
+msgstr ""
+
+#: bible\biblang.py:112
+msgid "Mark"
+msgstr ""
+
+#: bible\biblang.py:112
+msgctxt "short_name"
+msgid "Mark"
+msgstr ""
+
+#: bible\biblang.py:113
+msgid "Luke"
+msgstr ""
+
+#: bible\biblang.py:113
+msgctxt "short_name"
+msgid "Luke"
+msgstr ""
+
+#: bible\biblang.py:114
+msgid "John"
+msgstr ""
+
+#: bible\biblang.py:114
+msgctxt "short_name"
+msgid "John"
+msgstr ""
+
+#: bible\biblang.py:115
+msgid "Acts"
+msgstr ""
+
+#: bible\biblang.py:115
+msgctxt "short_name"
+msgid "Acts"
+msgstr ""
+
+#: bible\biblang.py:116
+msgid "Romans"
+msgstr ""
+
+#: bible\biblang.py:116
+msgid "Rom"
+msgstr ""
+
+#: bible\biblang.py:117
+msgid "1 Corinthians"
+msgstr ""
+
+#: bible\biblang.py:117
+msgid "1 Cor"
+msgstr ""
+
+#: bible\biblang.py:118
+msgid "2 Corinthians"
+msgstr ""
+
+#: bible\biblang.py:118
+msgid "2 Cor"
+msgstr ""
+
+#: bible\biblang.py:119
+msgid "Galatians"
+msgstr ""
+
+#: bible\biblang.py:119
+msgid "Gal"
+msgstr ""
+
+#: bible\biblang.py:120
+msgid "Ephesians"
+msgstr ""
+
+#: bible\biblang.py:120
+msgid "Eph"
+msgstr ""
+
+#: bible\biblang.py:121
+msgid "Philippians"
+msgstr ""
+
+#: bible\biblang.py:121
+msgid "Phil"
+msgstr ""
+
+#: bible\biblang.py:122
+msgid "Colossians"
+msgstr ""
+
+#: bible\biblang.py:122
+msgid "Col"
+msgstr ""
+
+#: bible\biblang.py:123
+msgid "1 Thessalonians"
+msgstr ""
+
+#: bible\biblang.py:123
+msgid "1 Thess"
+msgstr ""
+
+#: bible\biblang.py:124
+msgid "2 Thessalonians"
+msgstr ""
+
+#: bible\biblang.py:124
+msgid "2 Thess"
+msgstr ""
+
+#: bible\biblang.py:125
+msgid "1 Timothy"
+msgstr ""
+
+#: bible\biblang.py:125
+msgid "1 Tim"
+msgstr ""
+
+#: bible\biblang.py:126
+msgid "2 Timothy"
+msgstr ""
+
+#: bible\biblang.py:126
+msgid "2 Tim"
+msgstr ""
+
+#: bible\biblang.py:127
+msgid "Titus"
+msgstr ""
+
+#: bible\biblang.py:127
+msgctxt "short_name"
+msgid "Titus"
+msgstr ""
+
+#: bible\biblang.py:128
+msgid "Philemon"
+msgstr ""
+
+#: bible\biblang.py:128
+msgid "Philem"
+msgstr ""
+
+#: bible\biblang.py:129
+msgid "Hebrews"
+msgstr ""
+
+#: bible\biblang.py:129
+msgid "Heb"
+msgstr ""
+
+#: bible\biblang.py:130
+msgid "James"
+msgstr ""
+
+#: bible\biblang.py:130
+msgctxt "short_name"
+msgid "James"
+msgstr ""
+
+#: bible\biblang.py:131
+msgid "1 Peter"
+msgstr ""
+
+#: bible\biblang.py:131
+msgid "1 Pet"
+msgstr ""
+
+#: bible\biblang.py:132
+msgid "2 Peter"
+msgstr ""
+
+#: bible\biblang.py:132
+msgid "2 Pet"
+msgstr ""
+
+#: bible\biblang.py:133
+msgid "1 John"
+msgstr ""
+
+#: bible\biblang.py:133
+msgctxt "short_name"
+msgid "1 John"
+msgstr ""
+
+#: bible\biblang.py:134
+msgid "2 John"
+msgstr ""
+
+#: bible\biblang.py:134
+msgctxt "short_name"
+msgid "2 John"
+msgstr ""
+
+#: bible\biblang.py:135
+msgid "3 John"
+msgstr ""
+
+#: bible\biblang.py:135
+msgctxt "short_name"
+msgid "3 John"
+msgstr ""
+
+#: bible\biblang.py:136
+msgid "Jude"
+msgstr ""
+
+#: bible\biblang.py:136
+msgctxt "short_name"
+msgid "Jude"
+msgstr ""
+
+#: bible\biblang.py:137
+msgid "Revelation of John"
+msgstr ""
+
+#: bible\biblang.py:137
+msgid "Rev"
+msgstr ""
