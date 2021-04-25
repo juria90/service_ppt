@@ -110,7 +110,8 @@ class MyBibleReader:
                 if len(book_names) >= 2:
                     book.short_name = book_names[1]
                 else:
-                    book.short_name = biblang.L18N.get_short_book_name(b, lang=lang)
+                    book.short_name = biblang.L18N.get_short_book_name(
+                        b, lang=lang)
 
                 bible.books.append(book)
 
@@ -118,7 +119,8 @@ class MyBibleReader:
                     self.read_book(book, b)
 
         bible.ensure_loaded(bible.books[0])
-        bible.lang = biblang.detect_language(bible.books[0].chapters[0].verses[0].text)
+        bible.lang = biblang.detect_language(
+            bible.books[0].chapters[0].verses[0].text)
 
         return bible
 
@@ -146,14 +148,14 @@ class MyBibleReader:
             v1 = None
             no = None
             text = None
-            m = re.match(r'^(\d+)(:\d+)?(.*)', line)
+            m = re.match(r'^(\d+)(\-\d+)?(.*)', line)
             if m:
                 v1 = m.group(1)
                 v2 = None
                 no = v1
                 if m.group(2):
                     v2 = m.group(2)[1:]
-                    no = v1 + ':' + v2
+                    no = v1 + '-' + v2
                 text = m.group(3).strip()
             else:
                 text = line
@@ -256,7 +258,8 @@ class MyBibleFormat(FileFormat):
     def _get_root_dir(self):
         dirname = self.get_option('ROOT_DIR')
         if not dirname:
-            dirname = os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', '..', 'Bible.text')
+            dirname = os.path.join(os.path.dirname(
+                os.path.abspath(__file__)), '..', '..', 'Bible.text')
 
         dirname = os.path.normpath(dirname)
 

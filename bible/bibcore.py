@@ -66,10 +66,17 @@ class Verse:
             if isinstance(self.no, int):
                 self._number1 = self.no
             elif isinstance(self.no, str):
-                index = self.no.find(':')
+                index = self.no.find('-')
+                if index == -1:
+                    index = self.no.find(':')
+
                 if index != -1:
                     self._number1 = int(self.no[:index])
                     self._number2 = int(self.no[index+1:])
+
+                    # normalize concatenated multiline verse.
+                    if self.no[index] == ':':
+                        self.no = self.no[:index] + '-' + self.no[index+1:]
                 else:
                     self._number1 = int(self.no)
 
