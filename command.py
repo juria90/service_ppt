@@ -11,11 +11,13 @@ import traceback
 
 from PIL import ImageColor
 
-sys.path.append(os.path.join(os.path.dirname(os.path.abspath(__file__)), 'bible'))
-sys.path.append(os.path.join(os.path.dirname(os.path.abspath(__file__)), 'hymn'))
-from bible import fileformat as bibfileformat
-from bible import biblang
+sys.path.append(os.path.join(os.path.dirname(
+    os.path.abspath(__file__)), 'bible'))
+sys.path.append(os.path.join(os.path.dirname(
+    os.path.abspath(__file__)), 'hymn'))
 
+from bible import biblang
+from bible import fileformat as bibfileformat
 from hymn.openlyrics import OpenLyricsReader
 
 if sys.platform.startswith('win32'):
@@ -25,9 +27,10 @@ else:
 
 from make_transparent import color_to_transparent
 
+def _(s): return s
 
-_ = lambda s: s
-ngettext = lambda s1, s2, c: s1 if c == 1 else s2
+def ngettext(s1, s2, c): return s1 if c == 1 else s2
+
 
 Export_None = 0
 Export_CleanupFiles = 1
@@ -210,22 +213,28 @@ class OpenFile(Command):
 
             prs = cm.powerpoint.new_presentation()
         else:
-            cm.progress_message(0, _('Opening a template presentation file \'{filename}\'.').format(filename=self.filename))
+            cm.progress_message(0, _('Opening a template presentation file \'{filename}\'.').format(
+                filename=self.filename))
 
             if not os.path.exists(self.filename):
-                cm.error_message(_('Cannot open a template presentation file \'{filename}\'.').format(filename=self.filename))
-                raise FileNotFoundError(errno.ENOENT, os.strerror(errno.ENOENT), self.filename)
+                cm.error_message(_('Cannot open a template presentation file \'{filename}\'.').format(
+                    filename=self.filename))
+                raise FileNotFoundError(
+                    errno.ENOENT, os.strerror(errno.ENOENT), self.filename)
 
             prs = cm.powerpoint.open_presentation(self.filename)
 
         cm.set_presentation(prs)
 
         if self.notes_filename:
-            cm.progress_message(90, _('Opening a template notes file \'{filename}\'.').format(filename=self.notes_filename))
+            cm.progress_message(90, _('Opening a template notes file \'{filename}\'.').format(
+                filename=self.notes_filename))
 
             if not os.path.exists(self.notes_filename):
-                cm.error_message(_('Cannot open a template notes file \'{filename}\'.').format(filename=self.notes_filename))
-                raise FileNotFoundError(errno.ENOENT, os.strerror(errno.ENOENT), self.notes_filename)
+                cm.error_message(_('Cannot open a template notes file \'{filename}\'.').format(
+                    filename=self.notes_filename))
+                raise FileNotFoundError(errno.ENOENT, os.strerror(
+                    errno.ENOENT), self.notes_filename)
 
             notes = ''
             with open(self.notes_filename, 'rt', encoding='utf-8') as f:
@@ -245,21 +254,25 @@ class SaveFiles(Command):
         self.verses_filename = verses_filename
 
     def execute(self, cm, prs):
-        cm.progress_message(0, _('Saving the presentation to the file \'{filename}\'.').format(filename=self.filename))
+        cm.progress_message(0, _('Saving the presentation to the file \'{filename}\'.').format(
+            filename=self.filename))
         prs.saveas(self.filename)
 
         if self.notes_filename:
-            cm.progress_message(90, _('Saving the notes to the file \'{filename}\'.').format(filename=self.notes_filename))
+            cm.progress_message(90, _('Saving the notes to the file \'{filename}\'.').format(
+                filename=self.notes_filename))
 
             try:
                 notes = cm.get_notes()
                 with open(self.notes_filename, 'wt', encoding='utf-8') as f:
                     f.write(notes)
             except FileNotFoundError:
-                cm.error_message(_('Cannot save the notes file \'{filename}\'.').format(filename=self.notes_filename))
+                cm.error_message(_('Cannot save the notes file \'{filename}\'.').format(
+                    filename=self.notes_filename))
 
         if self.verses_filename:
-            cm.progress_message(95, _('Saving Bible verses to file \'{filename}\'.').format(filename=self.verses_filename))
+            cm.progress_message(95, _('Saving Bible verses to file \'{filename}\'.').format(
+                filename=self.verses_filename))
 
             main_verses = cm.bible_verse.main_verses
             verses_text = cm.bible_verse._verses_text
@@ -272,7 +285,8 @@ class SaveFiles(Command):
                     for v in verses_text:
                         print(f'{v.no} {v.text}', file=f)
             except FileNotFoundError:
-                cm.error_message(_('Cannot save bible verses to the file \'{filename}\'.').format(filename=self.verses_filename))
+                cm.error_message(_('Cannot save bible verses to the file \'{filename}\'.').format(
+                    filename=self.verses_filename))
 
 
 class InsertSlides(Command):
@@ -299,12 +313,14 @@ class InsertSlides(Command):
 
         separator_slides = None
         if self.separator_slides:
-            separator_slides = evaluate_to_multiple_slide(prs, self.separator_slides)
+            separator_slides = evaluate_to_multiple_slide(
+                prs, self.separator_slides)
             separator_slides = prs.slide_index_to_ID(separator_slides)
 
         for i, filename in enumerate(self.filelist):
             percent = 100 * i / file_count
-            cm.progress_message(percent, _('Inserting slides from file \'{filename}\'.').format(filename=filename))
+            cm.progress_message(percent, _(
+                'Inserting slides from file \'{filename}\'.').format(filename=filename))
 
             added_count = prs.insert_file_slides(insert_location, filename)
             insert_location = insert_location + added_count
@@ -312,7 +328,8 @@ class InsertSlides(Command):
             # Add separator except last file.
             if separator_slides and i+1 < len(self.filelist):
                 separator_slides2 = prs.slide_ID_to_index(separator_slides)
-                added_count = prs.duplicate_slides(separator_slides2, insert_location + 1)
+                added_count = prs.duplicate_slides(
+                    separator_slides2, insert_location + 1)
                 insert_location = insert_location + added_count
 
 
@@ -367,14 +384,16 @@ class InsertLyrics(Command):
                         fn = base + '.ppt'
                 filelist.append(fn)
         elif filetype == self.INSERT_LYRIC_TEXT:
-            filelist = [os.path.splitext(fn)[0] + '.xml' for fn in self.filelist]
+            filelist = [os.path.splitext(
+                fn)[0] + '.xml' for fn in self.filelist]
 
         return filelist
 
     def execute(self, cm, prs):
         if (self.flags & self.INSERT_LYRIC_SLIDE):
             lyric_filelist = self.get_filelist(self.INSERT_LYRIC_SLIDE)
-            slides = InsertSlides(self.slide_insert_location, self.slide_separator_slides, lyric_filelist)
+            slides = InsertSlides(self.slide_insert_location,
+                                  self.slide_separator_slides, lyric_filelist)
             slides.execute(cm, prs)
             del slides
 
@@ -388,33 +407,40 @@ class InsertLyrics(Command):
                                  'Inserting lyrics from {file_count} files.', file_count)
         cm.progress_message(0, insert_format.format(file_count=file_count))
 
-        lyric_insert_location = evaluate_to_single_slide(prs, self.lyric_insert_location)
+        lyric_insert_location = evaluate_to_single_slide(
+            prs, self.lyric_insert_location)
         if lyric_insert_location is None:
-            cm.progress_message(0, _('No repeatable slides are found. Aborting the command.'))
+            cm.progress_message(
+                0, _('No repeatable slides are found. Aborting the command.'))
             return
 
         lyric_separator_slides = None
         separator_slide_count = 0
         if self.lyric_separator_slides:
-            lyric_separator_slides = evaluate_to_multiple_slide(prs, self.lyric_separator_slides)
-            lyric_separator_slides = prs.slide_index_to_ID(lyric_separator_slides)
+            lyric_separator_slides = evaluate_to_multiple_slide(
+                prs, self.lyric_separator_slides)
+            lyric_separator_slides = prs.slide_index_to_ID(
+                lyric_separator_slides)
             if isinstance(lyric_separator_slides, list):
                 separator_slide_count = len(lyric_separator_slides)
 
         songs = cm.read_songs(filelist)
 
         # Because the original slides are updated with song, duplicate slides first.
-        self.duplicate_slides(prs, lyric_insert_location, lyric_separator_slides, separator_slide_count, songs)
+        self.duplicate_slides(prs, lyric_insert_location,
+                              lyric_separator_slides, separator_slide_count, songs)
 
         last_index = len(songs) - 1
         for i, song in enumerate(songs):
             percent = 100 * i / file_count
-            cm.progress_message(percent, _('Inserting lyric from \'{filename}\'.').format(filename=filelist[i]))
+            cm.progress_message(percent, _(
+                'Inserting lyric from \'{filename}\'.').format(filename=filelist[i]))
 
             lines = list(song.get_lines_by_order())
             for j, l in enumerate(lines):
                 text_dict = {self.lyric_pattern: l}
-                prs.replace_one_slide_texts(lyric_insert_location + j, text_dict)
+                prs.replace_one_slide_texts(
+                    lyric_insert_location + j, text_dict)
 
             added_count = len(lines)
             lyric_insert_location = lyric_insert_location + added_count
@@ -437,13 +463,16 @@ class InsertLyrics(Command):
             else:
                 duplicate_count = len(lines)
 
-            added_count = prs.duplicate_slides(source_location, lyric_insert_location, duplicate_count)
+            added_count = prs.duplicate_slides(
+                source_location, lyric_insert_location, duplicate_count)
             lyric_insert_location = lyric_insert_location + added_count
 
             # Add separator except th first lyric.
             if separator_slide_count != 0 and i < last_index:
-                separator_slide_indices = prs.slide_ID_to_index(lyric_separator_slides)
-                added_count = prs.duplicate_slides(separator_slide_indices, lyric_insert_location, separator_slide_count)
+                separator_slide_indices = prs.slide_ID_to_index(
+                    lyric_separator_slides)
+                added_count = prs.duplicate_slides(
+                    separator_slide_indices, lyric_insert_location, separator_slide_count)
                 lyric_insert_location = lyric_insert_location + added_count
 
 
@@ -514,9 +543,11 @@ class DuplicateWithText(Command):
             total_slide_count = len(self.replace_texts)
 
             duplicate_count = (total_slide_count - template_slide_count)
-            duplicate_count = int(math.ceil(float(duplicate_count)/repeatable_slide_count))
+            duplicate_count = int(
+                math.ceil(float(duplicate_count)/repeatable_slide_count))
             source_index = list(range(repeat_range[0], repeat_range[1]+1))
-            _slides = prs.duplicate_slides(source_index, repeat_range[0], duplicate_count)
+            _slides = prs.duplicate_slides(
+                source_index, repeat_range[0], duplicate_count)
 
             for i, text in enumerate(self.replace_texts):
                 percent = 100 * i / total_slide_count
@@ -551,7 +582,8 @@ class GenerateBibleVerse(Command):
         '''
         super().__init__()
 
-        assert isinstance(verse_patterns, list) and len(verse_patterns) == (self.INDEX_VERSE_TEXT_PATTERN + 1)
+        assert isinstance(verse_patterns, list) and len(
+            verse_patterns) == (self.INDEX_VERSE_TEXT_PATTERN + 1)
 
         self.bible_format = bible_format
         self.bible_version = bible_version
@@ -565,18 +597,21 @@ class GenerateBibleVerse(Command):
     def populate_verses(self, fmt=None):
         self._verses_text = []
 
-        bible = bibfileformat.read_version(self.bible_format, self.bible_version)
+        bible = bibfileformat.read_version(
+            self.bible_format, self.bible_version)
         if bible is None:
             return
 
         fmt1 = None
-        fmt2 = '%b %c:%v'
+        fmt2 = None # '%b %c:%v'
         if fmt and isinstance(fmt, list) and len(fmt) == 2:
             fmt1 = fmt[0]
             fmt2 = fmt[1]
 
-        all_verses_text = self.populate_one_verses(bible, self.main_verses, fmt1)
-        all_verses_text = all_verses_text + self.populate_one_verses(bible, self.additional_verses, fmt2)
+        all_verses_text = self.populate_one_verses(
+            bible, self.main_verses, fmt1)
+        all_verses_text = all_verses_text + \
+            self.populate_one_verses(bible, self.additional_verses, fmt2)
 
         self._verses_text = all_verses_text
 
@@ -613,7 +648,8 @@ class GenerateBibleVerse(Command):
 
         cm.set_bible_verse(self)
 
-        text_dict = {self.verse_patterns[self.INDEX_TITLE_PATTERN]: self.main_verses}
+        text_dict = {
+            self.verse_patterns[self.INDEX_TITLE_PATTERN]: self.main_verses}
         prs.replace_all_slides_texts(text_dict)
 
         repeat_range = evaluate_to_multiple_slide(prs, self.repeat_range)
@@ -623,15 +659,18 @@ class GenerateBibleVerse(Command):
         if repeat_count > 0:
             duplicate_format = ngettext('Duplicating {repeat_count} slide for Bible Verse.',
                                         'Duplicating {repeat_count} slides for Bible Verse.', repeat_count)
-            cm.progress_message(0, duplicate_format.format(repeat_count=repeat_count))
+            cm.progress_message(0, duplicate_format.format(
+                repeat_count=repeat_count))
 
         repeat_count = len(repeat_range)
         for i, sid in enumerate(repeat_range):
             percent = 100 * i / repeat_count
-            cm.progress_message(percent, _('Duplicating slides and replacing texts.'))
+            cm.progress_message(percent, _(
+                'Duplicating slides and replacing texts.'))
 
             index = prs.slide_ID_to_index(sid)
-            _slides = prs.duplicate_slides(index, index, len(self._verses_text)-1)
+            _slides = prs.duplicate_slides(
+                index, index, len(self._verses_text)-1)
 
             for i, v in enumerate(self._verses_text):
                 text_dict = self.get_verse_dict(v)
@@ -640,21 +679,23 @@ class GenerateBibleVerse(Command):
     def execute_on_notes(self, cm):
         if cm.notes:
             notes = cm.notes
-            text_dict = {self.verse_patterns[self.INDEX_TITLE_PATTERN]: self.main_verses}
+            text_dict = {
+                self.verse_patterns[self.INDEX_TITLE_PATTERN]: self.main_verses}
             _, notes = replace_all_notes_text(notes, text_dict)
 
             # check whether we need to duplicate the line by self.verse_patterns[INDEX_VERSE_NO_PATTERN] or self.verse_patterns[INDEX_VERSE_TEXT_PATTERN] exists.
             if self.verse_patterns[self.INDEX_VERSE_NO_PATTERN] in notes or self.verse_patterns[self.INDEX_VERSE_TEXT_PATTERN] in notes:
                 lines = notes.split('\n')
                 repeat_range = [i for i, l in enumerate(lines) if self.verse_patterns[self.INDEX_VERSE_NO_PATTERN] in l or
-                                                                  self.verse_patterns[self.INDEX_VERSE_TEXT_PATTERN] in l]
+                                self.verse_patterns[self.INDEX_VERSE_TEXT_PATTERN] in l]
                 for index in reversed(repeat_range):
                     for _ in range(len(self._verses_text)-1):
                         lines.insert(index, lines[index])
 
                     for i, v in enumerate(self._verses_text):
                         text_dict = self.get_verse_dict(v)
-                        _, lines[index+i] = replace_all_notes_text(lines[index+i], text_dict)
+                        _, lines[index +
+                                 i] = replace_all_notes_text(lines[index+i], text_dict)
 
                 notes = '\n'.join(lines)
 
@@ -665,9 +706,11 @@ class GenerateBibleVerse(Command):
         if self.verse_patterns[self.INDEX_BOOK_PATTERN]:
             text_dict[self.verse_patterns[self.INDEX_BOOK_PATTERN]] = v.book.name
         if self.verse_patterns[self.INDEX_SHORT_BOOK_PATTERN] and v.book.short_name:
-            text_dict[self.verse_patterns[self.INDEX_SHORT_BOOK_PATTERN]] = v.book.short_name
+            text_dict[self.verse_patterns[self.INDEX_SHORT_BOOK_PATTERN]
+                      ] = v.book.short_name
         if self.verse_patterns[self.INDEX_CHAPTER_PATTERN]:
-            text_dict[self.verse_patterns[self.INDEX_CHAPTER_PATTERN]] = str(v.chapter.no)
+            text_dict[self.verse_patterns[self.INDEX_CHAPTER_PATTERN]] = str(
+                v.chapter.no)
         if self.verse_patterns[self.INDEX_VERSE_NO_PATTERN]:
             text_dict[self.verse_patterns[self.INDEX_VERSE_NO_PATTERN]] = v.no
         if self.verse_patterns[self.INDEX_VERSE_TEXT_PATTERN]:
@@ -762,7 +805,8 @@ class ExportSlides(Command):
         self.color = color
 
     def execute(self, cm, prs):
-        cm.progress_message(0, _('Exporting slide shapes as images to \'{dirname}\'.').format(dirname=self.out_dirname))
+        cm.progress_message(0, _('Exporting slide shapes as images to \'{dirname}\'.').format(
+            dirname=self.out_dirname))
 
         if self.flags & Export_CleanupFiles:
             rmtree_except_self(self.out_dirname)
@@ -819,7 +863,8 @@ class ExportShapes(Command):
         self.flags = flags
 
     def execute(self, cm, prs):
-        cm.progress_message(0, _('Exporting slide shapes as images to \'{dirname}\'.').format(dirname=self.out_dirname))
+        cm.progress_message(0, _('Exporting slide shapes as images to \'{dirname}\'.').format(
+            dirname=self.out_dirname))
 
         if self.flags & Export_CleanupFiles:
             rmtree_except_self(self.out_dirname)
@@ -828,7 +873,8 @@ class ExportShapes(Command):
         if slide_range is None:
             return
 
-        prs.export_slide_shapes_as(slide_range, self.out_dirname, self.image_type)
+        prs.export_slide_shapes_as(
+            slide_range, self.out_dirname, self.image_type)
 
 
 class CommandManager:
@@ -879,14 +925,17 @@ class CommandManager:
         songs = []
         for filename in filelist:
             if not os.path.exists(filename):
-                self.error_message(_('Cannot open a lyric file \'{filename}\'.').format(filename=filename))
-                raise FileNotFoundError(errno.ENOENT, os.strerror(errno.ENOENT), filename)
+                self.error_message(
+                    _('Cannot open a lyric file \'{filename}\'.').format(filename=filename))
+                raise FileNotFoundError(
+                    errno.ENOENT, os.strerror(errno.ENOENT), filename)
 
             try:
                 song = reader.read_song(filename)
                 songs.append(song)
             except Exception as e:
-                self.error_message(_('Cannot open a lyric file \'{filename}\'.').format(filename=filename))
+                self.error_message(
+                    _('Cannot open a lyric file \'{filename}\'.').format(filename=filename))
                 raise
 
         return songs
@@ -967,7 +1016,8 @@ class CommandManager:
                 traceback.print_exc()
                 self.error_message(str(e))
 
-        self.progress_message(100, _('Cleaning up after running all the commands.'))
+        self.progress_message(
+            100, _('Cleaning up after running all the commands.'))
         self.close()
 
         self.progress_message(100, _('Processing is done successfully.'))
