@@ -594,7 +594,7 @@ class DuplicateWithTextUI(PropertyGridUI):
         text = self.ui.GetPropertyValueAsString(self.REPLACE_TEXT)
         text = text.replace('\\n', '\n')
         lines = re.split(r'(\n){2}', text)
-        lines = [l for l in lines if l.strip()]
+        lines = [l.strip() for l in lines if l.strip()]
         self.command.replace_texts = self.set_modified(self.command.replace_texts, lines)
 
         return True
