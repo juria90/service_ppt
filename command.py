@@ -1,6 +1,8 @@
 '''
 '''
+import datetime
 import errno
+import locale
 import math
 import os
 import re
@@ -254,39 +256,42 @@ class SaveFiles(Command):
         self.verses_filename = verses_filename
 
     def execute(self, cm, prs):
+        filename = cm.process_variable_substitution(self.filename, False, False)
         cm.progress_message(0, _('Saving the presentation to the file \'{filename}\'.').format(
-            filename=self.filename))
-        prs.saveas(self.filename)
+            filename=filename))
+        prs.saveas(filename)
 
         if self.notes_filename:
+            notes_filename = cm.process_variable_substitution(self.notes_filename, False, False)
             cm.progress_message(90, _('Saving the notes to the file \'{filename}\'.').format(
-                filename=self.notes_filename))
+                filename=notes_filename))
 
             try:
                 notes = cm.get_notes()
-                with open(self.notes_filename, 'wt', encoding='utf-8') as f:
+                with open(notes_filename, 'wt', encoding='utf-8') as f:
                     f.write(notes)
             except FileNotFoundError:
                 cm.error_message(_('Cannot save the notes file \'{filename}\'.').format(
-                    filename=self.notes_filename))
+                    filename=notes_filename))
 
         if self.verses_filename:
+            verses_filename = cm.process_variable_substitution(self.verses_filename, False, False)
             cm.progress_message(95, _('Saving Bible verses to file \'{filename}\'.').format(
-                filename=self.verses_filename))
+                filename=verses_filename))
 
             main_verses = cm.bible_verse.main_verses
             verses_text = cm.bible_verse._verses_text
 
             # Save bible verse to text file.
             try:
-                with open(self.verses_filename, 'wt', encoding='utf-8') as f:
+                with open(verses_filename, 'wt', encoding='utf-8') as f:
                     f.write(biblang.UNICODE_BOM)
                     print(f'{main_verses}', file=f)
                     for v in verses_text:
                         print(f'{v.no} {v.text}', file=f)
             except FileNotFoundError:
                 cm.error_message(_('Cannot save bible verses to the file \'{filename}\'.').format(
-                    filename=self.verses_filename))
+                    filename=verses_filename))
 
 
 class InsertSlides(Command):
@@ -476,24 +481,141 @@ class InsertLyrics(Command):
                 lyric_insert_location = lyric_insert_location + added_count
 
 
-class FindReplaceText(Command):
-    def __init__(self, texts):
-        '''FindReplaceText finds all occurrence of find_text and replace it with replace_text,
-        which are (k, v) pair in dictionary texts.
+class FormatObj(object):
+    def __init__(self, format='', value=None):
+        # self.fobj_type = self.__class__.__name__
+        self.format = format  # class specific format string
+        self.value = value # class specific value object
+
+    def get_flattened_dict(self):
+        return {'format_type': self.__class__.__name__,
+                'value': self.value
+                }
+
+    @staticmethod
+    def build_format_pattern(varnames):
+        varname_pattern = ''
+        if isinstance(varnames, str) and str:
+            varname_pattern = r'\{(' + re.escape(varnames) + r')(:[^\}]+)?' + r'\}'
+        else:
+            try:
+                for var in varnames:
+                    if varname_pattern:
+                        varname_pattern = varname_pattern + '|'
+                    varname_pattern = varname_pattern + re.escape(var)
+            except TypeError as e:
+                print(varnames + ' is not iterable.')
+
+            if varname_pattern:
+                varname_pattern = r'\{(' + varname_pattern + r')(:[^\}]+)?' + r'\}'
+
+        return varname_pattern
+
+
+class BibleVerseFormat(FormatObj):
+    def __init__(self, format='', value=None):
+        super().__init__(format, value)
+
+        # self.format : '%B' : long book name, '%b': short book name, '%c': chapter.no, '%v': v.no, %t: verse text
+        # self.value : bible_core.Verse object
+
+    @staticmethod
+    def build_fr_dict(each_verse_name, slide_text, verse):
+        fr_dict = {}
+        if each_verse_name is None:
+            return fr_dict
+
+        varname_pattern = FormatObj.build_format_pattern(each_verse_name)
+        varname_re = re.compile(varname_pattern)
+
+        def process_format_var(var):
+            if isinstance(var, list):
+                for elem in var:
+                    process_format_var(elem)
+            elif isinstance(var, str):
+                for m in varname_re.finditer(var):
+                    format = m.group(2)
+                    if len(format):
+                        format = format[1:] # remove ':'
+                    key = '{' + m.group(1) + m.group(2) + '}'
+                    value = BibleVerseFormat.translate_verse(format, verse)
+                    if key not in fr_dict:
+                        fr_dict[key] = value
+
+        process_format_var(slide_text)
+
+        return fr_dict
+
+    @staticmethod
+    def translate_verse(format, verse):
+        s = format
+        s = s.replace('%B', verse.book.name)
+        s = s.replace('%b', verse.book.short_name)
+        s = s.replace('%c', str(verse.chapter.no))
+        s = s.replace('%v', str(verse.no))
+        s = s.replace('%t', verse.text)
+        return s
+
+
+class DateTimeFormat(FormatObj):
+    def __init__(self, format='', value=None):
+        super().__init__(format, value)
+
+        # self.format : https://docs.python.org/3/library/datetime.html#strftime-strptime-behavior
+
+        # self.value : https://docs.python.org/3/library/datetime.html#datetime.datetime
+
+    @staticmethod
+    def datetime_from_c_locale(str_value, format="%Y-%m-%d"):
+        saved = None
+        dt_value = None
+        try:
+            saved = locale.setlocale(locale.LC_ALL, 'C')
+            dt_value = datetime.datetime.strptime(str_value, format)
+        except:
+            if saved:
+                locale.setlocale(locale.LC_ALL, saved)
+
+        return dt_value
+
+    def build_replace_string(self, format):
+        # https://docs.python.org/3/library/datetime.html#strftime-and-strptime-format-codes
+
+        # If the format contains # btw % and alphabet, it will remove leading zero.
+        # Mimick the behavior mentioned in https://stackoverflow.com/questions/904928/python-strftime-date-without-leading-0
+        dt_value = DateTimeFormat.datetime_from_c_locale(self.value)
+        value = format
+        value = value.replace('%Y', str(dt_value.year).zfill(4))
+        value = value.replace('%y', str(dt_value.year % 100).zfill(2))
+        value = value.replace('%m', str(dt_value.month).zfill(2))
+        value = value.replace('%#m', str(dt_value.month))
+        value = value.replace('%d', str(dt_value.day).zfill(2))
+        value = value.replace('%#d', str(dt_value.day))
+        value = value.replace('%B', dt_value.strftime("%B"))
+        value = value.replace('%b', dt_value.strftime("%b"))
+        value = value.replace('%A', dt_value.strftime("%A"))
+        value = value.replace('%a', dt_value.strftime("%a"))
+        return value
+
+
+class SetVariables(Command):
+    def __init__(self, format_dict={}, str_dict={}):
+        '''SetVariables finds all occurrence of find_text and replace it with replace_text,
+        which are (k, v) pair in dictionary str_dict.
         '''
         super().__init__()
 
-        self.texts = texts
+        self.format_dict = format_dict
+        self.str_dict = str_dict
 
     def execute(self, cm, prs):
-        text_count = len(self.texts)
+        text_count = len(self.str_dict)
         replace_format = ngettext('Replacing {text_count} text.',
                                   'Replacing {text_count} texts.', text_count)
         cm.progress_message(0, replace_format.format(text_count=text_count))
 
-        prs.replace_all_slides_texts(self.texts)
-
-        _, cm.notes = replace_all_notes_text(cm.notes, self.texts)
+        cm.add_global_variables(self.str_dict, self.format_dict)
+        cm.process_variable_substitution()
 
 
 class DuplicateWithText(Command):
@@ -534,7 +656,7 @@ class DuplicateWithText(Command):
             if not (slide_range[0] <= repeat_range[0] and repeat_range[1] <= slide_range[1]):
                 return
 
-            # THe input template pptx contains slide_range[1] - slide_range[0] + 1 slides for the operation.
+            # The input template pptx contains slide_range[1] - slide_range[0] + 1 slides for the operation.
             # From that, repeat_range[1] - repeat_range[0] + 1 slides are repeatable and can be duplicated.
             # So, from texts, find out how many we need to duplicate and do the operation.
             # Then, replace texts to get the final slides.
@@ -558,64 +680,52 @@ class DuplicateWithText(Command):
 
 
 class GenerateBibleVerse(Command):
-    INDEX_TITLE_PATTERN = 0
-    INDEX_BOOK_PATTERN = 1
-    INDEX_SHORT_BOOK_PATTERN = 2
-    INDEX_CHAPTER_PATTERN = 3
-    INDEX_VERSE_NO_PATTERN = 4
-    INDEX_VERSE_TEXT_PATTERN = 5
 
-    def __init__(self, bible_format, bible_version, verse_patterns, main_verses, additional_verses, repeat_range):
-        '''GenerateBibleVerse is a two operations combined.
+    def __init__(self, bible_format, bible_version, main_verse_name, each_verse_name, main_verses, additional_verses, repeat_range):
+        '''GenerateBibleVerse is two operations combined.
 
-        1. It will replace all verse_patterns[0] to main_verses in all slides.
+        1. It will replace all main_verse_name to main_verses in all slides.
         2. verses_text will be populated from main_verses and additional_verses.
         Then, the repeat_range slides will be duplicated to match with len(verses_text) == repeated len(repeat_range)
-        and replace verse_patterns[1], verse_patterns[2] to pair (no, text) in verses_text.
+        and replace each_verse_name to pair (no, text) in verses_text with bible verse variable substitution.
 
         bible_format is one of supported bible file format: See also bible.fileformat.
         bible_version can be a valid Bible Version.
-        verse_patterns is a list containing main_verse_title_pattern, book_pattern, book_short_pattern, chapter_pattern, verse_no_pattern, verse_text_pattern.
+        main_verse_name is the variable name of the main bible verses.
+        each_verse_name is the variable name of each verse in the slides.
         main_verses is a comma separated main verse titles for the service.
         additional_verses is an additional comma separated verse titles for the service.
         repeat_range is a slide range mark to duplicate the slides.
         '''
         super().__init__()
 
-        assert isinstance(verse_patterns, list) and len(
-            verse_patterns) == (self.INDEX_VERSE_TEXT_PATTERN + 1)
-
         self.bible_format = bible_format
         self.bible_version = bible_version
+        self.main_verse_name = main_verse_name
+        self.each_verse_name = each_verse_name
         self.main_verses = main_verses
         self.additional_verses = additional_verses
-        self.verse_patterns = verse_patterns
         self.repeat_range = repeat_range
 
         self._verses_text = []
 
-    def populate_verses(self, fmt=None):
+    def populate_all_verses(self, fmt=None):
         self._verses_text = []
 
         bible = bibfileformat.read_version(
             self.bible_format, self.bible_version)
         if bible is None:
+            cm.error_message(_('Cannot find the Bible format={bible_format} and version={bible_version}.').
+                                format(bible_format=self.bible_format, bible_version=self.bible_version))
             return
 
-        fmt1 = None
-        fmt2 = None # '%b %c:%v'
-        if fmt and isinstance(fmt, list) and len(fmt) == 2:
-            fmt1 = fmt[0]
-            fmt2 = fmt[1]
-
-        all_verses_text = self.populate_one_verses(
-            bible, self.main_verses, fmt1)
+        all_verses_text = self.populate_verses(bible, self.main_verses)
         all_verses_text = all_verses_text + \
-            self.populate_one_verses(bible, self.additional_verses, fmt2)
+            self.populate_verses(bible, self.additional_verses)
 
         self._verses_text = all_verses_text
 
-    def populate_one_verses(self, bible, verses, fmt=None):
+    def populate_verses(self, bible, verses):
         all_verses_text = []
         if verses is not None:
             splitted_verses = verses.split(',')
@@ -624,14 +734,11 @@ class GenerateBibleVerse(Command):
                 if not verse:
                     continue
 
-                book, chapter, verses_text = bible.extract_texts(verse)
-                if fmt:
-                    bc_fmt = fmt.replace('%B', book.name)
-                    bc_fmt = bc_fmt.replace('%b', book.short_name)
-                    bc_fmt = bc_fmt.replace('%c', str(chapter.no))
-                    for v in verses_text:
-                        new_fmt = bc_fmt.replace('%v', str(v.no))
-                        v.no = new_fmt
+                verses_text = bible.extract_texts(verse)
+                if verses_text is None:
+                    cm.error_message(_('Cannot find the Bible verse={verse}.').
+                                        format(verse=verse))
+                    continue
 
                 all_verses_text = all_verses_text + verses_text
 
@@ -644,13 +751,13 @@ class GenerateBibleVerse(Command):
     def execute_on_slides(self, cm, prs):
         cm.progress_message(0, _('Processing Bible Verse.'))
 
-        self.populate_verses()
+        self.populate_all_verses()
 
         cm.set_bible_verse(self)
 
-        text_dict = {
-            self.verse_patterns[self.INDEX_TITLE_PATTERN]: self.main_verses}
-        prs.replace_all_slides_texts(text_dict)
+        text_dict = {self.main_verse_name: self.main_verses}
+        cm.add_global_variables(text_dict)
+        cm.process_variable_substitution()
 
         repeat_range = evaluate_to_multiple_slide(prs, self.repeat_range)
         repeat_range = prs.slide_index_to_ID(repeat_range)
@@ -673,56 +780,42 @@ class GenerateBibleVerse(Command):
                 index, index, len(self._verses_text)-1)
 
             for i, v in enumerate(self._verses_text):
-                text_dict = self.get_verse_dict(v)
+                slide_text = prs.get_text_in_slide(index + i, False)
+                text_dict = self.get_verse_dict(slide_text, v)
                 prs.replace_one_slide_texts(index + i, text_dict)
 
     def execute_on_notes(self, cm):
         if cm.notes:
             notes = cm.notes
-            text_dict = {
-                self.verse_patterns[self.INDEX_TITLE_PATTERN]: self.main_verses}
+            text_dict = {self.main_verse_name: self.main_verses}
             _, notes = replace_all_notes_text(notes, text_dict)
 
-            # check whether we need to duplicate the line by self.verse_patterns[INDEX_VERSE_NO_PATTERN] or self.verse_patterns[INDEX_VERSE_TEXT_PATTERN] exists.
-            if self.verse_patterns[self.INDEX_VERSE_NO_PATTERN] in notes or self.verse_patterns[self.INDEX_VERSE_TEXT_PATTERN] in notes:
+            # check whether we need to duplicate the line by checking self.each_verse_name exists.
+            if self.each_verse_name and self.each_verse_name in notes:
                 lines = notes.split('\n')
-                repeat_range = [i for i, l in enumerate(lines) if self.verse_patterns[self.INDEX_VERSE_NO_PATTERN] in l or
-                                self.verse_patterns[self.INDEX_VERSE_TEXT_PATTERN] in l]
+                repeat_range = [i for i, l in enumerate(lines) if self.each_verse_name in l]
                 for index in reversed(repeat_range):
                     for _ in range(len(self._verses_text)-1):
                         lines.insert(index, lines[index])
 
                     for i, v in enumerate(self._verses_text):
-                        text_dict = self.get_verse_dict(v)
-                        _, lines[index +
-                                 i] = replace_all_notes_text(lines[index+i], text_dict)
+                        text_dict = self.get_verse_dict(lines[index+i], v)
+                        _, lines[index + i] = replace_all_notes_text(lines[index+i], text_dict)
 
                 notes = '\n'.join(lines)
 
             cm.notes = notes
 
-    def get_verse_dict(self, v):
-        text_dict = {}
-        if self.verse_patterns[self.INDEX_BOOK_PATTERN]:
-            text_dict[self.verse_patterns[self.INDEX_BOOK_PATTERN]] = v.book.name
-        if self.verse_patterns[self.INDEX_SHORT_BOOK_PATTERN] and v.book.short_name:
-            text_dict[self.verse_patterns[self.INDEX_SHORT_BOOK_PATTERN]
-                      ] = v.book.short_name
-        if self.verse_patterns[self.INDEX_CHAPTER_PATTERN]:
-            text_dict[self.verse_patterns[self.INDEX_CHAPTER_PATTERN]] = str(
-                v.chapter.no)
-        if self.verse_patterns[self.INDEX_VERSE_NO_PATTERN]:
-            text_dict[self.verse_patterns[self.INDEX_VERSE_NO_PATTERN]] = v.no
-        if self.verse_patterns[self.INDEX_VERSE_TEXT_PATTERN]:
-            text_dict[self.verse_patterns[self.INDEX_VERSE_TEXT_PATTERN]] = v.text
-
+    def get_verse_dict(self, slide_text, verse):
+        text_dict = BibleVerseFormat.build_fr_dict(self.each_verse_name, slide_text, verse)
         return text_dict
 
     def get_flattened_dict(self):
         return {'bible_version': self.bible_version,
+                'main_verse_name': self.main_verse_name,
+                'each_verse_name': self.each_verse_name,
                 'main_verses': self.main_verses,
                 'additional_verses': self.additional_verses,
-                'verse_patterns': self.verse_patterns,
                 'repeat_range': self.repeat_range
                 }
 
@@ -770,13 +863,29 @@ def rename_filename_to_zeropadded(dirname, num_digits):
 
 
 def rmtree_except_self(dirname):
-    files = os.listdir(dirname)
-    for fn in files:
-        fullname = os.path.join(dirname, fn)
-        if os.path.isdir(fullname):
-            shutil.rmtree(fullname)
-        else:
-            os.remove(fullname)
+    try:
+        files = os.listdir(dirname)
+        for fn in files:
+            fullname = os.path.join(dirname, fn)
+            if os.path.isdir(fullname):
+                shutil.rmtree(fullname)
+            else:
+                os.remove(fullname)
+    except OSError as err:
+        if err.errno == errno.ENOENT:
+            return
+
+        raise
+
+
+def mkdir_if_not_exists(dirname):
+    try:
+        os.mkdir(dirname)
+    except OSError as err:
+        if err.errno == errno.EEXIST:
+            return
+
+        raise
 
 
 class PromptCommand(Command):
@@ -810,6 +919,7 @@ class ExportSlides(Command):
 
         if self.flags & Export_CleanupFiles:
             rmtree_except_self(self.out_dirname)
+            mkdir_if_not_exists(self.out_dirname)
 
         if not hasattr(prs, 'export_slide_as'):
             self.export_all(cm, prs)
@@ -868,6 +978,7 @@ class ExportShapes(Command):
 
         if self.flags & Export_CleanupFiles:
             rmtree_except_self(self.out_dirname)
+            mkdir_if_not_exists(self.out_dirname)
 
         slide_range = evaluate_to_multiple_slide(prs, self.slide_range)
         if slide_range is None:
@@ -882,6 +993,11 @@ class CommandManager:
         self.running_already = False
         self.powerpoint = None
         self.prs = None
+
+        self.string_variables = {}
+        self.format_variables = {}
+        self.var_dict = {}
+        self.varname_re = None
 
         self.notes = ''
 
@@ -908,8 +1024,86 @@ class CommandManager:
 
         self.remove_cache()
 
+    def reset_exec_vars(self):
+        self.running_already = False
+        self.powerpoint = None
+        self.prs = None
+
+        self.string_variables = {}
+        self.format_variables = {}
+        self.var_dict = {}
+        self.varname_re = None
+
+        self.notes = ''
+
+        self.monitor = None
+        self._continue = True
+
     def set_presentation(self, prs):
         self.prs = prs
+
+    def add_global_variables(self, str_dict, format_dict = None):
+        self.string_variables.update(str_dict)
+        if format_dict:
+            self.format_variables.update(format_dict)
+
+        self.var_dict = {}
+        for var in self.string_variables:
+            new_var = var
+            if new_var[0] != '{':
+                new_var = '{' + new_var
+            if new_var[-1] != '}':
+                new_var = new_var + '}'
+
+            self.var_dict[new_var] = self.string_variables[var]
+
+        varname_pattern = ''
+        self.varname_re = None
+        if len(self.format_variables):
+            varnames = self.format_variables.keys()
+            varname_pattern = FormatObj.build_format_pattern(varnames)
+            if varname_pattern:
+                self.varname_re = re.compile(varname_pattern)
+
+    def process_variable_substitution(self, custom_str=None, process_slides=True, process_notes=True):
+        def process_format_var(var):
+            if isinstance(var, list):
+                for elem in var:
+                    process_format_var(elem)
+            elif isinstance(var, str):
+                if var in self.var_dict:
+                    return
+
+                for m in self.varname_re.finditer(var):
+                    varname = m.group(1)
+                    if varname not in self.format_variables:
+                        continue
+
+                    format_obj = self.format_variables[varname]
+
+                    format = m.group(2)
+                    if len(format):
+                        format = format[1:] # remove ':'
+                    key = '{' + varname + m.group(2) + '}'
+                    value = format_obj.build_replace_string(format)
+                    self.var_dict[key] = value
+
+        if process_slides:
+            if self.varname_re:
+                process_format_var(self.prs.get_text_in_all_slides(False))
+            self.prs.replace_all_slides_texts(self.var_dict)
+
+        if process_notes and self.notes:
+            if self.varname_re:
+                process_format_var(self.notes)
+            _, self.notes = replace_all_notes_text(self.notes, self.var_dict)
+
+        if custom_str:
+            if self.varname_re:
+                process_format_var(custom_str)
+            _, custom_str = replace_all_notes_text(custom_str, self.var_dict)
+
+        return custom_str
 
     def get_notes(self):
         return self.notes
@@ -993,6 +1187,8 @@ class CommandManager:
         '''execute_commands() is the main function calling each command's execute()
         to achieve the goal specificed in each command.
         '''
+        self.reset_exec_vars()
+
         self.monitor = monitor
         self._continue = True
         self.progress_message(0, _('Start processing commands.'))

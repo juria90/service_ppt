@@ -27,23 +27,28 @@
       "enabled": true,
       "slide_range": "note.contains_text('NOTES_intro_announcement')",
       "repeat_range": "note.contains_text('NOTES_intro_announcement')",
-      "find_text": "NOTES_intro_announcement",
+      "find_text": "{intro_announcement}",
       "replace_texts": [
         "Welcome."
       ]
     }
   },
   {
-    "type": "FindReplaceText",
+    "type": "SetVariables",
     "name": "Find and replace texts",
     "data": {
       "enabled": true,
-      "texts": {
-        "MK_date": "9/13/2020",
-        "MK_service_title": "Sunday Service",
-        "MK_preacher": "Pastor",
-        "MK_sermon_title": "Sermon Title",
-        "MK_prayer": "Elder Sam"
+      "format_dict": {
+        "datetime": {
+          "format_type": "DateTimeFormat",
+          "value": "2021-05-07"
+        }
+      },
+      "str_dict": {
+        "service_title": "Sunday Service",
+        "preacher": "Pastor",
+        "sermon_title": "Sermon Title"
+        "prayer": "Elder Sam"
       }
     }
   },
@@ -54,7 +59,7 @@
       "enabled": true,
       "slide_range": "note.contains_text('MK_announcement')",
       "repeat_range": "note.contains_text('MK_announcement:repeat')",
-      "find_text": "MK_announcement",
+      "find_text": "{announcement}",
       "replace_texts": [
         "Welcome."
       ]
@@ -85,7 +90,7 @@
       "enabled": true,
       "slide_range": "note.contains_text('MK_sermon_text')",
       "repeat_range": "note.contains_text('MK_sermon_text:repeat')",
-      "find_text": "MK_sermon_text",
+      "find_text": "{sermon_text}",
       "replace_texts": [
         "1. The Creation"
       ]
@@ -104,7 +109,7 @@
     "name": "Save the presentation",
     "data": {
       "enabled": true,
-      "filename": "2020-0913-Sunday.pptx",
+      "filename": "{datetime:%Y-%m%d-%A}.pptx",
       "notes_filename": "service-notes.txt",
       "verses_filename": "bible-verse.txt"
     }

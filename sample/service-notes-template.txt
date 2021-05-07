@@ -1,9 +1,9 @@
-MK_sermon_title (MK_bible_verse, MK_date)
+{sermon_title} ({bible_verse}, {datetime:%Y-%#m-%#d})
 
-[Your Church Name] MK_date MK_service_title - MK_sermon_title
+[Your Church Name] {datetime:%Y-%#m-%#d} {service_title} - {sermon_title}
 
-MK_date MK_service_title
+{datetime:%Y-%#m-%#d} {service_title}
 Your Church Name
-MK_preacher
-MK_sermon_title
-MK_bible_verse
+{preacher}
+{sermon_title}
+{bible_verse}

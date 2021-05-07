@@ -403,12 +403,12 @@ msgstr ""
 
 #: command_ui.py:333
 #, python-format
-msgid "Text to find %d"
+msgid "Variable name %d"
 msgstr ""
 
 #: command_ui.py:334
 #, python-format
-msgid "Text to replace %d"
+msgid "Variable value %d"
 msgstr ""
 
 #: command_ui.py:352

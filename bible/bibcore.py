@@ -153,8 +153,17 @@ class Bible:
             if book_no != -1:
                 self.reader.read_book(book, book_no)
 
+    def get_book_to_index_map(self):
+        if self.book_to_index_map is None:
+            self.book_to_index_map = {}
+            for i, b in enumerate(self.books):
+                self.book_to_index_map[b.name] = i
+                self.book_to_index_map[b.short_name] = i
+
+        return self.book_to_index_map
+
     def extract_texts(self, text_range):
-        '''extract_texts() returns tuple of (book, chapter, list of Verse within given text_range).
+        '''extract_texts() returns list of Verse within given text_range.
 
         The text_range should be formatted as <Book> <Chapter>:<Verse1>[-<Verse2>],
         where Book can be long or short name, Chapter and Verse1/Verse2 are valid numbers.
@@ -165,14 +174,9 @@ class Bible:
         book = None
         chapter = None
         verses = []
-        if self.book_to_index_map is None:
-            self.book_to_index_map = {}
-            for i, b in enumerate(self.books):
-                self.book_to_index_map[b.name] = i
-                self.book_to_index_map[b.short_name] = i
-
-        if bt in self.book_to_index_map:
-            i = self.book_to_index_map[bt]
+        b2i_map = self.get_book_to_index_map()
+        if bt in b2i_map:
+            i = b2i_map[bt]
             b = self.books[i]
 
             if not b.is_loaded():
@@ -195,7 +199,7 @@ class Bible:
         if len(verses) == 0:
             return None
 
-        return book, chapter, verses
+        return verses
 
 
 class FileFormat:

@@ -7,6 +7,7 @@ import re
 import wx
 import wx.propgrid as wxpg
 
+from atomicfile import AtomicFileWriter
 from bible import fileformat as bibfileformat
 import command as cmd
 
@@ -118,6 +119,14 @@ class CommandUI(wx.EvtHandler):
         file_prop.SetAttribute(wxpg.PG_FILE_WILDCARD, wildcard)
 
         return file_prop
+
+    @staticmethod
+    def create_datetime_property(prop_name):
+        date_prop = wxpg.DateProperty(prop_name)
+        # date_prop.SetAttribute(wxpg.PG_DATE_PICKER_STYLE, wx.DP_DEFAULT | DP_SHOWCENTURY)
+        # date_prop.SetAttribute(wxpg.PG_DATE_FORMAT, wildcard)
+
+        return date_prop
 
 
 class PopupMessage(cmd.Command):
@@ -347,31 +356,39 @@ class SaveFilesUI(PropertyGridUI):
         return True
 
 
-class FindReplaceTextUI(PropertyGridUI):
-    proc_class = cmd.FindReplaceText
+class SetVariablesUI(PropertyGridUI):
+    proc_class = cmd.SetVariables
 
-    FIND_D = _('Text to find %d')
-    REPLACE_D = _('Text to replace %d')
+    DATETIME_NAME = _('Datetime variable name')
+    DATETIME_VALUE = _('Datetime value')
+    VARNAME_D = _('Variable name %d')
+    VARVALUE_D = _('Variable value %d')
 
     def __init__(self, uimgr, name, proc=None):
         super().__init__(uimgr, name, proc=proc)
 
         if self.command is None:
-            self.command = cmd.FindReplaceText({})
+            self.command = cmd.SetVariables()
 
     def get_dynamic_label(self, index):
         if (index % 2) == 0:
-            return self.FIND_D % (index/2+1)
+            return self.VARNAME_D % (index/2+1)
         else:
-            return self.REPLACE_D % (index/2+1)
+            return self.VARVALUE_D % (index/2+1)
 
     def get_dynamic_property(self, index):
         return wxpg.StringProperty(self.get_dynamic_label(index))
 
     def initialize_fixed_properties(self, pg):
-        pg.Append(wxpg.PropertyCategory(
-            _('Fill the texts to find and replace')))
-        self.fixed_count = 1
+        pg.Append(wxpg.PropertyCategory(_('Datetime')))
+
+        pg.Append(wxpg.StringProperty(self.DATETIME_NAME))
+
+        date_prop = self.create_datetime_property(self.DATETIME_VALUE)
+        pg.Append(date_prop)
+
+        pg.Append(wxpg.PropertyCategory(_('Variable names and values to be used for find and replace')))
+        self.fixed_count = 4
 
     def initialize_dynamic_properties(self, pg):
         pg.Append(self.get_dynamic_property(0))
@@ -414,6 +431,21 @@ class FindReplaceTextUI(PropertyGridUI):
         self.dynamic_count = len(plist)+2
 
     def TransferFromWindow(self):
+        format_dict = {}
+        name = self.ui.GetPropertyValueAsString(self.DATETIME_NAME)
+        if name:
+            dt_str = ''
+            try:
+                dt_value = self.ui.GetPropertyValueAsDateTime(self.DATETIME_VALUE)
+                dt_str = dt_value.FormatISODate()
+            except:
+                pass
+
+            # format comes from find_string
+            format_dict[name] = cmd.DateTimeFormat(value=dt_str)
+
+        self.command.format_dict = self.set_modified(self.command.format_dict, format_dict)
+
         plist = self.get_dynamic_properties_from_window()
         texts = {}
         for i in range(0, len(plist), 2):
@@ -422,13 +454,21 @@ class FindReplaceTextUI(PropertyGridUI):
             if f:
                 texts[f] = r
 
-        self.command.texts = self.set_modified(self.command.texts, texts)
+        self.command.str_dict = self.set_modified(self.command.str_dict, texts)
 
         return True
 
     def TransferToWindow(self):
+        if len(self.command.format_dict) == 1:
+            dt_name = next(iter(self.command.format_dict))
+            self.SetPropertyValueString(self.DATETIME_NAME, dt_name)
+
+            fobj = self.command.format_dict[dt_name]
+            dt_value = cmd.DateTimeFormat.datetime_from_c_locale(fobj.value)
+            self.ui.SetPropertyValue(self.DATETIME_VALUE, dt_value)
+
         plist = []
-        for k, v in self.command.texts.items():
+        for k, v in self.command.str_dict.items():
             plist.append(k)
             plist.append(v)
 
@@ -654,23 +694,18 @@ class GenerateBibleVerseUI(PropertyGridUI):
     current_bible_format = bibfileformat.FORMAT_MYBIBLE
 
     BIBLE_VERSION = _('Bible Version')
+    MAIN_VERSE_NAME = _('Main Bible verse name')
+    EACH_VERSE_NAME = _('Each Bible verse name')
     MAIN_VERSES = _('Main Bible verses')
     ADDITONAL_VERSES = _('Additional Bible verses')
     REPEAT_RANGE = _('Repeating slides range')
-
-    BIBLE_VERSE_PATTERN = _('Bible verse pattern')
-    BOOKNAME_PATTERN = _('Book name pattern')
-    SHORT_BOOKNAME_PATTERN = _('Short book name pattern')
-    CHAPTER_PATTERN = _('Chapter pattern')
-    VERSE_NUMBER_PATTERN = _('Verse number pattern')
-    VERSE_TEXT_PATTERN = _('Verse text pattern')
 
     def __init__(self, uimgr, name, proc=None):
         super().__init__(uimgr, name, proc=proc)
 
         if self.command is None:
             self.command = cmd.GenerateBibleVerse(GenerateBibleVerseUI.current_bible_format,
-                                                  '', ['']*6, '', '', '')
+                                                  '', '', '', '', '', '')
 
     def initialize_fixed_properties(self, pg):
         pg.Append(wxpg.PropertyCategory(_('1 - Bible specification')))
@@ -678,23 +713,21 @@ class GenerateBibleVerseUI(PropertyGridUI):
             GenerateBibleVerseUI.current_bible_format)
         pg.Append(wxpg.EnumProperty(
             self.BIBLE_VERSION, labels=versions, value=0))
+        pg.Append(wxpg.StringProperty(self.MAIN_VERSE_NAME))
+        pg.Append(wxpg.StringProperty(self.EACH_VERSE_NAME))
         pg.Append(wxpg.StringProperty(self.MAIN_VERSES))
         pg.Append(wxpg.StringProperty(self.ADDITONAL_VERSES))
         pg.Append(wxpg.StringProperty(self.REPEAT_RANGE))
 
-        pg.Append(wxpg.PropertyCategory(_('2 - Pattern specification')))
-        pg.Append(wxpg.StringProperty(self.BIBLE_VERSE_PATTERN))
-        pg.Append(wxpg.StringProperty(self.BOOKNAME_PATTERN))
-        pg.Append(wxpg.StringProperty(self.SHORT_BOOKNAME_PATTERN))
-        pg.Append(wxpg.StringProperty(self.CHAPTER_PATTERN))
-        pg.Append(wxpg.StringProperty(self.VERSE_NUMBER_PATTERN))
-        pg.Append(wxpg.StringProperty(self.VERSE_TEXT_PATTERN))
-
-        self.fixed_count = 11
+        self.fixed_count = 7
 
     def TransferFromWindow(self):
         self.command.bible_version = self.set_modified(
             self.command.bible_version, self.ui.GetPropertyValueAsString(self.BIBLE_VERSION))
+        self.command.main_verse_name = self.set_modified(
+            self.command.main_verse_name, self.ui.GetPropertyValueAsString(self.MAIN_VERSE_NAME))
+        self.command.each_verse_name = self.set_modified(
+            self.command.each_verse_name, self.ui.GetPropertyValueAsString(self.EACH_VERSE_NAME))
         self.command.main_verses = self.set_modified(
             self.command.main_verses, self.ui.GetPropertyValueAsString(self.MAIN_VERSES))
         self.command.additional_verses = self.set_modified(
@@ -702,43 +735,18 @@ class GenerateBibleVerseUI(PropertyGridUI):
         self.command.repeat_range = self.set_modified(
             self.command.repeat_range, self.ui.GetPropertyValueAsString(self.REPEAT_RANGE))
 
-        patterns = [None] * 6
-        patterns[0] = self.ui.GetPropertyValueAsString(
-            self.BIBLE_VERSE_PATTERN)
-        patterns[1] = self.ui.GetPropertyValueAsString(self.BOOKNAME_PATTERN)
-        patterns[2] = self.ui.GetPropertyValueAsString(
-            self.SHORT_BOOKNAME_PATTERN)
-        patterns[3] = self.ui.GetPropertyValueAsString(self.CHAPTER_PATTERN)
-        patterns[4] = self.ui.GetPropertyValueAsString(
-            self.VERSE_NUMBER_PATTERN)
-        patterns[5] = self.ui.GetPropertyValueAsString(self.VERSE_TEXT_PATTERN)
-
-        self.command.verse_patterns = self.set_modified(
-            self.command.verse_patterns, patterns)
-
         return True
 
     def TransferToWindow(self):
         self.SetPropertyValueString(
             self.BIBLE_VERSION, self.command.bible_version)
+        self.SetPropertyValueString(self.MAIN_VERSE_NAME, self.command.main_verse_name)
+        self.SetPropertyValueString(self.EACH_VERSE_NAME, self.command.each_verse_name)
         self.SetPropertyValueString(self.MAIN_VERSES, self.command.main_verses)
         self.SetPropertyValueString(
             self.ADDITONAL_VERSES, self.command.additional_verses)
         self.SetPropertyValueString(
             self.REPEAT_RANGE, self.command.repeat_range)
-
-        self.SetPropertyValueString(
-            self.BIBLE_VERSE_PATTERN, self.command.verse_patterns[0])
-        self.SetPropertyValueString(
-            self.BOOKNAME_PATTERN, self.command.verse_patterns[1])
-        self.SetPropertyValueString(
-            self.SHORT_BOOKNAME_PATTERN, self.command.verse_patterns[2])
-        self.SetPropertyValueString(
-            self.CHAPTER_PATTERN, self.command.verse_patterns[3])
-        self.SetPropertyValueString(
-            self.VERSE_NUMBER_PATTERN, self.command.verse_patterns[4])
-        self.SetPropertyValueString(
-            self.VERSE_TEXT_PATTERN, self.command.verse_patterns[5])
 
         return True
 
@@ -863,20 +871,25 @@ class ExportShapesUI(PropertyGridUI):
 
 class CommandEncoder(json.JSONEncoder):
 
-    proc_ui_list = [DuplicateWithTextUI, ExportSlidesUI, ExportShapesUI, FindReplaceTextUI,
+    proc_ui_list = [DuplicateWithTextUI, ExportSlidesUI, ExportShapesUI, SetVariablesUI,
                     GenerateBibleVerseUI, InsertLyricsUI, InsertSlidesUI, OpenFileUI, PopupMessageUI,
                     SaveFilesUI
                     ]
-
     proc_map = {ui.proc_class.__name__: ui for ui in proc_ui_list}
+
+    format_list = [cmd.BibleVerseFormat, cmd.DateTimeFormat]
+
+    format_map = {fo.__name__: fo for fo in format_list}
 
     def default(self, o):
         if isinstance(o, CommandUI):
             return o.get_flattened_dict()
-        elif isinstance(o, cmd.GenerateBibleVerse):
-            return o.get_flattened_dict()
-        elif isinstance(o, cmd.Command):
-            return o.__dict__
+        elif isinstance(o, cmd.Command) or isinstance(o, cmd.FormatObj):
+            func = getattr(o, 'get_flattened_dict', None)
+            if callable(func):
+                return o.get_flattened_dict()
+            else:
+                return o.__dict__
         else:
             super().default(o)
 
@@ -902,6 +915,16 @@ class CommandEncoder(json.JSONEncoder):
             else:
                 # unsupported type
                 return None
+        elif 'format_type' in o:
+            format_type = o['format_type']
+            del o['format_type']
+            if format_type in CommandEncoder.format_map:
+                fobj_cls = CommandEncoder.format_map[format_type]
+                fobj = fobj_cls(None)
+
+                fobj.__dict__.update(o)
+
+                return fobj
 
         return o
 
@@ -1005,7 +1028,7 @@ class UIManager:
     def save(self, filename):
         self.check_modified()
 
-        with open(filename, 'w', encoding='utf-8') as f:
+        with AtomicFileWriter(filename, 'w', encoding='utf-8') as f:
             json.dump(self.command_ui_list, f, indent=2,
                       cls=CommandEncoder, ensure_ascii=False)
 

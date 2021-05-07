@@ -513,16 +513,6 @@ msgstr "단순 문서 파일들 (*.txt)|*.txt"
 msgid "Text to find"
 msgstr "찾을 글"
 
-#: command_ui.py:333
-#, python-format
-msgid "Text to find %d"
-msgstr "찾을 글 %d"
-
-#: command_ui.py:334
-#, python-format
-msgid "Text to replace %d"
-msgstr "바꿀 글 %d"
-
 #: command_ui.py:556
 msgid "Texts to replace (a blank line for a separation)"
 msgstr "바꿀 글들 (공백 라인은 구분 표시)"
@@ -542,6 +532,16 @@ msgid ""
 msgstr ""
 "문서가 수정되었습니다.\n"
 "저장하시겠습니까?"
+
+#: command_ui.py:333
+#, python-format
+msgid "Variable name %d"
+msgstr "찾을 글 %d"
+
+#: command_ui.py:334
+#, python-format
+msgid "Variable value %d"
+msgstr "변수 값 %d"
 
 #: command_ui.py:610
 msgid "Verse number pattern"

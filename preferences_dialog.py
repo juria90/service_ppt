@@ -11,7 +11,9 @@ from bible import fileformat as bibfileformat
 _ = lambda s: s
 
 DEFAULT_SPAN = (1,1)
+BORDER_STYLE_EXCEPT_LEFT = (wx.TOP|wx.RIGHT|wx.BOTTOM)
 BORDER_STYLE_EXCEPT_TOP = (wx.LEFT|wx.RIGHT|wx.BOTTOM)
+BORDER_STYLE_RIGHT_BOTTOM = (wx.LEFT|wx.RIGHT|wx.BOTTOM)
 DEFAULT_BORDER = 5
 
 
@@ -55,13 +57,13 @@ class PreferencesDialog(wx.adv.PropertySheetDialog):
 
         notebook = self.GetBookCtrl()
 
-        bible_panel = self.create_bible_settings_page(notebook)
-        tab_image1 = -1
-        notebook.AddPage(bible_panel, _('Bible settings'), True, tab_image1)
-
         directory_panel = self.create_directory_settings_page(notebook)
+        tab_image1 = -1
+        notebook.AddPage(directory_panel, _('Directory settings'), True, tab_image1)
+
+        bible_panel = self.create_bible_settings_page(notebook)
         tab_image2 = -1
-        notebook.AddPage(directory_panel, _('Directory settings'), True, tab_image2)
+        notebook.AddPage(bible_panel, _('Bible settings'), True, tab_image2)
 
         ok_button = self.FindWindow(wx.ID_OK)
         ok_button.Bind(wx.EVT_BUTTON, self.on_ok)
@@ -85,7 +87,7 @@ class PreferencesDialog(wx.adv.PropertySheetDialog):
         '''
         panel = wx.Panel(parent)
 
-        sizer = wx.GridBagSizer(DEFAULT_BORDER, DEFAULT_BORDER)
+        sizer = wx.GridBagSizer()
         row = 0
 
         # Bible Format
@@ -96,19 +98,19 @@ class PreferencesDialog(wx.adv.PropertySheetDialog):
         cbox = wx.ComboBox(panel, style=wx.CB_READONLY)
         cbox.Bind(wx.EVT_COMBOBOX, self.on_bible_format_changed, cbox)
         sizer.Add(cbox, pos=(row, 1), span=DEFAULT_SPAN,
-                  flag=wx.ALIGN_RIGHT|wx.ALIGN_CENTER_VERTICAL|wx.EXPAND|BORDER_STYLE_EXCEPT_TOP, border=DEFAULT_BORDER)
+                  flag=wx.ALIGN_RIGHT|wx.ALIGN_CENTER_VERTICAL|wx.EXPAND|BORDER_STYLE_EXCEPT_LEFT, border=DEFAULT_BORDER)
         self._bible_format_combo = cbox
 
         # MyBible root directory
         row = row + 1
         self._bible_rootdir_stext = wx.StaticText(panel, label=_('Root &directory for MyBible, MySword, Zefania:'))
         sizer.Add(self._bible_rootdir_stext, pos=(row, 0), span=DEFAULT_SPAN,
-                  flag=wx.ALIGN_LEFT|wx.ALIGN_CENTER_VERTICAL|wx.ALL, border=DEFAULT_BORDER)
+                  flag=wx.ALIGN_LEFT|wx.ALIGN_CENTER_VERTICAL|BORDER_STYLE_EXCEPT_TOP, border=DEFAULT_BORDER)
 
         self._bible_rootdir_ctrl = wx.DirPickerCtrl(panel, path=self.bible_rootdir)
         self._bible_rootdir_ctrl.Bind(wx.EVT_DIRPICKER_CHANGED, self.on_bible_dir_changed, self._bible_rootdir_ctrl)
         sizer.Add(self._bible_rootdir_ctrl, pos=(row, 1), span=DEFAULT_SPAN,
-                  flag=wx.ALIGN_RIGHT|wx.ALIGN_CENTER_VERTICAL|wx.EXPAND|wx.ALL, border=DEFAULT_BORDER)
+                  flag=wx.ALIGN_RIGHT|wx.ALIGN_CENTER_VERTICAL|wx.EXPAND|BORDER_STYLE_RIGHT_BOTTOM, border=DEFAULT_BORDER)
         pickctrl = self._bible_rootdir_ctrl.GetPickerCtrl()
         if pickctrl:
             pickctrl.SetLabel(_('&Browse...'))
@@ -122,7 +124,7 @@ class PreferencesDialog(wx.adv.PropertySheetDialog):
         cbox = wx.ComboBox(panel, style=wx.CB_READONLY)
         cbox.Bind(wx.EVT_COMBOBOX, self.on_bible_version_changed, cbox)
         sizer.Add(cbox, pos=(row, 1), span=DEFAULT_SPAN,
-                  flag=wx.ALIGN_RIGHT|wx.ALIGN_CENTER_VERTICAL|wx.EXPAND|BORDER_STYLE_EXCEPT_TOP, border=DEFAULT_BORDER)
+                  flag=wx.ALIGN_RIGHT|wx.ALIGN_CENTER_VERTICAL|wx.EXPAND|BORDER_STYLE_RIGHT_BOTTOM, border=DEFAULT_BORDER)
         self._bible_version_combo = cbox
 
         self._fill_bible_format()
@@ -183,3 +185,5 @@ class PreferencesDialog(wx.adv.PropertySheetDialog):
         '''Event handler for Cancel.
         '''
         panel = wx.Panel(parent)
+
+        return panel

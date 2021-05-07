@@ -145,6 +145,24 @@ class PresentationBase:
 
             return result
 
+    def get_text_in_slide(self, slide_index, is_note_shape):
+        self._update_slide_ID_cache()
+
+        sc = self.slide_caches[slide_index]
+        if not is_note_shape:
+            text_list = sc.slide_text
+        else:
+            text_list = sc.notes_text
+
+        return text_list
+
+    def get_text_in_all_slides(self, is_note_shape):
+        text_list = []
+        for slide_index in range(self.slide_count()):
+            text_list.append(self.get_text_in_slide(slide_index, is_note_shape))
+
+        return text_list
+
     def find_text_in_slide(self, slide_index, is_note_shape, text, ignore_case=False, whole_words=False):
         self._update_slide_ID_cache()
 

@@ -41,7 +41,7 @@ COMMAND_INFO = [
     (ILID_DUPLICATE_SLIDES, 'slide_duplicate.png', _('Duplicate slides'), cmdui.DuplicateWithTextUI),
     (ILID_EXPORT_SLIDE_IMAGES, 'Save picture.png', _('Export slides as images'), cmdui.ExportSlidesUI),
     (ILID_EXPORT_SHAPES_IMAGES, 'save shape.png', _('Export shapes in slide as images'), cmdui.ExportShapesUI),
-    (ILID_FIND_REPLACE_TEXTS, 'slide_text.png', _('Find and replace texts'), cmdui.FindReplaceTextUI),
+    (ILID_FIND_REPLACE_TEXTS, 'slide_text.png', _('Find and replace texts'), cmdui.SetVariablesUI),
     (ILID_GENERATE_BIBLE_VERSES, 'slide_bible.png', _('Generate Bible verses slides'), cmdui.GenerateBibleVerseUI),
     (ILID_INSERT_LYRICS, 'slide_note.png', _('Insert lyrics from files'), cmdui.InsertLyricsUI),
     (ILID_INSERT_SLIDES, 'slide_insert.png', _('Insert slides from files'), cmdui.InsertSlidesUI),
