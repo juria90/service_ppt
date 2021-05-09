@@ -6,7 +6,7 @@ import os
 import xml.sax.saxutils
 import xml.etree.ElementTree as ET
 
-from hymncore import Verse, Song
+from .hymncore import Verse, Song
 
 
 class OpenLyricsReader:

@@ -13,9 +13,6 @@ import traceback
 
 from PIL import ImageColor
 
-sys.path.append(os.path.join(os.path.dirname(os.path.abspath(__file__)), "bible"))
-sys.path.append(os.path.join(os.path.dirname(os.path.abspath(__file__)), "hymn"))
-
 from bible import biblang
 from bible import fileformat as bibfileformat
 from hymn.openlyrics import OpenLyricsReader

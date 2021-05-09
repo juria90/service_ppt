@@ -8,8 +8,8 @@ import xml.etree.ElementTree as ET
 # pip install iso-639
 from iso639 import languages
 
-from bibcore import BibleInfo, Verse, Chapter, Book, Bible, FileFormat
-import biblang
+from .bibcore import BibleInfo, Verse, Chapter, Book, Bible, FileFormat
+from . import biblang
 
 
 class ZefaniaFormat(FileFormat):

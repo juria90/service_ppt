@@ -5,8 +5,6 @@
 import os
 import sys
 import traceback
-
-sys.path.append(os.path.join(os.path.dirname(os.path.abspath(__file__)), "bible"))
 import wx
 
 from mainframe import Frame

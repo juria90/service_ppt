@@ -23,8 +23,8 @@ CHAPTERS=[<OFFSET OF FILE FOR EACH CAPTER START>] *
 import os
 import re
 
-from bibcore import Verse, Chapter, Book, Bible, BibleInfo, FileFormat
-import biblang
+from .bibcore import Verse, Chapter, Book, Bible, BibleInfo, FileFormat
+from . import biblang
 
 
 def expect_string(buf, expect):

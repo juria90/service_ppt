@@ -2,8 +2,8 @@
 https://pypi.org/project/pysword/
 """
 
-from bibcore import BibleInfo, Verse, Chapter, Book, Bible, FileFormat
-import biblang
+from .bibcore import BibleInfo, Verse, Chapter, Book, Bible, FileFormat
+from . import biblang
 
 
 class SwordReader:

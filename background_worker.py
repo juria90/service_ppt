@@ -1,9 +1,8 @@
 """
 """
 
-import sys
-import time
 from threading import *
+import time
 import traceback
 import wx
 

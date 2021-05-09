@@ -3,7 +3,7 @@
 """
 import gettext
 
-from biblang import L18N
+from .biblang import L18N
 
 
 _ = lambda s: s

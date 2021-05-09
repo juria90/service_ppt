@@ -9,8 +9,8 @@ import os
 import re
 import sqlite3
 
-from bibcore import BibleInfo, Verse, Chapter, Book, Bible, FileFormat
-import biblang
+from .bibcore import BibleInfo, Verse, Chapter, Book, Bible, FileFormat
+from . import biblang
 
 
 class MySwordReader:

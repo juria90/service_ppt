@@ -2,10 +2,10 @@
 """
 import os
 
-from mybible import MyBibleFormat
-from mysword_bible import MySwordFormat
-from sword_bible import SwordFormat
-from zefania_bible import ZefaniaFormat
+from .mybible import MyBibleFormat
+from .mysword_bible import MySwordFormat
+from .sword_bible import SwordFormat
+from .zefania_bible import ZefaniaFormat
 
 # Currently supported Bible Program.
 FORMAT_MYBIBLE = "MyBible"
