@@ -251,7 +251,7 @@ class L18N:
                     v2t = v2t[1:]  # skip '-'
 
         if m is None:
-            raise ValueError("Invalid text range")
+            raise ValueError("Invalid text range: %s".format(text_range))
 
         bt = bt.strip()
         ct = int(ct)

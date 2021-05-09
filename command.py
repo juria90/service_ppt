@@ -10,9 +10,11 @@ import shutil
 import sys
 import tempfile
 import traceback
+import typing
 
 from PIL import ImageColor
 
+from bible import bibcore
 from bible import biblang
 from bible import fileformat as bibfileformat
 from hymn.openlyrics import OpenLyricsReader
@@ -533,14 +535,14 @@ class FormatObj(object):
 
 
 class BibleVerseFormat(FormatObj):
-    def __init__(self, format="", value=None):
+    def __init__(self, format: str = "", value=None):
         super().__init__(format, value)
 
         # self.format : '%B' : long book name, '%b': short book name, '%c': chapter.no, '%v': v.no, %t: verse text
         # self.value : bible_core.Verse object
 
     @staticmethod
-    def build_fr_dict(each_verse_name, slide_text, verse):
+    def build_fr_dict(each_verse_name: str, slide_text: typing.Any, verse: bibcore.Verse):
         fr_dict = {}
         if each_verse_name is None:
             return fr_dict
@@ -548,7 +550,7 @@ class BibleVerseFormat(FormatObj):
         varname_pattern = FormatObj.build_format_pattern(each_verse_name)
         varname_re = re.compile(varname_pattern)
 
-        def process_format_var(var):
+        def process_format_var(var: typing.Any):
             if isinstance(var, list):
                 for elem in var:
                     process_format_var(elem)
@@ -567,7 +569,7 @@ class BibleVerseFormat(FormatObj):
         return fr_dict
 
     @staticmethod
-    def translate_verse(format, verse):
+    def translate_verse(format: str, verse: bibcore.Verse):
         s = format
         s = s.replace("%B", verse.book.name)
         s = s.replace("%b", verse.book.short_name)
@@ -578,7 +580,7 @@ class BibleVerseFormat(FormatObj):
 
 
 class DateTimeFormat(FormatObj):
-    def __init__(self, format="", value=None):
+    def __init__(self, format: str = "", value=None):
         super().__init__(format, value)
 
         # self.format : https://docs.python.org/3/library/datetime.html#strftime-strptime-behavior
@@ -586,7 +588,7 @@ class DateTimeFormat(FormatObj):
         # self.value : https://docs.python.org/3/library/datetime.html#datetime.datetime
 
     @staticmethod
-    def datetime_from_c_locale(str_value, format="%Y-%m-%d"):
+    def datetime_from_c_locale(str_value: str, format: str = "%Y-%m-%d"):
         saved = None
         dt_value = None
         try:
@@ -598,7 +600,7 @@ class DateTimeFormat(FormatObj):
 
         return dt_value
 
-    def build_replace_string(self, format):
+    def build_replace_string(self, format: str):
         # https://docs.python.org/3/library/datetime.html#strftime-and-strptime-format-codes
 
         # If the format contains # btw % and alphabet, it will remove leading zero.
@@ -623,7 +625,7 @@ class DateTimeFormat(FormatObj):
 
 
 class SetVariables(Command):
-    def __init__(self, format_dict={}, str_dict={}):
+    def __init__(self, format_dict: dict = {}, str_dict: dict = {}):
         """SetVariables finds all occurrence of find_text and replace it with replace_text,
         which are (k, v) pair in dictionary str_dict.
         """
@@ -632,7 +634,7 @@ class SetVariables(Command):
         self.format_dict = format_dict
         self.str_dict = str_dict
 
-    def execute(self, cm, prs):
+    def execute(self, cm: typing.Any, prs: typing.Any):
         text_count = len(self.str_dict)
         replace_format = ngettext("Replacing {text_count} text.", "Replacing {text_count} texts.", text_count)
         cm.progress_message(0, replace_format.format(text_count=text_count))
@@ -703,13 +705,13 @@ class DuplicateWithText(Command):
 class GenerateBibleVerse(Command):
     def __init__(
         self,
-        bible_format,
-        bible_version,
-        main_verse_name,
-        each_verse_name,
-        main_verses,
-        additional_verses,
-        repeat_range,
+        bible_format: str,
+        bible_version: str,
+        main_verse_name: str,
+        each_verse_name: str,
+        main_verses: str,
+        additional_verses: str,
+        repeat_range: str,
     ):
         """GenerateBibleVerse is two operations combined.
 
@@ -738,7 +740,7 @@ class GenerateBibleVerse(Command):
 
         self._verses_text = []
 
-    def populate_all_verses(self, fmt=None):
+    def populate_all_verses(self, cm: typing.Any):
         self._verses_text = []
 
         bible = bibfileformat.read_version(self.bible_format, self.bible_version)
@@ -750,37 +752,64 @@ class GenerateBibleVerse(Command):
             )
             return
 
-        all_verses_text = self.populate_verses(bible, self.main_verses)
-        all_verses_text = all_verses_text + self.populate_verses(bible, self.additional_verses)
+        all_verses_text = self.populate_verses(cm, bible, self.main_verses)
+        all_verses_text = all_verses_text + self.populate_verses(cm, bible, self.additional_verses)
 
         self._verses_text = all_verses_text
 
-    def populate_verses(self, bible, verses):
+    def split_verses(self, verses: str) -> typing.List[str]:
+        """Split verses by comma. If there is no book and chapter parts by checking ':',
+        add it from the previous one."""
+        splitted_verses = verses.split(",")
+        book_chapter = ""
+        for i, v in enumerate(splitted_verses):
+            v = v.strip()
+            index = v.find(":")
+            if index != -1:
+                book_chapter = v[: index + 1]  # include ':'
+            else:
+                v = book_chapter + v
+
+            splitted_verses[i] = v
+
+        return splitted_verses
+
+    def populate_verses(self, cm: typing.Any, bible: typing.Any, verses: str) -> typing.List[typing.Any]:
         all_verses_text = []
         if verses is not None:
-            splitted_verses = verses.split(",")
+            splitted_verses = self.split_verses(verses)
             for verse in splitted_verses:
                 verse = verse.strip()
                 if not verse:
                     continue
 
-                verses_text = bible.extract_texts(verse)
+                verses_text = None
+                try:
+                    verses_text = bible.extract_texts(verse)
+                except ValueError:
+                    pass
+
                 if verses_text is None:
-                    cm.error_message(_("Cannot find the Bible verse={verse}.").format(verse=verse))
+                    if verse == verses:
+                        cm.error_message(_("Cannot find the Bible verse={verse}.").format(verse=verse))
+                    else:
+                        cm.error_message(
+                            _("Cannot find the Bible verse={verse} in {verses}.").format(verse=verse, verses=verses)
+                        )
                     continue
 
                 all_verses_text = all_verses_text + verses_text
 
         return all_verses_text
 
-    def execute(self, cm, prs):
+    def execute(self, cm: typing.Any, prs: typing.Any):
         self.execute_on_slides(cm, prs)
         self.execute_on_notes(cm)
 
-    def execute_on_slides(self, cm, prs):
+    def execute_on_slides(self, cm: typing.Any, prs: typing.Any):
         cm.progress_message(0, _("Processing Bible Verse."))
 
-        self.populate_all_verses()
+        self.populate_all_verses(cm)
 
         cm.set_bible_verse(self)
 
@@ -813,7 +842,7 @@ class GenerateBibleVerse(Command):
                 text_dict = self.get_verse_dict(slide_text, v)
                 prs.replace_one_slide_texts(index + i, text_dict)
 
-    def execute_on_notes(self, cm):
+    def execute_on_notes(self, cm: typing.Any):
         if cm.notes:
             notes = cm.notes
             text_dict = {self.main_verse_name: self.main_verses}
@@ -835,7 +864,7 @@ class GenerateBibleVerse(Command):
 
             cm.notes = notes
 
-    def get_verse_dict(self, slide_text, verse):
+    def get_verse_dict(self, slide_text: typing.Any, verse: bibcore.Verse):
         text_dict = BibleVerseFormat.build_fr_dict(self.each_verse_name, slide_text, verse)
         return text_dict
 
