@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
-'''
-'''
+"""
+"""
 import argparse
 import glob
 import numpy as np
@@ -19,11 +19,11 @@ def white_to_transparent(img):
 
 
 def color_to_transparent(filename, toFilename, color):
-    fromColor = (color[0], color[1], color[2], 255) # change the opacity to 255
-    toColor = (color[0], color[1], color[2], 0) # change the opacity to 0
+    fromColor = (color[0], color[1], color[2], 255)  # change the opacity to 255
+    toColor = (color[0], color[1], color[2], 0)  # change the opacity to 0
 
     img = Image.open(filename)
-    img = img.convert('RGBA')
+    img = img.convert("RGBA")
 
     changed = False
     if fromColor == (255, 255, 255, 255):
@@ -61,20 +61,25 @@ def parse_color(string):
 
 
 def parse_cmdline():
-    parser = argparse.ArgumentParser(description='Convert a specific color into transparent color in image files.')
-    parser.add_argument('--color', type=parse_color, default=ImageColor.getrgb('white'), help='CSS3-style color to convert to transparent.')
-    parser.add_argument('filenames', nargs='+', help='Filenames to conver the color.')
+    parser = argparse.ArgumentParser(description="Convert a specific color into transparent color in image files.")
+    parser.add_argument(
+        "--color",
+        type=parse_color,
+        default=ImageColor.getrgb("white"),
+        help="CSS3-style color to convert to transparent.",
+    )
+    parser.add_argument("filenames", nargs="+", help="Filenames to conver the color.")
 
     return parser
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     parser = parse_cmdline()
     # args = parser.parse_args([r'C:\Users\juria\Desktop\OnlineService\output\Slide001.PNG'])
     args = parser.parse_args()
 
     for f in args.filenames:
         for f1 in glob.glob(f):
-            print(f'Processing file "{f1}": ', end='')
+            print(f'Processing file "{f1}": ', end="")
             changed = color_to_transparent(f1, f1, args.color)
-            print('Converted' if changed else 'Skipped')
+            print("Converted" if changed else "Skipped")

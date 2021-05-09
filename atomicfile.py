@@ -4,7 +4,6 @@ import tempfile
 
 
 class AtomicFileWriter(object):
-
     def __init__(self, filename, *args, **kwargs):
         self.file = None
         self.filename = None

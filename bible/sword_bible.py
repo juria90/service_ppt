@@ -1,13 +1,12 @@
-'''This file supports reading Sword Bible module by using Python sword_bible module.
+"""This file supports reading Sword Bible module by using Python sword_bible module.
 https://pypi.org/project/pysword/
-'''
+"""
 
 from bibcore import BibleInfo, Verse, Chapter, Book, Bible, FileFormat
 import biblang
 
 
 class SwordReader:
-
     def __init__(self):
         self.sw_bible = None
 
@@ -23,7 +22,7 @@ class SwordReader:
         for testament, books in sw_bible.get_structure().get_books().items():
             for sw_book in books:
                 book = Book()
-                book.new_testament = testament == 'nt'
+                book.new_testament = testament == "nt"
                 book.name = sw_book.name
                 book.short_name = sw_book.preferred_abbreviation
                 bible.books.append(book)
@@ -38,10 +37,10 @@ class SwordReader:
         return bible
 
     def read_book(self, book, book_no):
-        ot_nt = 'nt' if book.new_testament else 'ot'
+        ot_nt = "nt" if book.new_testament else "ot"
         sw_books = self.sw_bible.get_structure().get_books()[ot_nt]
         if book.new_testament:
-            ot_len = len(self.sw_bible.get_structure().get_books()['ot'])
+            ot_len = len(self.sw_bible.get_structure().get_books()["ot"])
             book_no = book_no - ot_len
         self._parse_chapters(book, self.sw_bible, sw_books[book_no])
 
@@ -54,9 +53,10 @@ class SwordReader:
             verses = sw_bible.get_iter(books=[book.name.lower()], chapters=chapter_no + 1)
             for i, v in enumerate(verses):
                 verse = Verse()
-                verse.set_no(i+1)
+                verse.set_no(i + 1)
                 verse.text = v
                 chapter.verses.append(verse)
+
 
 class SwordFormat(FileFormat):
     def __init__(self, modules, found_modules):
@@ -70,8 +70,8 @@ class SwordFormat(FileFormat):
         if self.versions is None:
             versions = []
             for m in self.found_modules:
-                if 'blocktype' in self.found_modules[m]:
-                    if self.found_modules[m]['blocktype'] == 'BOOK':
+                if "blocktype" in self.found_modules[m]:
+                    if self.found_modules[m]["blocktype"] == "BOOK":
                         versions.append(m)
 
             self.versions = versions

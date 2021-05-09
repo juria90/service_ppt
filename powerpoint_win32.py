@@ -1,5 +1,5 @@
-'''powerpoint_win32.py implements App and Presentation for Powerpoint in Windows using COM interface.
-'''
+"""powerpoint_win32.py implements App and Presentation for Powerpoint in Windows using COM interface.
+"""
 
 import enum
 import errno
@@ -16,72 +16,72 @@ from process_exists import process_exists
 from powerpoint_base import SlideCache, PresentationBase, PPTAppBase
 
 
-ppLayoutBlank = 12	# Blank
-ppLayoutChart = 8	# Chart
-ppLayoutChartAndText = 6	# Chart and text
-ppLayoutClipArtAndText = 10	# ClipArt and text
-ppLayoutClipArtAndVerticalText = 26	# ClipArt and vertical text
-ppLayoutComparison = 34	# Comparison
-ppLayoutContentWithCaption = 35	# Content with caption
-ppLayoutCustom = 32	# Custom
-ppLayoutFourObjects = 24	# Four objects
-ppLayoutLargeObject = 15	# Large object
-ppLayoutMediaClipAndText = 18	# MediaClip and text
-ppLayoutMixed = -2	# Mixed
-ppLayoutObject = 16	# Object
-ppLayoutObjectAndText = 14	# Object and text
-ppLayoutObjectAndTwoObjects = 30	# Object and two objects
-ppLayoutObjectOverText = 19	# Object over text
-ppLayoutOrgchart = 7	# Organization chart
-ppLayoutPictureWithCaption = 36	# Picture with caption
-ppLayoutSectionHeader = 33	# Section header
-ppLayoutTable = 4	# Table
-ppLayoutText = 2	# Text
-ppLayoutTextAndChart = 5	# Text and chart
-ppLayoutTextAndClipArt = 9	# Text and ClipArt
-ppLayoutTextAndMediaClip = 17	# Text and MediaClip
-ppLayoutTextAndObject = 13	# Text and object
-ppLayoutTextAndTwoObjects = 21	# Text and two objects
-ppLayoutTextOverObject = 20	# Text over object
-ppLayoutTitle = 1	# Title
-ppLayoutTitleOnly = 11	# Title only
-ppLayoutTwoColumnText = 3	# Two-column text
-ppLayoutTwoObjects = 29	# Two objects
-ppLayoutTwoObjectsAndObject = 31	# Two objects and object
-ppLayoutTwoObjectsAndText = 22	# Two objects and text
-ppLayoutTwoObjectsOverText = 23	# Two objects over text
-ppLayoutVerticalText = 25	# Vertical text
-ppLayoutVerticalTitleAndText = 27	# Vertical title and text
-ppLayoutVerticalTitleAndTextOverChart = 28	# Vertical title and text over chart
+ppLayoutBlank = 12  # Blank
+ppLayoutChart = 8  # Chart
+ppLayoutChartAndText = 6  # Chart and text
+ppLayoutClipArtAndText = 10  # ClipArt and text
+ppLayoutClipArtAndVerticalText = 26  # ClipArt and vertical text
+ppLayoutComparison = 34  # Comparison
+ppLayoutContentWithCaption = 35  # Content with caption
+ppLayoutCustom = 32  # Custom
+ppLayoutFourObjects = 24  # Four objects
+ppLayoutLargeObject = 15  # Large object
+ppLayoutMediaClipAndText = 18  # MediaClip and text
+ppLayoutMixed = -2  # Mixed
+ppLayoutObject = 16  # Object
+ppLayoutObjectAndText = 14  # Object and text
+ppLayoutObjectAndTwoObjects = 30  # Object and two objects
+ppLayoutObjectOverText = 19  # Object over text
+ppLayoutOrgchart = 7  # Organization chart
+ppLayoutPictureWithCaption = 36  # Picture with caption
+ppLayoutSectionHeader = 33  # Section header
+ppLayoutTable = 4  # Table
+ppLayoutText = 2  # Text
+ppLayoutTextAndChart = 5  # Text and chart
+ppLayoutTextAndClipArt = 9  # Text and ClipArt
+ppLayoutTextAndMediaClip = 17  # Text and MediaClip
+ppLayoutTextAndObject = 13  # Text and object
+ppLayoutTextAndTwoObjects = 21  # Text and two objects
+ppLayoutTextOverObject = 20  # Text over object
+ppLayoutTitle = 1  # Title
+ppLayoutTitleOnly = 11  # Title only
+ppLayoutTwoColumnText = 3  # Two-column text
+ppLayoutTwoObjects = 29  # Two objects
+ppLayoutTwoObjectsAndObject = 31  # Two objects and object
+ppLayoutTwoObjectsAndText = 22  # Two objects and text
+ppLayoutTwoObjectsOverText = 23  # Two objects over text
+ppLayoutVerticalText = 25  # Vertical text
+ppLayoutVerticalTitleAndText = 27  # Vertical title and text
+ppLayoutVerticalTitleAndTextOverChart = 28  # Vertical title and text over chart
 
 # MsoShapeType: https://docs.microsoft.com/en-us/office/vba/api/office.msoshapetype
 msoPlaceholder = 14
 msoTextBox = 17
 
 # PpPlaceholderType: https://docs.microsoft.com/en-us/office/vba/api/powerpoint.ppplaceholdertype
-ppPlaceholderBitmap = 9 # Bitmap
-ppPlaceholderBody = 2 # Body
-ppPlaceholderCenterTitle = 3 # Center Title
-ppPlaceholderChart = 8 # Chart
-ppPlaceholderDate = 16 # Date
-ppPlaceholderFooter = 15 # Footer
-ppPlaceholderHeader = 14 # Header
-ppPlaceholderMediaClip = 10 # Media Clip
-ppPlaceholderMixed = -2 # Mixed
-ppPlaceholderObject = 7 # Object
-ppPlaceholderOrgChart = 11 # Organization Chart
-ppPlaceholderPicture = 18 # Picture
-ppPlaceholderSlideNumber = 13 # Slide Number
-ppPlaceholderSubtitle = 4 # Subtitle
-ppPlaceholderTable = 12 # Table
-ppPlaceholderTitle = 1 # Title
-ppPlaceholderVerticalBody = 6 # Vertical Body
-ppPlaceholderVerticalObject = 17 # Vertical Object
-ppPlaceholderVerticalTitle = 5 # Vertical Title
+ppPlaceholderBitmap = 9  # Bitmap
+ppPlaceholderBody = 2  # Body
+ppPlaceholderCenterTitle = 3  # Center Title
+ppPlaceholderChart = 8  # Chart
+ppPlaceholderDate = 16  # Date
+ppPlaceholderFooter = 15  # Footer
+ppPlaceholderHeader = 14  # Header
+ppPlaceholderMediaClip = 10  # Media Clip
+ppPlaceholderMixed = -2  # Mixed
+ppPlaceholderObject = 7  # Object
+ppPlaceholderOrgChart = 11  # Organization Chart
+ppPlaceholderPicture = 18  # Picture
+ppPlaceholderSlideNumber = 13  # Slide Number
+ppPlaceholderSubtitle = 4  # Subtitle
+ppPlaceholderTable = 12  # Table
+ppPlaceholderTitle = 1  # Title
+ppPlaceholderVerticalBody = 6  # Vertical Body
+ppPlaceholderVerticalObject = 17  # Vertical Object
+ppPlaceholderVerticalTitle = 5  # Vertical Title
 
-'''PpSaveAsFileType enumeration from
+"""PpSaveAsFileType enumeration from
 https://docs.microsoft.com/en-us/office/vba/api/powerpoint.ppsaveasfiletype
-'''
+"""
 ppSaveAsAddIn = 8
 ppSaveAsAnimatedGIF = 40
 ppSaveAsBMP = 19
@@ -131,23 +131,25 @@ def BoolToTriState(value):
 
 
 class PpParagraphAlignment(enum.IntEnum):
-    ppAlignCenter	    = 2	# Center align
-    ppAlignDistribute	= 5	# Distribute
-    ppAlignJustify	    = 4	# Justify
-    ppAlignJustifyLow	= 7	# Low justify
-    ppAlignLeft	        = 1	# Left aligned
-    ppAlignmentMixed	= -2 # Mixed alignment
-    ppAlignRight	    = 3	# Right-aligned
-    ppAlignThaiDistribute = 6 # Thai distributed
+    ppAlignCenter = 2  # Center align
+    ppAlignDistribute = 5  # Distribute
+    ppAlignJustify = 4  # Justify
+    ppAlignJustifyLow = 7  # Low justify
+    ppAlignLeft = 1  # Left aligned
+    ppAlignmentMixed = -2  # Mixed alignment
+    ppAlignRight = 3  # Right-aligned
+    ppAlignThaiDistribute = 6  # Thai distributed
 
 
 class PpBaselineAlignment(enum.IntEnum):
-    ppBaselineAlignBaseline	= 1	# Aligned to the baseline.
-    ppBaselineAlignCenter	= 3	# Aligned to the center.
-    ppBaselineAlignFarEast50 = 4 # Align FarEast50.
-    ppBaselineAlignMixed	= -2 # Mixed alignment.
-    ppBaselineAlignTop	    = 2	# Aligned to the top.
-    ppBaselineAlignAuto     = 5 # https://github.com/DefinitelyTyped/DefinitelyTyped/blob/master/types/activex-powerpoint/index.d.ts
+    ppBaselineAlignBaseline = 1  # Aligned to the baseline.
+    ppBaselineAlignCenter = 3  # Aligned to the center.
+    ppBaselineAlignFarEast50 = 4  # Align FarEast50.
+    ppBaselineAlignMixed = -2  # Mixed alignment.
+    ppBaselineAlignTop = 2  # Aligned to the top.
+    ppBaselineAlignAuto = (
+        5  # https://github.com/DefinitelyTyped/DefinitelyTyped/blob/master/types/activex-powerpoint/index.d.ts
+    )
 
 
 # https://github.com/DefinitelyTyped/DefinitelyTyped/blob/master/types/activex-powerpoint/index.d.ts
@@ -169,9 +171,9 @@ class PpShapeFormat(enum.IntEnum):
 
 
 class PpDirection(enum.IntEnum):
-    ppDirectionLeftToRight	= 1	# Left-to-right layout
-    ppDirectionMixed	    = -2 # Mixed layout
-    ppDirectionRightToLeft	= 2	# Right-to-left layout
+    ppDirectionLeftToRight = 1  # Left-to-right layout
+    ppDirectionMixed = -2  # Mixed layout
+    ppDirectionRightToLeft = 2  # Right-to-left layout
 
 
 class PpViewType(enum.IntEnum):
@@ -218,16 +220,16 @@ class Font:
         return self.__str__()
 
     def __str__(self):
-        s = ''
+        s = ""
         for key, value in self.__dict__.items():
             if s:
-                s = s + ', '
-            if key == 'BaselineOffset':
-                s = s + key + ': ' + ("%g" % value)
+                s = s + ", "
+            if key == "BaselineOffset":
+                s = s + key + ": " + ("%g" % value)
             else:
-                s = s + key + ': ' + str(value)
+                s = s + key + ": " + str(value)
 
-        s = 'Font(' + s + ')'
+        s = "Font(" + s + ")"
 
         return s
 
@@ -242,9 +244,9 @@ class ParagraphFormat:
         self.LineRuleAfter = TriStateToBool(pf.LineRuleAfter)
         self.LineRuleBefore = TriStateToBool(pf.LineRuleBefore)
         self.LineRuleWithin = TriStateToBool(pf.LineRuleWithin)
-        self.SpaceAfter = pf.SpaceAfter # in points or lines
-        self.SpaceBefore = pf.SpaceBefore # in points or lines
-        self.SpaceWithin = pf.SpaceWithin # in line multiplier
+        self.SpaceAfter = pf.SpaceAfter  # in points or lines
+        self.SpaceBefore = pf.SpaceBefore  # in points or lines
+        self.SpaceWithin = pf.SpaceWithin  # in line multiplier
         self.TextDirection = PpDirection(pf.TextDirection)
         self.WordWrap = pf.WordWrap
 
@@ -252,15 +254,15 @@ class ParagraphFormat:
         return self.__str__()
 
     def __str__(self):
-        s = ''
+        s = ""
         for key, value in self.__dict__.items():
             if s:
-                s = s + ', '
-            if key == 'SpaceAfter' or  key == 'SpaceBefore' or  key == 'SpaceWithin':
-                s = s + key + ': ' + ("%g" % value)
+                s = s + ", "
+            if key == "SpaceAfter" or key == "SpaceBefore" or key == "SpaceWithin":
+                s = s + key + ": " + ("%g" % value)
             else:
-                s = s + key + ': ' + str(value)
-        s = 'ParagraphFormat(' + s + ')'
+                s = s + key + ": " + str(value)
+        s = "ParagraphFormat(" + s + ")"
 
         return s
 
@@ -268,7 +270,7 @@ class ParagraphFormat:
 def get_texts_in_shapes(shapes):
     texts = []
     for i in range(shapes.Count):
-        shape = shapes.Item(i+1)
+        shape = shapes.Item(i + 1)
         if not shape.HasTextFrame:
             continue
 
@@ -280,7 +282,7 @@ def get_texts_in_shapes(shapes):
 
 def find_text_in_shapes(shapes, text, match_case=True, whole_words=True):
     for i in range(shapes.Count):
-        shape = shapes.Item(i+1)
+        shape = shapes.Item(i + 1)
         if not shape.HasTextFrame:
             continue
 
@@ -294,7 +296,7 @@ def find_text_in_shapes(shapes, text, match_case=True, whole_words=True):
 
 def get_matching_textframe_info_in_shapes(shapes, text_dict):
     for i in range(shapes.Count):
-        shape = shapes.Item(i+1)
+        shape = shapes.Item(i + 1)
         if not shape.HasTextFrame:
             continue
 
@@ -305,7 +307,12 @@ def get_matching_textframe_info_in_shapes(shapes, text_dict):
             if from_text in text:
                 found_range = text_range.Find(text)
                 bbox = (shape.Left, shape.Top, shape.Width, shape.Height)
-                mbox = (text_frame.MarginLeft, text_frame.MarginTop, text_frame.MarginRight, text_frame.MarginBottom)
+                mbox = (
+                    text_frame.MarginLeft,
+                    text_frame.MarginTop,
+                    text_frame.MarginRight,
+                    text_frame.MarginBottom,
+                )
                 pf = ParagraphFormat(found_range.ParagraphFormat)
                 font = Font(found_range.Font)
                 return (from_text, bbox, mbox, pf, font)
@@ -317,7 +324,7 @@ def get_matching_textframe_info_in_shapes(shapes, text_dict):
 def replace_texts_in_shapes(shapes, text_dict):
     count = 0
     for i in range(shapes.Count):
-        shape = shapes.Item(i+1)
+        shape = shapes.Item(i + 1)
         if not shape.HasTextFrame:
             continue
 
@@ -333,7 +340,7 @@ def replace_texts_in_shapes(shapes, text_dict):
     return count
 
 
-'''
+"""
 def dump_shapes(shapes):
     for i in range(shapes.Count):
         shape = shapes.Item(i+1)
@@ -347,11 +354,11 @@ def dump_shapes(shapes):
             found_text = text_range.Text
             found_text = found_text.replace('\r', '\n')
             print('%s' % found_text)
-'''
+"""
 
 
 def is_text_placeholder(phType):
-    '''
+    """
     ppPlaceholderBody = 2 # Body
     ppPlaceholderCenterTitle = 3 # Center Title
     ppPlaceholderFooter = 15 # Footer
@@ -360,16 +367,17 @@ def is_text_placeholder(phType):
     ppPlaceholderTitle = 1 # Title
     ppPlaceholderVerticalBody = 6 # Vertical Body
     ppPlaceholderVerticalTitle = 5 # Vertical Title
-    '''
+    """
     if ppPlaceholderTitle <= phType and phType <= ppPlaceholderVerticalBody:
         return True
 
     return False
 
+
 def get_placeholder_text(shapes):
     text_dict = {}
     for i in range(shapes.Count):
-        shape = shapes.Item(i+1)
+        shape = shapes.Item(i + 1)
 
         if shape.Type == msoPlaceholder and shape.HasTextFrame:
             phType = shape.PlaceholderFormat.Type
@@ -380,9 +388,9 @@ def get_placeholder_text(shapes):
 
     return text_dict
 
+
 def copy_notes(source_range, dst_range):
-    '''copy_notes() fixes where SlideRange.Duplicate() does not copy NotesSlide.
-    '''
+    """copy_notes() fixes where SlideRange.Duplicate() does not copy NotesSlide."""
     # print('source_range')
     src_shapes = source_range.NotesPage.Shapes
     text_dict = get_placeholder_text(src_shapes)
@@ -392,7 +400,7 @@ def copy_notes(source_range, dst_range):
     shapes = dst_range.NotesPage.Shapes
     # dump_shapes(shapes)
     for i in range(shapes.Count):
-        shape = shapes.Item(i+1)
+        shape = shapes.Item(i + 1)
 
         if shape.Type == msoPlaceholder and shape.HasTextFrame:
             phType = shape.PlaceholderFormat.Type
@@ -405,9 +413,9 @@ def copy_notes(source_range, dst_range):
 
 
 class Presentation(PresentationBase):
-    '''Presentation is a wrapper around PowerPoint.Presentation COM object.
+    """Presentation is a wrapper around PowerPoint.Presentation COM object.
     All the index used in the function is 0-based and converted to 1-based while calling COM functions.
-    '''
+    """
 
     def __init__(self, app, prs):
         super().__init__(app, prs)
@@ -456,8 +464,8 @@ class Presentation(PresentationBase):
         slide = self.prs.Slides.Range(slide_index + 1)
         shapes = slide.Shapes
 
-        #tfinfo = get_matching_textframe_info_in_shapes(shapes, find_replace_dict)
-        #if tfinfo:
+        # tfinfo = get_matching_textframe_info_in_shapes(shapes, find_replace_dict)
+        # if tfinfo:
         #    text = tfinfo[0]
         #    tfinfo = tfinfo[1:]
         #    print(f'text = {text}, {find_replace_dict[text]}')
@@ -488,7 +496,7 @@ class Presentation(PresentationBase):
         elif isinstance(insert_location, int):
             insert_location = insert_location + 1
         else:
-            raise ValueError('Invalid insert location')
+            raise ValueError("Invalid insert location")
 
         added_count = 0
         source_range = self.prs.Slides.Range(source_location)
@@ -541,38 +549,35 @@ class Presentation(PresentationBase):
         powerpoint.CommandBars.ExecuteMso("PasteSourceFormatting")
 
     def saveas(self, filename):
-        '''Save .pptx as files using Powerpoint.Application COM service.
-        '''
+        """Save .pptx as files using Powerpoint.Application COM service."""
         try:
             self.prs.SaveAs(filename)
         except pywintypes.com_error as e:
             print("Error: %s\n%s" % (e, win32api.FormatMessage(e.args[2][5])))
             traceback.print_exc()
 
-    def saveas_format(self, filename, image_type='png'):
-        '''Save .pptx as files using Powerpoint.Application COM service.
-        '''
+    def saveas_format(self, filename, image_type="png"):
+        """Save .pptx as files using Powerpoint.Application COM service."""
         format_type = ppSaveAsPNG
-        if image_type == 'gif':
+        if image_type == "gif":
             format_type = ppSaveAsGIF
-        elif image_type == 'jpg':
+        elif image_type == "jpg":
             format_type = ppSaveAsJPG
-        elif image_type == 'png':
+        elif image_type == "png":
             format_type = ppSaveAsPNG
-        elif image_type == 'tif':
+        elif image_type == "tif":
             format_type = ppSaveAsTIF
 
         self.prs.SaveAs(filename, format_type)
 
-    def export_slide_as(self, slideno, filename, image_type='png'):
-        '''Save all shapes in slide as image files.
-        '''
+    def export_slide_as(self, slideno, filename, image_type="png"):
+        """Save all shapes in slide as image files."""
         scale_width = 0
         scale_height = 0
         self.prs.Slides(slideno + 1).Export(filename, image_type, scale_width, scale_height)
 
-    def export_shapes_as(self, slideno, filename, image_type='png'):
-        '''Save all shapes in slide as image file.
+    def export_shapes_as(self, slideno, filename, image_type="png"):
+        """Save all shapes in slide as image file.
         It only exports the shapes not slide itself and the dimension may not what you expect,
         unless the whole selected shapes cover the slide.
         This method exports transparent images in good condition compared to the above saveas_format.
@@ -580,7 +585,7 @@ class Presentation(PresentationBase):
         https://stackoverflow.com/questions/5713676/ppt-to-png-with-transparent-background
         https://github.com/DefinitelyTyped/DefinitelyTyped/blob/a102789c764788888edc6a89542cd90f08fdce3d/types/activex-powerpoint/index.d.ts#L4234
         https://stackoverflow.com/questions/45299899/graphic-quality-in-powerpoint-graphics-export
-        '''
+        """
         window = self.app.powerpoint.ActiveWindow
         # window.Activate()
         window.ViewType = PpViewType.ppViewNormal
@@ -589,18 +594,24 @@ class Presentation(PresentationBase):
         slide.Shapes.SelectAll()
 
         format_type = PpShapeFormat.ppShapeFormatPNG
-        if image_type == 'gif':
+        if image_type == "gif":
             format_type = PpShapeFormat.ppShapeFormatGIF
-        elif image_type == 'png':
+        elif image_type == "png":
             format_type = PpShapeFormat.ppShapeFormatPNG
 
         # convert 1 inch (=72 point) to 112.5, 1 point to 1.562962963
         # This comes from manual export picture size.
         self.prs.PageSetup.SlideWidth
-        scale_width = self.prs.PageSetup.SlideWidth * 1.563 # 1500
-        scale_height = self.prs.PageSetup.SlideHeight  * 1.563 # 844
+        scale_width = self.prs.PageSetup.SlideWidth * 1.563  # 1500
+        scale_height = self.prs.PageSetup.SlideHeight * 1.563  # 844
         shape_range = window.Selection.ShapeRange
-        shape_range.Export(filename, format_type, scale_width, scale_height, PpExportMode.ppRelativeToSlide)
+        shape_range.Export(
+            filename,
+            format_type,
+            scale_width,
+            scale_height,
+            PpExportMode.ppRelativeToSlide,
+        )
 
     def close(self):
         try:
@@ -610,10 +621,9 @@ class Presentation(PresentationBase):
 
 
 class App(PPTAppBase):
-
     @staticmethod
     def is_running():
-        return process_exists('powerpnt.exe')
+        return process_exists("powerpnt.exe")
 
     def __init__(self):
         self.powerpoint = win32com.client.Dispatch("Powerpoint.Application")

@@ -1,6 +1,6 @@
 #!/usr/bin/env python
-'''
-'''
+"""
+"""
 import gettext
 
 from biblang import L18N
@@ -10,21 +10,81 @@ _ = lambda s: s
 
 
 class BibleInfo:
-    '''BibleInfo contains the King James Version's bible information
+    """BibleInfo contains the King James Version's bible information
     regarding number of books, chapter.
-    '''
+    """
+
     BOOK_COUNT = 66
     OLD_TESTAMENT_COUNT = 39
     CHAPTER_COUNT = [
         # old testament
-        50, 40, 27, 36, 34, 24, 21, 4, 31, 24,
-        22, 25, 29, 36, 10, 13, 10, 41, 150, 31,
-        12, 8, 66, 52, 5, 48, 12, 14, 3, 9,
-        1, 4, 7, 3, 3, 3, 2, 14, 4,
+        50,
+        40,
+        27,
+        36,
+        34,
+        24,
+        21,
+        4,
+        31,
+        24,
+        22,
+        25,
+        29,
+        36,
+        10,
+        13,
+        10,
+        41,
+        150,
+        31,
+        12,
+        8,
+        66,
+        52,
+        5,
+        48,
+        12,
+        14,
+        3,
+        9,
+        1,
+        4,
+        7,
+        3,
+        3,
+        3,
+        2,
+        14,
+        4,
         # new testament
-        28, 16, 24, 21, 28, 16, 16, 13, 6, 6,
-        4, 4, 5, 3, 6, 4, 3, 1, 13, 5,
-        5, 3, 5, 1, 1, 1, 22
+        28,
+        16,
+        24,
+        21,
+        28,
+        16,
+        16,
+        13,
+        6,
+        6,
+        4,
+        4,
+        5,
+        3,
+        6,
+        4,
+        3,
+        1,
+        13,
+        5,
+        5,
+        3,
+        5,
+        1,
+        1,
+        1,
+        22,
     ]
 
     @staticmethod
@@ -45,20 +105,19 @@ class BibleInfo:
 
 
 class Verse:
-    '''Verse class contains verse number and text.
-    '''
+    """Verse class contains verse number and text."""
 
     def __init__(self):
-        self.no = None # Can be a string based a single number('1') or two (i.e. '2-3')
-                       # with 1 based index
-                       # Or None for description or comments.
+        self.no = None  # Can be a string based a single number('1') or two (i.e. '2-3')
+        # with 1 based index
+        # Or None for description or comments.
         self.text = None
 
         self._number1 = None
         self._number2 = None
 
-        self.chapter = None # link to parent chapter for extract_texts()
-        self.book = None    # link to parent book for extract_texts()
+        self.chapter = None  # link to parent chapter for extract_texts()
+        self.book = None  # link to parent book for extract_texts()
 
     def set_no(self, no):
         self.no = no
@@ -66,17 +125,17 @@ class Verse:
             if isinstance(self.no, int):
                 self._number1 = self.no
             elif isinstance(self.no, str):
-                index = self.no.find('-')
+                index = self.no.find("-")
                 if index == -1:
-                    index = self.no.find(':')
+                    index = self.no.find(":")
 
                 if index != -1:
                     self._number1 = int(self.no[:index])
-                    self._number2 = int(self.no[index+1:])
+                    self._number2 = int(self.no[index + 1 :])
 
                     # normalize concatenated multiline verse.
-                    if self.no[index] == ':':
-                        self.no = self.no[:index] + '-' + self.no[index+1:]
+                    if self.no[index] == ":":
+                        self.no = self.no[:index] + "-" + self.no[index + 1 :]
                 else:
                     self._number1 = int(self.no)
 
@@ -108,9 +167,9 @@ class Verse:
         else:
             return False
 
+
 class Chapter:
-    '''Chapter class contains list of verses.
-    '''
+    """Chapter class contains list of verses."""
 
     def __init__(self):
         self.no = None  # int start from 1
@@ -118,8 +177,7 @@ class Chapter:
 
 
 class Book:
-    '''Book class contains list of chapters.
-    '''
+    """Book class contains list of chapters."""
 
     def __init__(self):
         self.new_testament = False  # either old or new testament
@@ -132,11 +190,10 @@ class Book:
 
 
 class Bible:
-    '''Bible class contains list of books.
-    '''
+    """Bible class contains list of books."""
 
     def __init__(self):
-        self.lang = None # ISO 639-1 codes
+        self.lang = None  # ISO 639-1 codes
         self.name = None
         self.books = []
 
@@ -144,9 +201,9 @@ class Bible:
         self.book_to_index_map = None
 
     def ensure_loaded(self, book):
-        '''The ensure_loaded() loads book text, if it is not loaded yet.
+        """The ensure_loaded() loads book text, if it is not loaded yet.
         By providing this, each book can be delay loaded.
-        '''
+        """
 
         if not book.is_loaded():
             book_no = self.books.index(book)
@@ -163,11 +220,11 @@ class Bible:
         return self.book_to_index_map
 
     def extract_texts(self, text_range):
-        '''extract_texts() returns list of Verse within given text_range.
+        """extract_texts() returns list of Verse within given text_range.
 
         The text_range should be formatted as <Book> <Chapter>:<Verse1>[-<Verse2>],
         where Book can be long or short name, Chapter and Verse1/Verse2 are valid numbers.
-        '''
+        """
 
         bt, ct, v1t, v2t = L18N.parse_verse_range(self.lang, text_range)
 
@@ -203,8 +260,7 @@ class Bible:
 
 
 class FileFormat:
-    '''FileFormat class provides handling different file format for the Bible text.
-    '''
+    """FileFormat class provides handling different file format for the Bible text."""
 
     def __init__(self):
         self.options = {}

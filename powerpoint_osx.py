@@ -1,4 +1,4 @@
-'''powerpoint_osx.py implements App and Presentation for Powerpoint in OS X using applescript.
+"""powerpoint_osx.py implements App and Presentation for Powerpoint in OS X using applescript.
 
 Powerpoint AppleScript reference: http://www.codemunki.com/PPT2004AppleScriptRef.pdf
 https://stackoverflow.com/questions/7570855/where-to-find-what-commands-properties-are-available-for-applescript-in-microsof
@@ -13,7 +13,7 @@ AppleScript: https://nathangrigg.com/images/2012/AppleScriptLanguageGuide.pdf
 
 AST: https://apple.stackexchange.com/questions/249606/how-to-code-an-applescript-to-do-a-mouse-click-on-a-menu-bar-item
 cliclick: https://apple.stackexchange.com/questions/323916/applescript-click-by-position
-'''
+"""
 
 import os
 import subprocess
@@ -25,7 +25,7 @@ import applescript
 from powerpoint_base import SlideCache, PresentationBase, PPTAppBase
 
 
-AEKEY_KEYDATA = applescript.AEType(b'seld')
+AEKEY_KEYDATA = applescript.AEType(b"seld")
 
 
 def get_KeyData(ae):
@@ -33,12 +33,13 @@ def get_KeyData(ae):
     seld = ae[seld_k]
     return seld
 
+
 def run_applescript(prefix_cmd, cmd, reraise_exception=False):
     try:
-        full_cmd = ''
+        full_cmd = ""
         if prefix_cmd:
-            full_cmd = prefix_cmd + '\n'
-        full_cmd = full_cmd + 'tell app "Microsoft PowerPoint"\n' + cmd + '\nend tell'
+            full_cmd = prefix_cmd + "\n"
+        full_cmd = full_cmd + 'tell app "Microsoft PowerPoint"\n' + cmd + "\nend tell"
 
         scpt = applescript.AppleScript(full_cmd)
         result = scpt.run()
@@ -53,9 +54,9 @@ def run_applescript(prefix_cmd, cmd, reraise_exception=False):
 
 
 class Presentation(PresentationBase):
-    '''Presentation is a wrapper around PowerPoint.Presentation object.
+    """Presentation is a wrapper around PowerPoint.Presentation object.
     All the index used in the function is 0-based and converted to 1-based while calling COM functions.
-    '''
+    """
 
     def __init__(self, app, prs):
         super().__init__(app, prs)
@@ -63,7 +64,7 @@ class Presentation(PresentationBase):
     def slide_count(self):
         prs_name = get_KeyData(self.prs)
         cmd = f'set slide_count to count of slides of presentation "{prs_name}"\nreturn slide_count'
-        slide_count = run_applescript('', cmd)
+        slide_count = run_applescript("", cmd)
         return slide_count
 
     def _fetch_slide_cache(self, slide_index):
@@ -83,32 +84,31 @@ class Presentation(PresentationBase):
         if isinstance(var, int):
             sindex = var + 1
             cmd = f'set slide_id to slide ID of slide {sindex} of presentation "{prs_name}"\nreturn slide_id'
-            slide_id = run_applescript('', cmd)
+            slide_id = run_applescript("", cmd)
             return slide_id
         elif isinstance(var, list):
             result = []
             for index in var:
                 sindex = index + 1
                 cmd = f'set slide_id to slide ID of slide {sindex} of presentation "{prs_name}"\nreturn slide_id'
-                slide_id = run_applescript('', cmd)
+                slide_id = run_applescript("", cmd)
                 result.append(slide_id)
 
             return result
 
     def slide_ID_to_index(self, var):
-        '''slide_ID_to_index() does not work because the syntax to get the slide ID is not accurate, yet.
-        '''
+        """slide_ID_to_index() does not work because the syntax to get the slide ID is not accurate, yet."""
         prs_name = get_KeyData(self.prs)
         if isinstance(var, int):
             cmd = f'set slide_index to item 1 of (get every slide of presentation "{prs_name}" whose slide ID is {var})\nreturn slide_index'
-            result = run_applescript('', cmd)
+            result = run_applescript("", cmd)
             slide_index = get_KeyData(result)
             return slide_index - 1
         elif isinstance(var, list):
             slide_indices = []
             for sid in var:
                 cmd = f'set slide_index to item 1 of (get every slide of presentation "{prs_name}" whose slide ID is {var})\nreturn slide_index'
-                result = run_applescript('', cmd)
+                result = run_applescript("", cmd)
                 slide_index = get_KeyData(result)
                 slide_indices.append(slide_index - 1)
 
@@ -117,8 +117,8 @@ class Presentation(PresentationBase):
     def _get_texts_in_shapes(self, slide_index):
         prs_name = get_KeyData(self.prs)
         sindex = slide_index + 1
-        prefix_cmd = 'set theList to {}'
-        cmd = f'''
+        prefix_cmd = "set theList to {}"
+        cmd = f"""
 tell slide {sindex} of presentation "{prs_name}"
   repeat with shapeNumber from 1 to count of shapes
     set shapeText to content of text range of text frame of shape shapeNumber
@@ -126,7 +126,7 @@ tell slide {sindex} of presentation "{prs_name}"
   end repeat
   return theList
 end tell
-'''
+"""
         theList = run_applescript(prefix_cmd, cmd)
         theList = [s for s in theList if isinstance(s, str)]
         return theList
@@ -134,8 +134,8 @@ end tell
     def _get_texts_in_note_shapes(self, slide_index):
         prs_name = get_KeyData(self.prs)
         sindex = slide_index + 1
-        prefix_cmd = 'set theList to {}'
-        cmd = f'''
+        prefix_cmd = "set theList to {}"
+        cmd = f"""
 tell notes page of slide {sindex} of presentation "{prs_name}"
   repeat with shapeNumber from 1 to count of shapes
     set shapeText to content of text range of text frame of shape shapeNumber
@@ -143,24 +143,24 @@ tell notes page of slide {sindex} of presentation "{prs_name}"
   end repeat
   return theList
 end tell
-'''
+"""
         theList = run_applescript(prefix_cmd, cmd)
         theList = [s for s in theList if isinstance(s, str)]
         return theList
 
     def _replace_texts_in_slide_shapes(self, slide_index, find_replace_dict):
-        '''_replace_texts_in_slide_shapes() utilize "System Events" extensively to implement Find and Replace.
+        """_replace_texts_in_slide_shapes() utilize "System Events" extensively to implement Find and Replace.
         Please refer applescript/ppt-findReplace_slide.scpt for more information.
-        '''
+        """
         self.activate()
 
         # create AppleScript list from find_replace_dict
-        find_texts = '{' + ','.join(['"' + key + '"' for key in find_replace_dict.keys()])+ '}'
-        replace_texts = '{' + ','.join(['"' + value + '"' for _k, value in find_replace_dict.items()])+ '}'
+        find_texts = "{" + ",".join(['"' + key + '"' for key in find_replace_dict.keys()]) + "}"
+        replace_texts = "{" + ",".join(['"' + value + '"' for _k, value in find_replace_dict.items()]) + "}"
         prs_name = get_KeyData(self.prs)
         slide_index_1 = slide_index + 1
 
-        cmd = f'''
+        cmd = f"""
 set find_texts to {find_texts}
 set replace_texts to {replace_texts}
 set prs_name to "{prs_name}"
@@ -309,7 +309,7 @@ tell application "System Events"
 		delay 1
 	end tell
 end tell
-'''
+"""
         try:
             scpt = applescript.AppleScript(cmd)
             scpt.run()
@@ -317,16 +317,16 @@ end tell
             raise
 
     def _replace_all_slides_texts(self, find_replace_dict):
-        '''_replace_all_slides_texts() utilize "System Events" extensively to implement Find and Replace.
+        """_replace_all_slides_texts() utilize "System Events" extensively to implement Find and Replace.
         Please refer applescript/ppt-findReplaceAll.scpt for more information.
-        '''
+        """
         self.activate()
 
         # create AppleScript list from find_replace_dict
-        find_texts = '{' + ','.join(['"' + key + '"' for key in find_replace_dict.keys()])+ '}'
-        replace_texts = '{' + ','.join(['"' + value + '"' for _k, value in find_replace_dict.items()])+ '}'
+        find_texts = "{" + ",".join(['"' + key + '"' for key in find_replace_dict.keys()]) + "}"
+        replace_texts = "{" + ",".join(['"' + value + '"' for _k, value in find_replace_dict.items()]) + "}"
 
-        cmd = f'''
+        cmd = f"""
 set find_texts to {find_texts}
 set replace_texts to {replace_texts}
 set replaceall_label to "Replace All"
@@ -388,7 +388,7 @@ tell application "System Events"
 		delay 1
 	end tell
 end tell
-'''
+"""
         try:
             scpt = applescript.AppleScript(cmd)
             scpt.run()
@@ -396,9 +396,9 @@ end tell
             raise
 
     def duplicate_slides(self, source_location, insert_location=None, copy=1):
-        '''duplicate_slides() requires System Events that needs security set up.
+        """duplicate_slides() requires System Events that needs security set up.
         If the implementation can be done without it, it will be much robust.
-        '''
+        """
 
         source_count = 1
         if isinstance(source_location, int):
@@ -410,7 +410,7 @@ end tell
                 source_count = 1
             else:
                 # only support 1 slide duplication.
-                raise ValueError('Invalid insert location')
+                raise ValueError("Invalid insert location")
 
                 # make sure all elements are integer
                 # source_location = [int(i) + 1 for i in source_location]
@@ -425,7 +425,7 @@ end tell
         elif isinstance(insert_location, int):
             insert_location = insert_location + 1
         else:
-            raise ValueError('Invalid insert location')
+            raise ValueError("Invalid insert location")
 
         added_count = 0
 
@@ -436,7 +436,7 @@ end tell
             if insert_location > source_location:
                 insert_location1 = insert_location1 + source_count
 
-            cmd = f'''
+            cmd = f"""
 tell presentation "{prs_name}"
   activate
   select slide {source_location}
@@ -445,8 +445,8 @@ tell presentation "{prs_name}"
   move slide {source_location_1} to before slide {insert_location1}
   delay 0.1
 end tell
-'''
-            run_applescript('', cmd)
+"""
+            run_applescript("", cmd)
 
             added_count = added_count + source_count
 
@@ -459,44 +459,44 @@ end tell
         return added_count
 
     def insert_blank_slide(self, slide_index):
-        insert_location = 'the beginning'
+        insert_location = "the beginning"
         if slide_index == 0:
             pass
         elif slide_index == self.slide_count():
-            insert_location = 'the end'
+            insert_location = "the end"
         else:
-            insert_location = f'after slide {slide_index}'
+            insert_location = f"after slide {slide_index}"
         prs_name = get_KeyData(self.prs)
         cmd = f'make new slide at {insert_location} of presentation "{prs_name}" with properties {{layout: slide layout blank}}'
-        run_applescript('', cmd)
+        run_applescript("", cmd)
 
     def delete_slide(self, slide_index):
         prs_name = get_KeyData(self.prs)
         slide_index = slide_index + 1
-        cmd = f'''
+        cmd = f"""
 tell presentation "{prs_name}"
   delete slide {slide_index}
 end tell
-'''
-        run_applescript('', cmd)
+"""
+        run_applescript("", cmd)
 
     def activate(self):
         # activate the presentation before using "System Events"
         prs_name = get_KeyData(self.prs)
-        cmd = f'''
+        cmd = f"""
 tell presentation "{prs_name}"
   activate
 end tell
-'''
+"""
         try:
-            run_applescript('', cmd, reraise_exception=True)
+            run_applescript("", cmd, reraise_exception=True)
         except applescript.ScriptError:
             raise
 
     def copyall_and_close(self):
         self.activate()
 
-        cmd = f'''
+        cmd = f"""
 tell application "System Events"
 	tell process "Microsoft PowerPoint"
 		set frontmost to true
@@ -515,7 +515,7 @@ tell application "System Events"
 		delay 1
 	end tell
 end tell
-'''
+"""
         try:
             scpt = applescript.AppleScript(cmd)
             scpt.run()
@@ -523,7 +523,7 @@ end tell
             raise
 
     def _paste_keep_source_formatting(self, insert_location):
-        '''_paste_keep_source_formatting() uses System Events to paste the copied slides in the clipboard.
+        """_paste_keep_source_formatting() uses System Events to paste the copied slides in the clipboard.
         The pastes slides will be inserted after the selection set by "select slide insert_location".
         So, the logic needs to take care of that.
 
@@ -531,12 +531,11 @@ end tell
         because it's using AXPopupMenu.
 
         So, cliclick utility is used below, but can be replaced by other Python module like pyautogui.
-        '''
+        """
 
         insert_location_1 = insert_location - 1
         prs_name = get_KeyData(self.prs)
-        cmd = \
-f'''
+        cmd = f"""
 set insert_location to {insert_location_1}
 
 tell application "Microsoft PowerPoint"
@@ -577,7 +576,7 @@ tell application "System Events"
 		end tell
 	end tell
 end tell
-'''
+"""
         try:
             scpt = applescript.AppleScript(cmd)
             scpt.run()
@@ -597,19 +596,18 @@ end tell
             fn, _ext = os.path.splitext(basename)
             self.prs[AEKEY_KEYDATA] = fn
 
-    def saveas_format(self, filename, image_type='png'):
-        '''saveas_format() utilize "System Events" extensively to implement Export As JPEG/PNG.
+    def saveas_format(self, filename, image_type="png"):
+        """saveas_format() utilize "System Events" extensively to implement Export As JPEG/PNG.
         Please refer applescript/ppt-export.scpt for more information.
-        '''
+        """
         self.activate()
 
         output_dir, leaf_dir = os.path.split(filename)
-        file_format = 'PNG'
-        if image_type == 'jpg':
-            file_format = 'JPEG'
+        file_format = "PNG"
+        if image_type == "jpg":
+            file_format = "JPEG"
 
-        cmd = \
-f'''
+        cmd = f"""
 set output_dir to "{output_dir}"
 set leaf_dir to "{leaf_dir}"
 set file_format to "{file_format}" # "PNG"
@@ -684,7 +682,7 @@ tell application "System Events"
 		end repeat
 	end tell
 end tell
-'''
+"""
         try:
             scpt = applescript.AppleScript(cmd)
             scpt.run()
@@ -694,15 +692,19 @@ end tell
     def close(self):
         prs_name = get_KeyData(self.prs)
         cmd = f'close presentation "{prs_name}"'
-        run_applescript('', cmd)
+        run_applescript("", cmd)
         self.prs = None
 
 
 class App(PPTAppBase):
-
     @staticmethod
     def is_running():
-        process = subprocess.Popen('pgrep "Microsoft PowerPoint"', shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+        process = subprocess.Popen(
+            'pgrep "Microsoft PowerPoint"',
+            shell=True,
+            stdout=subprocess.PIPE,
+            stderr=subprocess.PIPE,
+        )
         my_pid, _err = process.communicate()
 
         try:
@@ -713,12 +715,12 @@ class App(PPTAppBase):
         return True
 
     def __init__(self):
-        cmd = 'activate'
-        run_applescript('', cmd)
+        cmd = "activate"
+        run_applescript("", cmd)
 
     def new_presentation(self):
-        cmd = 'set prs to make new presentation\nreturn prs'
-        prs = run_applescript('', cmd)
+        cmd = "set prs to make new presentation\nreturn prs"
+        prs = run_applescript("", cmd)
         if prs:
             return Presentation(self, prs)
 
@@ -727,17 +729,16 @@ class App(PPTAppBase):
         fn, _ext = os.path.splitext(basename)
 
         prefix_cmd = f'set f to POSIX file "{filename}"'
-        cmd = \
-f'''open f
+        cmd = f"""open f
 set prs to presentation "{fn}"
-return prs'''
+return prs"""
         prs = run_applescript(prefix_cmd, cmd)
         if prs:
             return Presentation(self, prs)
 
     def presentation_count(self):
-        cmd = 'set pcount to count of presentations\nreturn pcount'
-        pcount = run_applescript('', cmd)
+        cmd = "set pcount to count of presentations\nreturn pcount"
+        pcount = run_applescript("", cmd)
         return pcount
 
     def quit_if_empty(self):
@@ -746,5 +747,5 @@ return prs'''
             self.quit()
 
     def quit(self):
-        cmd = 'quit'
-        run_applescript('', cmd)
+        cmd = "quit"
+        run_applescript("", cmd)

@@ -1,9 +1,9 @@
-'''This file supports reading "MySword" Bible modules, which is a sqlite3 file format.
+"""This file supports reading "MySword" Bible modules, which is a sqlite3 file format.
 https://www.mysword.info/modules-format
 
 The module also can be downloaded by using "bgmysword" program that reads text from http://biblegateway.com.
 https://github.com/GreenRaccoon23/bgmysword
-'''
+"""
 
 import os
 import re
@@ -14,7 +14,6 @@ import biblang
 
 
 class MySwordReader:
-
     def __init__(self):
         self.conn = None
         self.cursor = None
@@ -62,14 +61,14 @@ class MySwordReader:
             for v in verses:
                 v_text = v[1]
                 # Treat 'Title Start' at the beginning as another verse.
-                if v_text.startswith('<TS>'):
-                    index = v_text.index('<Ts>')
+                if v_text.startswith("<TS>"):
+                    index = v_text.index("<Ts>")
                     if index != -1:
                         verse = Verse()
                         verse.text = v_text[4:index]
                         chapter.verses.append(verse)
 
-                        v_text = v_text[index+4:]
+                        v_text = v_text[index + 4 :]
 
                 verse = Verse()
                 verse.set_no(v[0])
@@ -78,11 +77,11 @@ class MySwordReader:
 
     def _cleanup_text(self, text):
         if self.remove_tags:
-            text = re.sub('<CI>', ' ', text)
-            text = re.sub('<(CM|FI|Fi|FO|Fo|FR|Fr|FU|Fu|PF[0-7]|PI[0-7])>', '', text)
-            text = re.sub('<RF>.*<Rf>', '', text)
+            text = re.sub("<CI>", " ", text)
+            text = re.sub("<(CM|FI|Fi|FO|Fo|FR|Fr|FU|Fu|PF[0-7]|PI[0-7])>", "", text)
+            text = re.sub("<RF>.*<Rf>", "", text)
             # Ignore 'Title Start' in the middle.
-            text = re.sub('<TS>.*<Ts>', '', text)
+            text = re.sub("<TS>.*<Ts>", "", text)
 
         text = text.strip()
 
@@ -128,18 +127,18 @@ class MySwordReader:
 
         return 0
 
+
 class MySwordFormat(FileFormat):
     def __init__(self):
         super().__init__()
 
         self.versions = None
-        self.options = {'ROOT_DIR': '',
-                        'remove_bible_tags': None}
+        self.options = {"ROOT_DIR": "", "remove_bible_tags": None}
 
     def _get_root_dir(self):
-        dirname = self.get_option('ROOT_DIR')
+        dirname = self.get_option("ROOT_DIR")
         if not dirname:
-            dirname = os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', '..', 'bgmysword')
+            dirname = os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "..", "bgmysword")
 
         dirname = os.path.normpath(dirname)
 
@@ -147,10 +146,10 @@ class MySwordFormat(FileFormat):
 
     @staticmethod
     def _get_bible_name(filename):
-        '''Check whether it is a sqlite3 file with "Details" and "Bible" tables.
+        """Check whether it is a sqlite3 file with "Details" and "Bible" tables.
 
         return biblename if it is a valid bible.
-        '''
+        """
         desc = None
         with sqlite3.connect(filename) as conn:
             cursor = conn.cursor()
@@ -158,7 +157,7 @@ class MySwordFormat(FileFormat):
             tables = cursor.fetchall()
             count = 0
             for t in tables:
-                if t[0] in ('Details', 'Bible'):
+                if t[0] in ("Details", "Bible"):
                     count = count + 1
 
             if count != 2:
@@ -174,9 +173,9 @@ class MySwordFormat(FileFormat):
 
         @staticmethod
         def _get_column_names(cursor, tablename):
-            '''Return list of columns from "tablename".
+            """Return list of columns from "tablename".
             0|column_name|varchar|0||0
-            '''
+            """
             cursor.execute(f"pragma table_info({tablename});")
             columns = cursor.fetchall()
             return [c[1] for c in columns]
@@ -208,6 +207,6 @@ class MySwordFormat(FileFormat):
 
         reader = MySwordReader()
         remove_tags = False
-        if self.options['remove_bible_tags']:
+        if self.options["remove_bible_tags"]:
             remove_tags = True
         return reader.read_bible(conn, version, remove_tags)

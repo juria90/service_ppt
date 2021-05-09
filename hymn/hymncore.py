@@ -1,6 +1,7 @@
 #!/usr/bin/env python
-'''
-'''
+"""
+"""
+
 
 class Verse:
     def __init__(self):
@@ -11,10 +12,10 @@ class Verse:
 class Song:
     def __init__(self):
         self.title = None
-        self.authors = None # list containing 'words', 'music', 'translation/lang' and name.
-        self.verse_order = None # string that describes the order of verses.
-        self.songbook = None # dict containing name(mandatory), entry(optional)
-        self.released = None # Release Y, Y-M, Y-M-d, Y-M-dTh:m
+        self.authors = None  # list containing 'words', 'music', 'translation/lang' and name.
+        self.verse_order = None  # string that describes the order of verses.
+        self.songbook = None  # dict containing name(mandatory), entry(optional)
+        self.released = None  # Release Y, Y-M, Y-M-d, Y-M-dTh:m
         self.keywords = None
         self.verses = []
 

@@ -6,11 +6,11 @@ import re
 def find_text_in_text_list(text, text_list, match_case=True, whole_words=True):
     if whole_words or not match_case:
         esc_text = re.escape(text)
-        pattern = ''
+        pattern = ""
         if not match_case:
-            pattern = '(?i)'
+            pattern = "(?i)"
         if whole_words:
-            pattern = pattern + r'\b' + esc_text + r'\b'
+            pattern = pattern + r"\b" + esc_text + r"\b"
         else:
             pattern = pattern + esc_text
         for t in text_list:
@@ -26,21 +26,20 @@ def find_text_in_text_list(text, text_list, match_case=True, whole_words=True):
 
 
 class FindAnyText:
-
     def __init__(self, find_text_list, match_case=True, whole_words=True):
-        esc_text = ''
+        esc_text = ""
         for text in find_text_list:
             if esc_text:
-                esc_text = esc_text + '|'
+                esc_text = esc_text + "|"
             esc_text = esc_text + re.escape(text)
 
-        esc_text = '(' + esc_text + ')'
+        esc_text = "(" + esc_text + ")"
 
-        pattern = ''
+        pattern = ""
         if not match_case:
-            pattern = '(?i)'
+            pattern = "(?i)"
         if whole_words:
-            pattern = pattern + r'\b' + esc_text + r'\b'
+            pattern = pattern + r"\b" + esc_text + r"\b"
         else:
             pattern = pattern + esc_text
 
@@ -63,9 +62,9 @@ class SlideCache:
 
 
 class PresentationBase:
-    '''PresentationBase is a common base class for Presentation(Win32) and Presentation(OSX).
+    """PresentationBase is a common base class for Presentation(Win32) and Presentation(OSX).
     It also supports caching text for find and replace.
-    '''
+    """
 
     def __init__(self, app, prs):
         self.app = app
@@ -93,7 +92,7 @@ class PresentationBase:
 
     def _slides_deleted(self, index, count):
         if index < len(self.slide_caches):
-            del self.slide_caches[index:index+count]
+            del self.slide_caches[index : index + count]
 
         self._slide_count = self._slide_count - count
         self.id_to_index = {}
@@ -104,7 +103,7 @@ class PresentationBase:
         if self._slide_count != slide_count or len(self.slide_caches) != slide_count:
             self._slide_count = slide_count
             self.valid_cache = False
-            self.slide_caches = [] # invalid all caches
+            self.slide_caches = []  # invalid all caches
             self.id_to_index = {}
 
         self._update_slide_ID_cache()
@@ -172,13 +171,12 @@ class PresentationBase:
         else:
             text_list = sc.notes_text
 
-        found = find_text_in_text_list(
-            text, text_list, ignore_case, whole_words)
+        found = find_text_in_text_list(text, text_list, ignore_case, whole_words)
         return found
 
     def replace_all_slides_texts(self, find_replace_dict):
         has_replace_all_slides = False
-        if callable(getattr(self, '_replace_all_slides_texts', None)):
+        if callable(getattr(self, "_replace_all_slides_texts", None)):
             has_replace_all_slides = True
 
         self._update_slide_ID_cache()
@@ -189,8 +187,7 @@ class PresentationBase:
             sc = self.slide_caches[slide_index]
             if ft.find(sc.slide_text):
                 if not has_replace_all_slides:
-                    self._replace_texts_in_slide_shapes(
-                        slide_index, find_replace_dict)
+                    self._replace_texts_in_slide_shapes(slide_index, find_replace_dict)
                 sc.valid_cache = False
                 self.valid_cache = False
 
@@ -227,11 +224,10 @@ class PresentationBase:
         elif isinstance(insert_location, int):
             insert_location = insert_location + 1
         else:
-            raise ValueError('Invalid insert location')
+            raise ValueError("Invalid insert location")
 
         if not os.path.exists(src_ppt_filename):
-            raise FileNotFoundError(errno.ENOENT, os.strerror(
-                errno.ENOENT), src_ppt_filename)
+            raise FileNotFoundError(errno.ENOENT, os.strerror(errno.ENOENT), src_ppt_filename)
 
         # If the presentation is empty, Activate() will not work.
         # So, add a blank slide and delete it later.
@@ -255,12 +251,12 @@ class PresentationBase:
 
         return added_count
 
-    def export_slides_as(self, slidenumbers, dirname, image_type='png'):
+    def export_slides_as(self, slidenumbers, dirname, image_type="png"):
         slide_count = self._slide_count
-        num_digits = len(f'{slide_count+1}')
-        fmt = r'Slide%0' + str(num_digits) + r'd%s'
+        num_digits = len(f"{slide_count+1}")
+        fmt = r"Slide%0" + str(num_digits) + r"d%s"
 
-        ext = '.' + image_type
+        ext = "." + image_type
 
         if slidenumbers is None:
             slidenumbers = range(self._slide_count)
@@ -269,16 +265,15 @@ class PresentationBase:
             filename = fmt % (slideno + 1, ext)
             self.export_slide_as(slideno, os.path.join(dirname, filename), image_type)
 
-    def export_slide_as(self, slideno, filename, image_type='png'):
-        '''Save all shapes in slide as image files.
-        '''
+    def export_slide_as(self, slideno, filename, image_type="png"):
+        """Save all shapes in slide as image files."""
 
-    def export_slide_shapes_as(self, slidenumbers, dirname, image_type='png'):
+    def export_slide_shapes_as(self, slidenumbers, dirname, image_type="png"):
         slide_count = self._slide_count
-        num_digits = len(f'{slide_count+1}')
-        fmt = r'Slide%0' + str(num_digits) + r'd%s'
+        num_digits = len(f"{slide_count+1}")
+        fmt = r"Slide%0" + str(num_digits) + r"d%s"
 
-        ext = '.' + image_type
+        ext = "." + image_type
 
         if slidenumbers is None:
             slidenumbers = range(self._slide_count)
@@ -287,9 +282,8 @@ class PresentationBase:
             filename = fmt % (slideno + 1, ext)
             self.export_shapes_as(slideno, os.path.join(dirname, filename), image_type)
 
-    def export_shapes_as(self, slideno, filename, image_type='png'):
-        '''Save all shapes in slide as image files.
-        '''
+    def export_shapes_as(self, slideno, filename, image_type="png"):
+        """Save all shapes in slide as image files."""
 
 
 class PPTAppBase:

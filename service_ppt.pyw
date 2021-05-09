@@ -1,22 +1,21 @@
 #!python3
-'''service_ppt.py has the main() starting function.
-'''
+"""service_ppt.py has the main() starting function.
+"""
 
 import os
 import sys
 import traceback
 
-sys.path.append(os.path.join(os.path.dirname(os.path.abspath(__file__)), 'bible'))
+sys.path.append(os.path.join(os.path.dirname(os.path.abspath(__file__)), "bible"))
 import wx
 
 from mainframe import Frame
 
 
 def main():
-    '''Main entrance function.
-    '''
+    """Main entrance function."""
     redirect = False
-    app = wx.App(redirect=redirect)   # Error messages go to popup window
+    app = wx.App(redirect=redirect)  # Error messages go to popup window
     # root, _ext = os.path.splitext(os.path.abspath(__file__))
     # logfn = root + '.log'
     # app.RedirectStdio(logfn)
@@ -25,7 +24,8 @@ def main():
     app.SetTopWindow(frame)
     app.MainLoop()
 
-if __name__ == '__main__':
+
+if __name__ == "__main__":
     try:
         main()
     except:

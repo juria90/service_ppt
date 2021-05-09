@@ -1,5 +1,5 @@
-'''
-'''
+"""
+"""
 
 import sys
 import time
@@ -15,6 +15,7 @@ DEFAULT_BORDER = 5
 # Define notification event for thread completion
 EVT_RESULT_ID = wx.NewId()
 
+
 def EVT_RESULT(win, func):
     """Define Result Event."""
     win.Connect(-1, -1, EVT_RESULT_ID, func)
@@ -22,6 +23,7 @@ def EVT_RESULT(win, func):
 
 class ResultEvent(wx.PyEvent):
     """Simple event to carry arbitrary result data."""
+
     def __init__(self, data):
         """Init Result Event."""
         wx.PyEvent.__init__(self)
@@ -32,6 +34,7 @@ class ResultEvent(wx.PyEvent):
 # Thread class that executes the commands
 class WorkerThread(Thread):
     """Worker Thread Class."""
+
     def __init__(self, notify_window, bkgnd_handler):
         """Init Worker Thread Class."""
         Thread.__init__(self)
@@ -60,8 +63,7 @@ label2 = "Less"
 
 
 class BkgndProgressDialog(wx.Dialog):
-    '''BkgndProgressDialog class displays the current progress status.
-    '''
+    """BkgndProgressDialog class displays the current progress status."""
 
     def __init__(self, parent, title, message, bkgnd_handler):
         self.maximum = 100
@@ -92,21 +94,30 @@ class BkgndProgressDialog(wx.Dialog):
     def init_controls(self, message):
         sizer = wx.BoxSizer(wx.VERTICAL)
 
-        text_for_size = (('W'*40)+'\n') * 3
+        text_for_size = (("W" * 40) + "\n") * 3
         self.message_ctrl = wx.StaticText(self, label=text_for_size, style=wx.ST_NO_AUTORESIZE)
-        sizer.Add(self.message_ctrl, proportion=1, flag=wx.ALL|wx.FIXED_MINSIZE|wx.EXPAND, border=DEFAULT_BORDER)
+        sizer.Add(
+            self.message_ctrl,
+            proportion=1,
+            flag=wx.ALL | wx.FIXED_MINSIZE | wx.EXPAND,
+            border=DEFAULT_BORDER,
+        )
 
-        self.guage_ctrl = wx.Gauge(self, range=100, style=wx.GA_HORIZONTAL|wx.GA_PROGRESS)
-        sizer.Add(self.guage_ctrl, proportion=0, flag=wx.LEFT|wx.BOTTOM|wx.RIGHT|wx.EXPAND, border=DEFAULT_BORDER)
+        self.guage_ctrl = wx.Gauge(self, range=100, style=wx.GA_HORIZONTAL | wx.GA_PROGRESS)
+        sizer.Add(
+            self.guage_ctrl,
+            proportion=0,
+            flag=wx.LEFT | wx.BOTTOM | wx.RIGHT | wx.EXPAND,
+            border=DEFAULT_BORDER,
+        )
 
-        self.cp = cp = wx.CollapsiblePane(self, label=label1,
-                                          style=wx.CP_DEFAULT_STYLE|wx.CP_NO_TLW_RESIZE)
+        self.cp = cp = wx.CollapsiblePane(self, label=label1, style=wx.CP_DEFAULT_STYLE | wx.CP_NO_TLW_RESIZE)
         self.Bind(wx.EVT_COLLAPSIBLEPANE_CHANGED, self.on_pane_changed, cp)
         self.create_pane_content(cp.GetPane())
-        sizer.Add(cp, 0, wx.ALL|wx.EXPAND, border=DEFAULT_BORDER)
+        sizer.Add(cp, 0, wx.ALL | wx.EXPAND, border=DEFAULT_BORDER)
 
-        btnsizer = self.CreateSeparatedButtonSizer(wx.OK|wx.CANCEL)
-        sizer.Add(btnsizer, 0, wx.ALL|wx.EXPAND, border=DEFAULT_BORDER)
+        btnsizer = self.CreateSeparatedButtonSizer(wx.OK | wx.CANCEL)
+        sizer.Add(btnsizer, 0, wx.ALL | wx.EXPAND, border=DEFAULT_BORDER)
 
         self.SetSizer(sizer)
         self.Fit()
@@ -118,11 +129,11 @@ class BkgndProgressDialog(wx.Dialog):
         close_btn.Show(False)
 
     def create_pane_content(self, pane):
-        style = wx.LC_REPORT|wx.LC_NO_HEADER|wx.LC_SINGLE_SEL
-        self.message_listctrl = AutoresizeListCtrl(pane, style=style, name='messages')
-        self.message_listctrl.InsertColumn(0, 'Messages', width=wx.LIST_AUTOSIZE)
+        style = wx.LC_REPORT | wx.LC_NO_HEADER | wx.LC_SINGLE_SEL
+        self.message_listctrl = AutoresizeListCtrl(pane, style=style, name="messages")
+        self.message_listctrl.InsertColumn(0, "Messages", width=wx.LIST_AUTOSIZE)
         border = wx.BoxSizer()
-        border.Add(self.message_listctrl, 1, wx.EXPAND|wx.ALL, 5)
+        border.Add(self.message_listctrl, 1, wx.EXPAND | wx.ALL, 5)
         pane.SetSizer(border)
 
     def on_pane_changed(self, _):
@@ -137,19 +148,16 @@ class BkgndProgressDialog(wx.Dialog):
             self.cp.SetLabel(label1)
 
     def on_close(self, _):
-        '''Event handler for Close.
-        '''
+        """Event handler for Close."""
         result = wx.ID_CANCEL if self.cancelled else wx.ID_OK
         self.EndModal(result)
 
     def on_btn_close(self, _):
-        '''Event handler for Close.
-        '''
+        """Event handler for Close."""
         self.EndModal(wx.ID_OK)
 
     def on_cancel(self, _):
-        '''Event handler for Cancel.
-        '''
+        """Event handler for Cancel."""
         self.cancelled = True
 
     # functions that will be called by worker thread.
@@ -207,10 +215,9 @@ class BkgndProgressDialog(wx.Dialog):
         return (self.subrange_min, self.subrange_max)
 
     def set_subrange(self, sub_min, sub_max):
-        '''Convert 0 to 100 to min & max
-        '''
+        """Convert 0 to 100 to min & max"""
         self.subrange_min = sub_min
         self.subrange_max = sub_max
 
         # apply new subrange
-        self.progress_message(0, '')
+        self.progress_message(0, "")
