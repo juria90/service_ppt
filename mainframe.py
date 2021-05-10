@@ -7,12 +7,12 @@ import os
 import wx
 
 import command_ui as cmdui
+import preferences_config as pc
 import preferences_dialog as pd
 
 from autoresize_listctrl import AutoresizeListCtrl
 from background_worker import BkgndProgressDialog
 from bible import fileformat as bibfileformat
-from preferences_config import PreferencesConfig
 
 
 _ = lambda s: s
@@ -120,7 +120,7 @@ class Frame(wx.Frame):
         self.m_save = None
 
         self.config = wx.FileConfig("ServicePPT", vendorName="EMC")
-        self.pconfig = PreferencesConfig()
+        self.pconfig = pc.PreferencesConfig()
         self.pconfig.read_config(self.config)
         cmdui.GenerateBibleVerseUI.current_bible_format = self.pconfig.current_bible_format
         bibfileformat.set_format_option(self.pconfig.current_bible_format, "ROOT_DIR", self.pconfig.bible_rootdir)
@@ -129,8 +129,22 @@ class Frame(wx.Frame):
         self.filehistory.Load(self.config)
         self.m_recent = None
 
+        self.window_rect = None
+        sw = pc.SW_RESTORED
+        window_rect = None
+        wp = self.pconfig.read_window_rect(self.config)
+        if wp:
+            sw = wp[0]
+            window_rect = wp[1]
+        else:
+            sw = pc.SW_RESTORED
+            disp = wx.Display(0)
+            rc = disp.GetClientArea()
+            tl = rc.GetTopLeft()
+            wh = rc.GetSize()
+            window_rect = (tl[0] + wh[0] // 4, tl[1] + wh[1] // 4, wh[0] // 2, wh[1] // 2)
+
         app_display_name = _("Service Presentation Generator")
-        size = wx.DisplaySize()
         style = (
             wx.DEFAULT_DIALOG_STYLE
             | wx.SYSTEM_MENU
@@ -143,10 +157,12 @@ class Frame(wx.Frame):
             self,
             None,
             title=app_display_name,
-            size=wx.Size(size[0] * 1 / 2, size[1] * 1 / 2),
             style=style,
         )
         wx.App.Get().SetAppDisplayName(app_display_name)
+        self.Bind(wx.EVT_MOVE, self.on_move)
+        self.Bind(wx.EVT_SIZE, self.on_move)
+
         self.Bind(wx.EVT_CLOSE, self.on_close)
 
         self.SetIcon(wx.Icon(os.path.join(self.image_path32, "bible.png")))
@@ -157,7 +173,12 @@ class Frame(wx.Frame):
         self.init_controls()
         self._set_title()
 
-        self.Center()
+        if self.window_rect:
+            self.SetSize(*window_rect)
+        if sw == pc.SW_ICONIZED:
+            self.Iconize()
+        elif sw == pc.SW_MAXIMIZED:
+            self.Maximize()
 
     def create_menubar(self):
         """Creates default Menubar."""
@@ -242,7 +263,7 @@ class Frame(wx.Frame):
         """Creates default Statusbar."""
         self.statusbar = super(Frame, self).CreateStatusBar()
 
-    def create_command_toolbar(self, parent):
+    def create_command_toolbar(self, parent: wx.Window):
         toolbar = wx.ToolBar(parent, size=(200, -1), style=wx.TB_HORIZONTAL | wx.TB_BOTTOM)
 
         bitmap = wx.Bitmap(os.path.join(self.image_path24, "Add.png"))
@@ -327,7 +348,15 @@ class Frame(wx.Frame):
 
         panel.SetSizerAndFit(sizer)
 
-    def on_close(self, _event):
+    def on_move(self, event: wx.Event):
+        rc = self.GetRect()
+        # print("window rect = (%d, %d, %d, %d)" % (rc.GetX(), rc.GetY(), rc.GetWidth(), rc.GetHeight()))
+        if not self.IsIconized() and not self.IsMaximized():
+            self.window_rect = (rc.GetX(), rc.GetY(), rc.GetWidth(), rc.GetHeight())
+
+        event.Skip()
+
+    def on_close(self, _event: wx.Event):
         """Event handler for EVT_CLOSE."""
         can_close = True
         can_save = False
@@ -347,19 +376,28 @@ class Frame(wx.Frame):
             self.on_save(None)
 
         if can_close:
+            sw = pc.SW_RESTORED
+            if self.IsIconized():
+                sw = pc.SW_ICONIZED
+            elif self.IsMaximized():
+                sw = pc.SW_MAXIMIZED
+
+            if self.window_rect:
+                self.pconfig.write_window_rect(self.config, sw, self.window_rect)
+
             self.Destroy()
 
-    def on_open(self, _event):
+    def on_open(self, _event: wx.Event):
         """Event handler for the File Open command."""
         self.open_file("", True)
 
-    def on_file_history(self, event):
+    def on_file_history(self, event: wx.Event):
         fileNum = event.GetId() - wx.ID_FILE1
         path = self.filehistory.GetHistoryFile(fileNum)
 
         self.open_file(path, True)
 
-    def open_file(self, filename, prompt):
+    def open_file(self, filename: str, prompt: bool):
         if self.uimgr.check_modified() and prompt:
             result = wx.MessageBox(
                 _("The document is modified.\nDo you want to continue?"),
@@ -420,13 +458,13 @@ class Frame(wx.Frame):
                 wx.LIST_STATE_FOCUSED | wx.LIST_STATE_SELECTED,
             )
 
-    def on_save(self, _event):
+    def on_save(self, _event: wx.Event):
         self.save_file(False, _("Save to a file"))
 
-    def on_saveas(self, _event):
+    def on_saveas(self, _event: wx.Event):
         self.save_file(True, _("Save as a file"))
 
-    def save_file(self, prompt, title):
+    def save_file(self, prompt: bool, title: str):
         filename = self._filename
         if prompt or self._filename is None:
             defDir, defFile = "", ""
@@ -456,12 +494,12 @@ class Frame(wx.Frame):
         self._set_title()
         self.update_menu()
 
-    def update_file_history(self, filename):
+    def update_file_history(self, filename: str):
         self.filehistory.AddFileToHistory(filename)
         self.filehistory.RemoveMenu(self.m_recent)
         self.filehistory.AddFilesToMenu()
 
-    def on_execute(self, _event):
+    def on_execute(self, _event: wx.Event):
         def bkgnd_handler(window):
             self.uimgr.execute_commands(window)
 
@@ -476,7 +514,7 @@ class Frame(wx.Frame):
 
         self.SetTitle(filename_title + " - " + wx.App.Get().GetAppDisplayName())
 
-    def on_preferences(self, _event):
+    def on_preferences(self, _event: wx.Event):
         """Event handler for the Preferences command."""
         dlg = pd.PreferencesDialog(self, self.pconfig)
         result = dlg.ShowModal()
@@ -491,7 +529,7 @@ class Frame(wx.Frame):
 
             self.pconfig.write_config(self.config)
 
-    def on_add_command(self, _event):
+    def on_add_command(self, _event: wx.Event):
         """Event handler for the ID_COMMAND_ADD command."""
         dlg = wx.SingleChoiceDialog(
             self,
@@ -512,13 +550,13 @@ class Frame(wx.Frame):
             index = self.command_ctrl.GetItemCount()
         self.insert_command(index, command_index, command_name)
 
-    def on_delete_command(self, _event):
+    def on_delete_command(self, _event: wx.Event):
         """Event handler for the ID_COMMAND_DELETE command."""
         index = self.command_ctrl.GetFirstSelected()
         self.command_ctrl.DeleteItem(index)
         self.uimgr.delete_item(index)
 
-    def on_move_down_command(self, _event):
+    def on_move_down_command(self, _event: wx.Event):
         """Event handler for the ID_COMMAND_DOWN command."""
         index = self.command_ctrl.GetFirstSelected()
         if index + 1 < self.command_ctrl.GetItemCount():
@@ -530,7 +568,7 @@ class Frame(wx.Frame):
             self.command_ctrl.InsertItem(index + 1, ui.name, command_type)
             self.command_ctrl.Select(index + 1)
 
-    def on_move_up_command(self, _event):
+    def on_move_up_command(self, _event: wx.Event):
         """Event handler for the ID_COMMAND_UP command."""
         index = self.command_ctrl.GetFirstSelected()
         if index > 0:
@@ -542,17 +580,17 @@ class Frame(wx.Frame):
             self.command_ctrl.InsertItem(index - 1, ui.name, command_type)
             self.command_ctrl.Select(index - 1)
 
-    def on_command_focused(self, event):
+    def on_command_focused(self, event: wx.Event):
         """Event handler for the command_ui_list's EVT_LIST_ITEM_FOCUSED."""
         ui = self.uimgr.command_ui_list[event.GetIndex()]
         self.uimgr.activate(self.settings_panel, ui)
 
-    def on_command_end_labeledit(self, event):
+    def on_command_end_labeledit(self, event: wx.Event):
         index = event.GetIndex()
         name = event.GetText()
         self.uimgr.set_item_name(index, name)
 
-    def insert_command(self, index, command_type, command_name):
+    def insert_command(self, index: int, command_type: int, command_name: str):
         self.command_ctrl.InsertItem(index, command_name, command_type)
 
         uicls = ILID_TO_UICLS_MAP[command_type]
