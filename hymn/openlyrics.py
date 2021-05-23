@@ -6,7 +6,7 @@ import os
 import xml.sax.saxutils
 import xml.etree.ElementTree as ET
 
-from .hymncore import Verse, Song
+from .hymncore import Line, Verse, Song
 
 
 class OpenLyricsReader:
@@ -46,7 +46,9 @@ class OpenLyricsReader:
                 song.verses.append(v)
 
             elif elem.tag.endswith("lines"):
-                line = "\n".join([l for l in elem.itertext() if l])
+                text = "\n".join([l for l in elem.itertext() if l])
+                optional_break = elem.get("break", ns) == "optional"
+                line = Line(text, optional_break)
 
                 v.lines.append(line)
 
@@ -92,8 +94,8 @@ class OpenLyricsWriter:
                 for line in verse.lines:
                     if whole_line:
                         whole_line = whole_line + "<br/>"
-                    line = xml.sax.saxutils.escape(line)
-                    whole_line = whole_line + line
+                    line_text = xml.sax.saxutils.escape(line.text)
+                    whole_line = whole_line + line_text
                 print(f"   <lines>{whole_line}</lines>\n", file=file, end="")
 
                 print(f"  </verse>\n", file=file, end="")

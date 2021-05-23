@@ -425,7 +425,7 @@ class Frame(wx.Frame):
 
         try:
             self.uimgr.open(filename)
-        except json.JSONDecodeError:
+        except (json.JSONDecodeError, Exception):
             title = wx.App.Get().GetAppDisplayName()
             wx.MessageBox(
                 _("Failed to open file '{filename}'.".format(filename=filename)),

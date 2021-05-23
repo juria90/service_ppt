@@ -11,12 +11,14 @@ import sys
 import tempfile
 import traceback
 import typing
+import zipfile
 
 from PIL import ImageColor
 
 from bible import bibcore
 from bible import biblang
 from bible import fileformat as bibfileformat
+from hymn.openlpservice import OpenLPServiceWriter
 from hymn.openlyrics import OpenLyricsReader
 
 if sys.platform.startswith("win32"):
@@ -250,11 +252,12 @@ class OpenFile(Command):
 
 
 class SaveFiles(Command):
-    def __init__(self, filename, notes_filename=None, verses_filename=None):
+    def __init__(self, filename, lyrics_archive_filename=None, notes_filename=None, verses_filename=None):
         """SaveFiles saves the current processed presentation to a given filename."""
         super().__init__()
 
         self.filename = filename
+        self.lyrics_archive_filename = lyrics_archive_filename
         self.notes_filename = notes_filename
         self.verses_filename = verses_filename
 
@@ -265,6 +268,24 @@ class SaveFiles(Command):
             _("Saving the presentation to the file '{filename}'.").format(filename=filename),
         )
         prs.saveas(filename)
+
+        all_lyric_files = cm.lyric_manager.all_lyric_files
+        if self.lyrics_archive_filename and len(all_lyric_files):
+            archive_filename = cm.process_variable_substitution(self.lyrics_archive_filename, False, False)
+            filename, ext = os.path.splitext(archive_filename)
+            ext = ext.lower()
+            cm.progress_message(
+                80,
+                _("Saving the lyrics to the archive file '{filename}'.").format(filename=archive_filename),
+            )
+            if ext == ".zip":
+                self.create_zip_lyric_files(archive_filename, all_lyric_files)
+            elif ext == ".osz":
+                self.create_osz_lyric_files(cm, archive_filename, all_lyric_files)
+            else:
+                cm.error_message(
+                    _("Unknown file extension for lyrics archive file '{filename}'.").format(filename=archive_filename)
+                )
 
         if self.notes_filename:
             notes_filename = cm.process_variable_substitution(self.notes_filename, False, False)
@@ -302,6 +323,27 @@ class SaveFiles(Command):
                     _("Cannot save bible verses to the file '{filename}'.").format(filename=verses_filename)
                 )
 
+    def create_zip_lyric_files(self, zipfilename, files):
+        with zipfile.ZipFile(zipfilename, "w", zipfile.ZIP_DEFLATED) as zipf:
+            for file in files:
+                zipf.write(file, os.path.basename(file))
+
+    def create_osz_lyric_files(self, cm, zipfilename, filelist):
+        song_list = []
+        xml_list = []
+        for filename in filelist:
+            song = cm.lyric_manager.read_song(filename)
+
+            xml_content = ""
+            with open(filename, "r", encoding="utf-8") as file:
+                xml_content = file.read().replace("\n", "")
+
+            song_list.append(song)
+            xml_list.append(xml_content)
+
+        writer = OpenLPServiceWriter()
+        writer.write(zipfilename, song_list, xml_list)
+
 
 class InsertSlides(Command):
     def __init__(self, insert_location, separator_slides, filelist):
@@ -326,6 +368,7 @@ class InsertSlides(Command):
 
         insert_location = evaluate_to_single_slide(prs, self.insert_location)
         if insert_location is None:
+            print("Insert location({self.insert_location}) is not found!")
             insert_location = prs.slide_count()
 
         separator_slides = None
@@ -362,6 +405,7 @@ class InsertLyrics(Command):
         lyric_insert_location,
         lyric_separator_slides,
         lyric_pattern,
+        archive_lyric_file,
         filelist,
         flags=0,
     ):
@@ -375,6 +419,7 @@ class InsertLyrics(Command):
         It inserts lyrics from each file in filelist after lyric_insert_location.
         lyric_insert_location is the expression to the location of existing slide that will be duplicated.
         lyric_separator_slides is separator slides between each inserted slides, and last one will not be inserted.
+        archive_lyric_file is a bool flag to archive the xml files into .zip or .osz(OpenLP service file) specified in the SaveFiles command.
 
         filelist is the ppt filename and for lyric file, the extension .xml will be used to get the lyrics.
 
@@ -388,6 +433,7 @@ class InsertLyrics(Command):
         self.lyric_insert_location = lyric_insert_location
         self.lyric_separator_slides = lyric_separator_slides
         self.lyric_pattern = lyric_pattern
+        self.archive_lyric_file = archive_lyric_file
 
         self.filelist = filelist
         self.flags = flags
@@ -423,6 +469,10 @@ class InsertLyrics(Command):
         if self.flags & self.INSERT_LYRIC_TEXT:
             lyric_filelist = self.get_filelist(self.INSERT_LYRIC_TEXT)
             self.execute_lyric_files(cm, prs, lyric_filelist)
+
+        if self.archive_lyric_file:
+            lyric_filelist = self.get_filelist(self.INSERT_LYRIC_TEXT)
+            cm.add_lyric_file(lyric_filelist)
 
     def execute_lyric_files(self, cm, prs, filelist):
         file_count = len(filelist)
@@ -467,7 +517,7 @@ class InsertLyrics(Command):
 
             lines = list(song.get_lines_by_order())
             for j, l in enumerate(lines):
-                text_dict = {self.lyric_pattern: l}
+                text_dict = {self.lyric_pattern: l.text}
                 prs.replace_one_slide_texts(lyric_insert_location + j, text_dict)
 
             added_count = len(lines)
@@ -999,7 +1049,7 @@ class ExportSlides(Command):
             color = ImageColor.getrgb(self.color)
             for index in slide_range:
                 f = cm.get_filename_from_slideno(self.image_type, index)
-                filename = os.path.join(src_dirname, f)
+                filename = os.path.join(self.out_dirname, f)
                 color_to_transparent(filename, filename, color)
 
     def export_all(self, cm, prs):
@@ -1050,6 +1100,50 @@ class ExportShapes(Command):
         prs.export_slide_shapes_as(slide_range, self.out_dirname, self.image_type)
 
 
+class LyricManager:
+    def __init__(self):
+        self.reader = OpenLyricsReader()
+        self.lyric_file_map = {}
+        self.all_lyric_files = []
+
+    def reset_exec_vars(self):
+        self.lyric_file_map = {}
+        self.all_lyric_files = []
+
+    def read_song(self, filename):
+        if filename in self.lyric_file_map:
+            return self.lyric_file_map[filename]
+
+        if not os.path.exists(filename):
+            self.error_message(_("Cannot open a lyric file '{filename}'.").format(filename=filename))
+            raise FileNotFoundError(errno.ENOENT, os.strerror(errno.ENOENT), filename)
+
+        try:
+            song = self.reader.read_song(filename)
+        except Exception as e:
+            self.error_message(_("Cannot open a lyric file '{filename}'.").format(filename=filename))
+            raise
+
+        self.lyric_file_map[filename] = song
+        return song
+
+    def read_songs(self, filelist):
+        songs = []
+        for filename in filelist:
+            song = self.read_song(filename)
+            songs.append(song)
+
+        return songs
+
+    def add_lyric_file(self, filelist):
+        if isinstance(filelist, list):
+            _songs = self.read_songs(filelist)
+            self.all_lyric_files.extend(filelist)
+        else:
+            song = self.read_song(filelist)
+            self.all_lyric_files.append(filelist)
+
+
 class CommandManager:
     def __init__(self):
         self.running_already = False
@@ -1070,6 +1164,8 @@ class CommandManager:
         self.num_digits = 0
 
         self.bible_verse = None
+
+        self.lyric_manager = LyricManager()
 
     def __del__(self):
         self.close()
@@ -1100,6 +1196,8 @@ class CommandManager:
 
         self.monitor = None
         self._continue = True
+
+        self.lyric_manager.reset_exec_vars()
 
     def set_presentation(self, prs):
         self.prs = prs
@@ -1177,21 +1275,11 @@ class CommandManager:
         self.bible_verse = bible_verse
 
     def read_songs(self, filelist):
-        reader = OpenLyricsReader()
-        songs = []
-        for filename in filelist:
-            if not os.path.exists(filename):
-                self.error_message(_("Cannot open a lyric file '{filename}'.").format(filename=filename))
-                raise FileNotFoundError(errno.ENOENT, os.strerror(errno.ENOENT), filename)
-
-            try:
-                song = reader.read_song(filename)
-                songs.append(song)
-            except Exception as e:
-                self.error_message(_("Cannot open a lyric file '{filename}'.").format(filename=filename))
-                raise
-
+        songs = self.lyric_manager.read_songs(filelist)
         return songs
+
+    def add_lyric_file(self, lyric_file):
+        self.lyric_manager.add_lyric_file(lyric_file)
 
     def progress_message(self, progress, message):
         self._continue = self.monitor.progress_message(progress, message)

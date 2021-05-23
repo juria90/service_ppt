@@ -3,10 +3,16 @@
 """
 
 
+class Line:
+    def __init__(self, text, optional_break=False):
+        self.text = text
+        self.optional_break = optional_break
+
+
 class Verse:
     def __init__(self):
         self.no = None
-        self.lines = []
+        self.lines = []  # list of Line
 
 
 class Song:
