@@ -1101,7 +1101,8 @@ class ExportShapes(Command):
 
 
 class LyricManager:
-    def __init__(self):
+    def __init__(self, cm):
+        self.cm = cm
         self.reader = OpenLyricsReader()
         self.lyric_file_map = {}
         self.all_lyric_files = []
@@ -1115,13 +1116,13 @@ class LyricManager:
             return self.lyric_file_map[filename]
 
         if not os.path.exists(filename):
-            self.error_message(_("Cannot open a lyric file '{filename}'.").format(filename=filename))
+            self.cm.error_message(_("Cannot open a lyric file '{filename}'.").format(filename=filename))
             raise FileNotFoundError(errno.ENOENT, os.strerror(errno.ENOENT), filename)
 
         try:
             song = self.reader.read_song(filename)
         except Exception as e:
-            self.error_message(_("Cannot open a lyric file '{filename}'.").format(filename=filename))
+            self.cm.error_message(_("Cannot open a lyric file '{filename}'.").format(filename=filename))
             raise
 
         self.lyric_file_map[filename] = song
@@ -1165,7 +1166,7 @@ class CommandManager:
 
         self.bible_verse = None
 
-        self.lyric_manager = LyricManager()
+        self.lyric_manager = LyricManager(self)
 
     def __del__(self):
         self.close()
