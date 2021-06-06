@@ -324,7 +324,9 @@ class SaveFilesUI(PropertyGridUI):
         file_prop = self.create_savefile_property(self.PRESENTATION_FILE, self.wildcard)
         pg.Append(file_prop)
 
-        file_prop = self.create_savefile_property(self.LYRICS_ARCHIVE_FILE, _("OpenLP service files (*.osz)|*.osz|Zip files (*.zip)|*.zip"))
+        file_prop = self.create_savefile_property(
+            self.LYRICS_ARCHIVE_FILE, _("OpenLP service files (*.osz)|*.osz|Zip files (*.zip)|*.zip")
+        )
         pg.Append(file_prop)
 
         file_prop = self.create_savefile_property(self.NOTES_FILE, _("Text files (*.txt)|*.txt"))
@@ -657,12 +659,13 @@ class DuplicateWithTextUI(PropertyGridUI):
     REPEAT_RANGE = _("Repeat range")
     FIND_TEXT = _("Text to find")
     REPLACE_TEXT = _("Texts to replace (a blank line for a separation)")
+    ARCHIVE_LYRIC_FILES = _("Archive as lyric files")
 
     def __init__(self, uimgr, name, proc=None):
         super().__init__(uimgr, name, proc=proc)
 
         if self.command is None:
-            self.command = cmd.DuplicateWithText("", "", "", [])
+            self.command = cmd.DuplicateWithText("", "", "", [], False)
 
     def initialize_fixed_properties(self, pg):
         pg.Append(wxpg.PropertyCategory(_("1 - Range specification")))
@@ -672,6 +675,8 @@ class DuplicateWithTextUI(PropertyGridUI):
         pg.Append(wxpg.PropertyCategory(_("2 - Text to find and replace")))
         pg.Append(wxpg.StringProperty(self.FIND_TEXT))
         pg.Append(wxpg.LongStringProperty(self.REPLACE_TEXT))
+
+        pg.Append(wxpg.BoolProperty(self.ARCHIVE_LYRIC_FILES))
 
     def TransferFromWindow(self):
         self.command.slide_range = self.set_modified(
@@ -689,6 +694,11 @@ class DuplicateWithTextUI(PropertyGridUI):
         lines = [l.strip() for l in lines if l.strip()]
         self.command.replace_texts = self.set_modified(self.command.replace_texts, lines)
 
+        self.command.archive_lyric_file = self.set_modified(
+            self.command.archive_lyric_file,
+            self.ui.GetPropertyValueAsBool(self.ARCHIVE_LYRIC_FILES),
+        )
+
         return True
 
     def TransferToWindow(self):
@@ -698,6 +708,8 @@ class DuplicateWithTextUI(PropertyGridUI):
         self.ui.SetPropertyValueString(self.FIND_TEXT, self.command.find_text)
         replace_texts = "\n\n".join(self.command.replace_texts)
         self.ui.SetPropertyValueString(self.REPLACE_TEXT, replace_texts)
+
+        self.ui.SetPropertyValue(self.ARCHIVE_LYRIC_FILES, self.command.archive_lyric_file)
 
         return True
 

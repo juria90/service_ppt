@@ -18,8 +18,9 @@ from PIL import ImageColor
 from bible import bibcore
 from bible import biblang
 from bible import fileformat as bibfileformat
+from hymn import hymncore
 from hymn.openlpservice import OpenLPServiceWriter
-from hymn.openlyrics import OpenLyricsReader
+from hymn.openlyrics import OpenLyricsReader, OpenLyricsWriter
 
 if sys.platform.startswith("win32"):
     import powerpoint_win32 as PowerPoint
@@ -326,17 +327,27 @@ class SaveFiles(Command):
     def create_zip_lyric_files(self, zipfilename, files):
         with zipfile.ZipFile(zipfilename, "w", zipfile.ZIP_DEFLATED) as zipf:
             for file in files:
-                zipf.write(file, os.path.basename(file))
+                if isinstance(file, dict):
+                    song = file["song"]
+                    key = song.title
+                    xml_content = file["xml_content"]
+                    zipf.writestr(key, xml_content)
+                else:
+                    zipf.write(file, os.path.basename(file))
 
     def create_osz_lyric_files(self, cm, zipfilename, filelist):
         song_list = []
         xml_list = []
         for filename in filelist:
-            song = cm.lyric_manager.read_song(filename)
+            if isinstance(filename, dict):
+                song = filename["song"]
+                xml_content = filename["xml_content"]
+            else:
+                song = cm.lyric_manager.read_song(filename)
 
-            xml_content = ""
-            with open(filename, "r", encoding="utf-8") as file:
-                xml_content = file.read().replace("\n", "")
+                xml_content = ""
+                with open(filename, "r", encoding="utf-8") as file:
+                    xml_content = file.read().replace("\n", "")
 
             song_list.append(song)
             xml_list.append(xml_content)
@@ -694,7 +705,14 @@ class SetVariables(Command):
 
 
 class DuplicateWithText(Command):
-    def __init__(self, slide_range, repeat_range, find_text, replace_texts):
+    def __init__(
+        self,
+        slide_range,
+        repeat_range,
+        find_text,
+        replace_texts,
+        archive_lyric_file,
+    ):
         """DuplicateWithText finds all occurrence of find_text and replace it replace_texts,
         which are list of text.
         Because replace_texts are a list, slides in repeat_range will be duplicated
@@ -706,6 +724,7 @@ class DuplicateWithText(Command):
         self.repeat_range = repeat_range
         self.find_text = find_text
         self.replace_texts = replace_texts
+        self.archive_lyric_file = archive_lyric_file
 
     def execute(self, cm, prs):
         cm.progress_message(0, _("Duplicating slides and replacing texts."))
@@ -750,6 +769,40 @@ class DuplicateWithText(Command):
 
                 text_dict = {self.find_text: text}
                 prs.replace_one_slide_texts(slide_range[0] + i, text_dict)
+
+        if self.archive_lyric_file:
+            lyric_filelist = self.produce_as_lyric_file()
+            cm.add_lyric_file(lyric_filelist)
+
+    def produce_as_lyric_file(self):
+        song = hymncore.Song()
+        song.title = self.find_text.replace("{", "").replace("}", "")
+        for vno, text in enumerate(self.replace_texts):
+            v = hymncore.Verse()
+            v.no = "v" + str(vno + 1)
+            sl = text.splitlines()
+            len_sl_1 = len(sl) - 1
+            for i, l in enumerate(sl):
+                optional_break = i != len_sl_1
+                line = hymncore.Line(l, optional_break)
+                v.lines.append(line)
+
+            song.verses.append(v)
+
+        xml_content = ""
+        filename = ""
+        with tempfile.NamedTemporaryFile(suffix=".xml", delete=False) as f:
+            filename = f.name
+
+        writer = OpenLyricsWriter()
+        writer.write_song(filename, song)
+
+        with open(filename, "r", encoding="utf-8") as file:
+            xml_content = file.read().replace("\n", "")
+
+        os.remove(filename)
+
+        return {"song": song, "xml_content": xml_content}
 
 
 class GenerateBibleVerse(Command):
@@ -1140,6 +1193,8 @@ class LyricManager:
         if isinstance(filelist, list):
             _songs = self.read_songs(filelist)
             self.all_lyric_files.extend(filelist)
+        elif isinstance(filelist, dict):
+            self.all_lyric_files.append(filelist)
         else:
             song = self.read_song(filelist)
             self.all_lyric_files.append(filelist)
