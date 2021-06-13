@@ -263,7 +263,7 @@ class SaveFiles(Command):
         self.verses_filename = verses_filename
 
     def execute(self, cm, prs):
-        filename = cm.process_variable_substitution(self.filename, False, False)
+        filename = cm.replace_format_vars(self.filename)
         cm.progress_message(
             0,
             _("Saving the presentation to the file '{filename}'.").format(filename=filename),
@@ -272,7 +272,7 @@ class SaveFiles(Command):
 
         all_lyric_files = cm.lyric_manager.all_lyric_files
         if self.lyrics_archive_filename and len(all_lyric_files):
-            archive_filename = cm.process_variable_substitution(self.lyrics_archive_filename, False, False)
+            archive_filename = cm.replace_format_vars(self.lyrics_archive_filename)
             filename, ext = os.path.splitext(archive_filename)
             ext = ext.lower()
             cm.progress_message(
@@ -289,7 +289,7 @@ class SaveFiles(Command):
                 )
 
         if self.notes_filename:
-            notes_filename = cm.process_variable_substitution(self.notes_filename, False, False)
+            notes_filename = cm.replace_format_vars(self.notes_filename)
             cm.progress_message(
                 90,
                 _("Saving the notes to the file '{filename}'.").format(filename=notes_filename),
@@ -303,7 +303,7 @@ class SaveFiles(Command):
                 cm.error_message(_("Cannot save the notes file '{filename}'.").format(filename=notes_filename))
 
         if self.verses_filename:
-            verses_filename = cm.process_variable_substitution(self.verses_filename, False, False)
+            verses_filename = cm.replace_format_vars(self.verses_filename)
             cm.progress_message(
                 95,
                 _("Saving Bible verses to file '{filename}'.").format(filename=verses_filename),
@@ -780,7 +780,7 @@ class DuplicateWithText(Command):
         for vno, text in enumerate(self.replace_texts):
             v = hymncore.Verse()
             v.no = "v" + str(vno + 1)
-            sl = text.splitlines()
+            sl = self.process_lyric_linebreak(text).splitlines()
             len_sl_1 = len(sl) - 1
             for i, l in enumerate(sl):
                 optional_break = i != len_sl_1
@@ -803,6 +803,10 @@ class DuplicateWithText(Command):
         os.remove(filename)
 
         return {"song": song, "xml_content": xml_content}
+
+    def process_lyric_linebreak(self, s: str):
+        s = s.replace("\u200b", "\n")
+        return s
 
 
 class GenerateBibleVerse(Command):
@@ -1281,45 +1285,43 @@ class CommandManager:
             if varname_pattern:
                 self.varname_re = re.compile(varname_pattern)
 
-    def process_variable_substitution(self, custom_str=None, process_slides=True, process_notes=True):
-        def process_format_var(var):
-            if isinstance(var, list):
-                for elem in var:
-                    process_format_var(elem)
-            elif isinstance(var, str):
-                if var in self.var_dict:
-                    return
+    def process_format_var(self, var):
+        if isinstance(var, list):
+            for elem in var:
+                self.process_format_var(elem)
+        elif isinstance(var, str):
+            if var in self.var_dict:
+                return
 
-                for m in self.varname_re.finditer(var):
-                    varname = m.group(1)
-                    if varname not in self.format_variables:
-                        continue
+            for m in self.varname_re.finditer(var):
+                varname = m.group(1)
+                if varname not in self.format_variables:
+                    continue
 
-                    format_obj = self.format_variables[varname]
+                format_obj = self.format_variables[varname]
 
-                    format = m.group(2)
-                    if len(format):
-                        format = format[1:]  # remove ':'
-                    key = "{" + varname + m.group(2) + "}"
-                    value = format_obj.build_replace_string(format)
-                    self.var_dict[key] = value
+                format = m.group(2)
+                if len(format):
+                    format = format[1:]  # remove ':'
+                key = "{" + varname + m.group(2) + "}"
+                value = format_obj.build_replace_string(format)
+                self.var_dict[key] = value
 
-        if process_slides:
-            if self.varname_re:
-                process_format_var(self.prs.get_text_in_all_slides(False))
-            self.prs.replace_all_slides_texts(self.var_dict)
-
-        if process_notes and self.notes:
-            if self.varname_re:
-                process_format_var(self.notes)
-            _, self.notes = replace_all_notes_text(self.notes, self.var_dict)
-
-        if custom_str:
-            if self.varname_re:
-                process_format_var(custom_str)
-            _, custom_str = replace_all_notes_text(custom_str, self.var_dict)
-
+    def replace_format_vars(self, custom_str):
+        if self.varname_re:
+            self.process_format_var(custom_str)
+        _, custom_str = replace_all_notes_text(custom_str, self.var_dict)
         return custom_str
+
+    def process_variable_substitution(self):
+        if self.varname_re:
+            self.process_format_var(self.prs.get_text_in_all_slides(False))
+        self.prs.replace_all_slides_texts(self.var_dict)
+
+        if self.notes:
+            if self.varname_re:
+                self.process_format_var(self.notes)
+            _, self.notes = replace_all_notes_text(self.notes, self.var_dict)
 
     def get_notes(self):
         return self.notes
