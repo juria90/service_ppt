@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2020-08-02 16:31-0700\n"
+"POT-Creation-Date: 2021-06-19 10:26-0700\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -17,565 +17,565 @@ msgstr ""
 "Content-Type: text/plain; charset=CHARSET\n"
 "Content-Transfer-Encoding: 8bit\n"
 
-#: bible\biblang.py:65
+#: bible\biblang.py:64
 msgid "Old Testament"
 msgstr ""
 
-#: bible\biblang.py:65
+#: bible\biblang.py:64
 msgid "New Testament"
 msgstr ""
 
-#: bible\biblang.py:66
+#: bible\biblang.py:65
 msgid "(.*?) ?(\\d+):(\\d+)(-(\\d+))?"
 msgstr ""
 
-#: bible\biblang.py:67
+#: bible\biblang.py:66
 #, python-brace-format
 msgid "{book} {chapter}"
 msgstr ""
 
-#: bible\biblang.py:71
+#: bible\biblang.py:70
 msgid "Genesis"
 msgstr ""
 
-#: bible\biblang.py:71
+#: bible\biblang.py:70
 msgid "Gen"
 msgstr ""
 
-#: bible\biblang.py:72
+#: bible\biblang.py:71
 msgid "Exodus"
 msgstr ""
 
-#: bible\biblang.py:72
+#: bible\biblang.py:71
 msgid "Ex"
 msgstr ""
 
-#: bible\biblang.py:73
+#: bible\biblang.py:72
 msgid "Leviticus"
 msgstr ""
 
-#: bible\biblang.py:73
+#: bible\biblang.py:72
 msgid "Lev"
 msgstr ""
 
-#: bible\biblang.py:74
+#: bible\biblang.py:73
 msgid "Numbers"
 msgstr ""
 
-#: bible\biblang.py:74
+#: bible\biblang.py:73
 msgid "Num"
 msgstr ""
 
-#: bible\biblang.py:75
+#: bible\biblang.py:74
 msgid "Deuteronomy"
 msgstr ""
 
-#: bible\biblang.py:75
+#: bible\biblang.py:74
 msgid "Deut"
 msgstr ""
 
-#: bible\biblang.py:76
+#: bible\biblang.py:75
 msgid "Joshua"
 msgstr ""
 
-#: bible\biblang.py:76
+#: bible\biblang.py:75
 msgid "Josh"
 msgstr ""
 
-#: bible\biblang.py:77
+#: bible\biblang.py:76
 msgid "Judges"
 msgstr ""
 
-#: bible\biblang.py:77
+#: bible\biblang.py:76
 msgid "Judg"
 msgstr ""
 
-#: bible\biblang.py:78
+#: bible\biblang.py:77
 msgid "Ruth"
 msgstr ""
 
-#: bible\biblang.py:78
+#: bible\biblang.py:77
 msgctxt "short_name"
 msgid "Ruth"
 msgstr ""
 
-#: bible\biblang.py:79
+#: bible\biblang.py:78
 msgid "1 Samuel"
 msgstr ""
 
-#: bible\biblang.py:79
+#: bible\biblang.py:78
 msgid "1 Sam"
 msgstr ""
 
-#: bible\biblang.py:80
+#: bible\biblang.py:79
 msgid "2 Samuel"
 msgstr ""
 
-#: bible\biblang.py:80
+#: bible\biblang.py:79
 msgid "2 Sam"
 msgstr ""
 
-#: bible\biblang.py:81
+#: bible\biblang.py:80
 msgid "1 Kings"
 msgstr ""
 
-#: bible\biblang.py:81
+#: bible\biblang.py:80
 msgctxt "short_name"
 msgid "1 Kings"
 msgstr ""
 
-#: bible\biblang.py:82
+#: bible\biblang.py:81
 msgid "2 Kings"
 msgstr ""
 
-#: bible\biblang.py:82
+#: bible\biblang.py:81
 msgctxt "short_name"
 msgid "2 Kings"
 msgstr ""
 
-#: bible\biblang.py:83
+#: bible\biblang.py:82
 msgid "1 Chronicles"
 msgstr ""
 
-#: bible\biblang.py:83
+#: bible\biblang.py:82
 msgid "1 Chron"
 msgstr ""
 
-#: bible\biblang.py:84
+#: bible\biblang.py:83
 msgid "2 Chronicles"
 msgstr ""
 
-#: bible\biblang.py:84
+#: bible\biblang.py:83
 msgid "2 Chron"
 msgstr ""
 
-#: bible\biblang.py:85
+#: bible\biblang.py:84
 msgid "Ezra"
 msgstr ""
 
-#: bible\biblang.py:85
+#: bible\biblang.py:84
 msgctxt "short_name"
 msgid "Ezra"
 msgstr ""
 
-#: bible\biblang.py:86
+#: bible\biblang.py:85
 msgid "Nehemiah"
 msgstr ""
 
-#: bible\biblang.py:86
+#: bible\biblang.py:85
 msgid "Neh"
 msgstr ""
 
-#: bible\biblang.py:87
+#: bible\biblang.py:86
 msgid "Esther"
 msgstr ""
 
-#: bible\biblang.py:87
+#: bible\biblang.py:86
 msgid "Est"
 msgstr ""
 
-#: bible\biblang.py:88
+#: bible\biblang.py:87
 msgid "Job"
 msgstr ""
 
-#: bible\biblang.py:88
+#: bible\biblang.py:87
 msgctxt "short_name"
 msgid "Job"
 msgstr ""
 
-#: bible\biblang.py:89
+#: bible\biblang.py:88
 msgid "Psalms"
 msgstr ""
 
-#: bible\biblang.py:89
+#: bible\biblang.py:88
 msgid "Ps"
 msgstr ""
 
-#: bible\biblang.py:90
+#: bible\biblang.py:89
 msgid "Proverbs"
 msgstr ""
 
-#: bible\biblang.py:90
+#: bible\biblang.py:89
 msgid "Prov"
 msgstr ""
 
-#: bible\biblang.py:91
+#: bible\biblang.py:90
 msgid "Ecclesiastes"
 msgstr ""
 
-#: bible\biblang.py:91
+#: bible\biblang.py:90
 msgid "Eccles"
 msgstr ""
 
-#: bible\biblang.py:92
+#: bible\biblang.py:91
 msgid "Song of Solomon"
 msgstr ""
 
-#: bible\biblang.py:92
+#: bible\biblang.py:91
 msgid "Song"
 msgstr ""
 
-#: bible\biblang.py:93
+#: bible\biblang.py:92
 msgid "Isaiah"
 msgstr ""
 
-#: bible\biblang.py:93
+#: bible\biblang.py:92
 msgid "Isa"
 msgstr ""
 
-#: bible\biblang.py:94
+#: bible\biblang.py:93
 msgid "Jeremiah"
 msgstr ""
 
-#: bible\biblang.py:94
+#: bible\biblang.py:93
 msgid "Jer"
 msgstr ""
 
-#: bible\biblang.py:95
+#: bible\biblang.py:94
 msgid "Lamentations"
 msgstr ""
 
-#: bible\biblang.py:95
+#: bible\biblang.py:94
 msgid "Lam"
 msgstr ""
 
-#: bible\biblang.py:96
+#: bible\biblang.py:95
 msgid "Ezekiel"
 msgstr ""
 
-#: bible\biblang.py:96
+#: bible\biblang.py:95
 msgid "Ezek"
 msgstr ""
 
-#: bible\biblang.py:97
+#: bible\biblang.py:96
 msgid "Daniel"
 msgstr ""
 
-#: bible\biblang.py:97
+#: bible\biblang.py:96
 msgid "Dan"
 msgstr ""
 
-#: bible\biblang.py:98
+#: bible\biblang.py:97
 msgid "Hosea"
 msgstr ""
 
-#: bible\biblang.py:98
+#: bible\biblang.py:97
 msgid "Hos"
 msgstr ""
 
-#: bible\biblang.py:99
+#: bible\biblang.py:98
 msgid "Joel"
 msgstr ""
 
-#: bible\biblang.py:99
+#: bible\biblang.py:98
 msgctxt "short_name"
 msgid "Joel"
 msgstr ""
 
-#: bible\biblang.py:100
+#: bible\biblang.py:99
 msgid "Amos"
 msgstr ""
 
-#: bible\biblang.py:100
+#: bible\biblang.py:99
 msgctxt "short_name"
 msgid "Amos"
 msgstr ""
 
-#: bible\biblang.py:101
+#: bible\biblang.py:100
 msgid "Obadiah"
 msgstr ""
 
-#: bible\biblang.py:101
+#: bible\biblang.py:100
 msgid "Obad"
 msgstr ""
 
-#: bible\biblang.py:102
+#: bible\biblang.py:101
 msgid "Jonah"
 msgstr ""
 
-#: bible\biblang.py:102
+#: bible\biblang.py:101
 msgctxt "short_name"
 msgid "Jonah"
 msgstr ""
 
-#: bible\biblang.py:103
+#: bible\biblang.py:102
 msgid "Micah"
 msgstr ""
 
-#: bible\biblang.py:103
+#: bible\biblang.py:102
 msgid "Mic"
 msgstr ""
 
-#: bible\biblang.py:104
+#: bible\biblang.py:103
 msgid "Nahum"
 msgstr ""
 
-#: bible\biblang.py:104
+#: bible\biblang.py:103
 msgid "Nah"
 msgstr ""
 
-#: bible\biblang.py:105
+#: bible\biblang.py:104
 msgid "Habakkuk"
 msgstr ""
 
-#: bible\biblang.py:105
+#: bible\biblang.py:104
 msgid "Hab"
 msgstr ""
 
-#: bible\biblang.py:106
+#: bible\biblang.py:105
 msgid "Zephaniah"
 msgstr ""
 
-#: bible\biblang.py:106
+#: bible\biblang.py:105
 msgid "Zeph"
 msgstr ""
 
-#: bible\biblang.py:107
+#: bible\biblang.py:106
 msgid "Haggai"
 msgstr ""
 
-#: bible\biblang.py:107
+#: bible\biblang.py:106
 msgid "Hag"
 msgstr ""
 
-#: bible\biblang.py:108
+#: bible\biblang.py:107
 msgid "Zechariah"
 msgstr ""
 
-#: bible\biblang.py:108
+#: bible\biblang.py:107
 msgid "Zech"
 msgstr ""
 
-#: bible\biblang.py:109
+#: bible\biblang.py:108
 msgid "Malachi"
 msgstr ""
 
-#: bible\biblang.py:109
+#: bible\biblang.py:108
 msgid "Mal"
 msgstr ""
 
-#: bible\biblang.py:111
+#: bible\biblang.py:110
 msgid "Matthew"
 msgstr ""
 
-#: bible\biblang.py:111
+#: bible\biblang.py:110
 msgid "Matt"
 msgstr ""
 
-#: bible\biblang.py:112
+#: bible\biblang.py:111
+msgid "Mark"
+msgstr ""
+
+#: bible\biblang.py:111
+msgctxt "short_name"
 msgid "Mark"
 msgstr ""
 
 #: bible\biblang.py:112
-msgctxt "short_name"
-msgid "Mark"
+msgid "Luke"
 msgstr ""
 
-#: bible\biblang.py:113
+#: bible\biblang.py:112
+msgctxt "short_name"
 msgid "Luke"
 msgstr ""
 
 #: bible\biblang.py:113
-msgctxt "short_name"
-msgid "Luke"
+msgid "John"
 msgstr ""
 
-#: bible\biblang.py:114
+#: bible\biblang.py:113
+msgctxt "short_name"
 msgid "John"
 msgstr ""
 
 #: bible\biblang.py:114
-msgctxt "short_name"
-msgid "John"
-msgstr ""
-
-#: bible\biblang.py:115
 msgid "Acts"
 msgstr ""
 
-#: bible\biblang.py:115
+#: bible\biblang.py:114
 msgctxt "short_name"
 msgid "Acts"
 msgstr ""
 
-#: bible\biblang.py:116
+#: bible\biblang.py:115
 msgid "Romans"
 msgstr ""
 
-#: bible\biblang.py:116
+#: bible\biblang.py:115
 msgid "Rom"
 msgstr ""
 
-#: bible\biblang.py:117
+#: bible\biblang.py:116
 msgid "1 Corinthians"
 msgstr ""
 
-#: bible\biblang.py:117
+#: bible\biblang.py:116
 msgid "1 Cor"
 msgstr ""
 
-#: bible\biblang.py:118
+#: bible\biblang.py:117
 msgid "2 Corinthians"
 msgstr ""
 
-#: bible\biblang.py:118
+#: bible\biblang.py:117
 msgid "2 Cor"
 msgstr ""
 
-#: bible\biblang.py:119
+#: bible\biblang.py:118
 msgid "Galatians"
 msgstr ""
 
-#: bible\biblang.py:119
+#: bible\biblang.py:118
 msgid "Gal"
 msgstr ""
 
-#: bible\biblang.py:120
+#: bible\biblang.py:119
 msgid "Ephesians"
 msgstr ""
 
-#: bible\biblang.py:120
+#: bible\biblang.py:119
 msgid "Eph"
 msgstr ""
 
-#: bible\biblang.py:121
+#: bible\biblang.py:120
 msgid "Philippians"
 msgstr ""
 
-#: bible\biblang.py:121
+#: bible\biblang.py:120
 msgid "Phil"
 msgstr ""
 
-#: bible\biblang.py:122
+#: bible\biblang.py:121
 msgid "Colossians"
 msgstr ""
 
-#: bible\biblang.py:122
+#: bible\biblang.py:121
 msgid "Col"
 msgstr ""
 
-#: bible\biblang.py:123
+#: bible\biblang.py:122
 msgid "1 Thessalonians"
 msgstr ""
 
-#: bible\biblang.py:123
+#: bible\biblang.py:122
 msgid "1 Thess"
 msgstr ""
 
-#: bible\biblang.py:124
+#: bible\biblang.py:123
 msgid "2 Thessalonians"
 msgstr ""
 
-#: bible\biblang.py:124
+#: bible\biblang.py:123
 msgid "2 Thess"
 msgstr ""
 
-#: bible\biblang.py:125
+#: bible\biblang.py:124
 msgid "1 Timothy"
 msgstr ""
 
-#: bible\biblang.py:125
+#: bible\biblang.py:124
 msgid "1 Tim"
 msgstr ""
 
-#: bible\biblang.py:126
+#: bible\biblang.py:125
 msgid "2 Timothy"
 msgstr ""
 
-#: bible\biblang.py:126
+#: bible\biblang.py:125
 msgid "2 Tim"
 msgstr ""
 
-#: bible\biblang.py:127
+#: bible\biblang.py:126
 msgid "Titus"
 msgstr ""
 
-#: bible\biblang.py:127
+#: bible\biblang.py:126
 msgctxt "short_name"
 msgid "Titus"
 msgstr ""
 
-#: bible\biblang.py:128
+#: bible\biblang.py:127
 msgid "Philemon"
 msgstr ""
 
-#: bible\biblang.py:128
+#: bible\biblang.py:127
 msgid "Philem"
 msgstr ""
 
-#: bible\biblang.py:129
+#: bible\biblang.py:128
 msgid "Hebrews"
 msgstr ""
 
-#: bible\biblang.py:129
+#: bible\biblang.py:128
 msgid "Heb"
 msgstr ""
 
-#: bible\biblang.py:130
+#: bible\biblang.py:129
 msgid "James"
 msgstr ""
 
-#: bible\biblang.py:130
+#: bible\biblang.py:129
 msgctxt "short_name"
 msgid "James"
 msgstr ""
 
-#: bible\biblang.py:131
+#: bible\biblang.py:130
 msgid "1 Peter"
 msgstr ""
 
-#: bible\biblang.py:131
+#: bible\biblang.py:130
 msgid "1 Pet"
 msgstr ""
 
-#: bible\biblang.py:132
+#: bible\biblang.py:131
 msgid "2 Peter"
 msgstr ""
 
-#: bible\biblang.py:132
+#: bible\biblang.py:131
 msgid "2 Pet"
 msgstr ""
 
-#: bible\biblang.py:133
+#: bible\biblang.py:132
+msgid "1 John"
+msgstr ""
+
+#: bible\biblang.py:132
+msgctxt "short_name"
 msgid "1 John"
 msgstr ""
 
 #: bible\biblang.py:133
-msgctxt "short_name"
-msgid "1 John"
+msgid "2 John"
 msgstr ""
 
-#: bible\biblang.py:134
+#: bible\biblang.py:133
+msgctxt "short_name"
 msgid "2 John"
 msgstr ""
 
 #: bible\biblang.py:134
-msgctxt "short_name"
-msgid "2 John"
+msgid "3 John"
 msgstr ""
 
-#: bible\biblang.py:135
+#: bible\biblang.py:134
+msgctxt "short_name"
 msgid "3 John"
 msgstr ""
 
 #: bible\biblang.py:135
-msgctxt "short_name"
-msgid "3 John"
-msgstr ""
-
-#: bible\biblang.py:136
 msgid "Jude"
 msgstr ""
 
-#: bible\biblang.py:136
+#: bible\biblang.py:135
 msgctxt "short_name"
 msgid "Jude"
 msgstr ""
 
-#: bible\biblang.py:137
+#: bible\biblang.py:136
 msgid "Revelation of John"
 msgstr ""
 
-#: bible\biblang.py:137
+#: bible\biblang.py:136
 msgid "Rev"
 msgstr ""

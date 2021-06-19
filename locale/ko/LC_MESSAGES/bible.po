@@ -363,7 +363,7 @@ msgstr "욘"
 
 #: bible\biblang.py:76
 msgid "Josh"
-msgstr "여"
+msgstr "수"
 
 #: bible\biblang.py:76
 msgid "Joshua"

@@ -2,6 +2,7 @@
 """
 import datetime
 import errno
+import json
 import locale
 import math
 import os
@@ -711,7 +712,9 @@ class DuplicateWithText(Command):
         repeat_range,
         find_text,
         replace_texts,
+        slide_fr_dict,
         archive_lyric_file,
+        archive_fr_dict,
     ):
         """DuplicateWithText finds all occurrence of find_text and replace it replace_texts,
         which are list of text.
@@ -724,7 +727,9 @@ class DuplicateWithText(Command):
         self.repeat_range = repeat_range
         self.find_text = find_text
         self.replace_texts = replace_texts
+        self.slide_fr_dict = slide_fr_dict
         self.archive_lyric_file = archive_lyric_file
+        self.archive_fr_dict = archive_fr_dict
 
     def execute(self, cm, prs):
         cm.progress_message(0, _("Duplicating slides and replacing texts."))
@@ -756,28 +761,48 @@ class DuplicateWithText(Command):
             # Then, replace texts to get the final slides.
             template_slide_count = slide_range[1] - slide_range[0] + 1
             repeatable_slide_count = repeat_range[1] - repeat_range[0] + 1
-            total_slide_count = len(self.replace_texts)
+            replace_texts = self.process_replace_texts(self.slide_fr_dict)
+            total_slide_count = len(replace_texts)
 
             duplicate_count = total_slide_count - template_slide_count
             duplicate_count = int(math.ceil(float(duplicate_count) / repeatable_slide_count))
             source_index = list(range(repeat_range[0], repeat_range[1] + 1))
             _slides = prs.duplicate_slides(source_index, repeat_range[0], duplicate_count)
 
-            for i, text in enumerate(self.replace_texts):
+            for i, text in enumerate(replace_texts):
                 percent = 100 * i / total_slide_count
                 cm.progress_message(percent, _("Replacing texts."))
 
+                text = cm.replace_format_vars(text)
                 text_dict = {self.find_text: text}
                 prs.replace_one_slide_texts(slide_range[0] + i, text_dict)
 
         if self.archive_lyric_file:
-            lyric_filelist = self.produce_as_lyric_file()
+            lyric_filelist = self.produce_as_lyric_file(cm)
             cm.add_lyric_file(lyric_filelist)
 
-    def produce_as_lyric_file(self):
+    def process_replace_texts(self, dict_str):
+        fr_dict = None
+        try:
+            fr_dict = json.loads(dict_str)
+        except json.decoder.JSONDecodeError:
+            fr_dict = None
+
+        replace_texts = self.replace_texts
+        if isinstance(fr_dict, dict):
+            replace_texts = []
+            for text in self.replace_texts:
+                _, new_text = replace_all_notes_text(text, fr_dict)
+                replace_texts.append(new_text)
+
+        return replace_texts
+
+    def produce_as_lyric_file(self, cm):
         song = hymncore.Song()
         song.title = self.find_text.replace("{", "").replace("}", "")
-        for vno, text in enumerate(self.replace_texts):
+        replace_texts = self.process_replace_texts(self.archive_fr_dict)
+        for vno, text in enumerate(replace_texts):
+            text = cm.replace_format_vars(text)
             v = hymncore.Verse()
             v.no = "v" + str(vno + 1)
             sl = self.process_lyric_linebreak(text).splitlines()
