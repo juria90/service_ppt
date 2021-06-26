@@ -90,13 +90,10 @@ class OpenLyricsWriter:
 
                 print(f'  <verse name="{verse_name}">\n', file=file, end="")
 
-                whole_line = ""
                 for line in verse.lines:
-                    if whole_line:
-                        whole_line = whole_line + "<br/>"
+                    optional_break = ' break="optional"' if line.optional_break else ""
                     line_text = xml.sax.saxutils.escape(line.text)
-                    whole_line = whole_line + line_text
-                print(f"   <lines>{whole_line}</lines>\n", file=file, end="")
+                    print(f"   <lines{optional_break}>{line_text}</lines>\n", file=file, end="")
 
                 print(f"  </verse>\n", file=file, end="")
 

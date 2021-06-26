@@ -715,6 +715,7 @@ class DuplicateWithText(Command):
         slide_fr_dict,
         archive_lyric_file,
         archive_fr_dict,
+        optional_line_break,
     ):
         """DuplicateWithText finds all occurrence of find_text and replace it replace_texts,
         which are list of text.
@@ -730,6 +731,7 @@ class DuplicateWithText(Command):
         self.slide_fr_dict = slide_fr_dict
         self.archive_lyric_file = archive_lyric_file
         self.archive_fr_dict = archive_fr_dict
+        self.optional_line_break = optional_line_break
 
     def execute(self, cm, prs):
         cm.progress_message(0, _("Duplicating slides and replacing texts."))
@@ -808,7 +810,10 @@ class DuplicateWithText(Command):
             sl = self.process_lyric_linebreak(text).splitlines()
             len_sl_1 = len(sl) - 1
             for i, l in enumerate(sl):
-                optional_break = i != len_sl_1
+                if self.optional_line_break != 0:
+                    optional_break = i != len_sl_1 and (i % self.optional_line_break == 0)
+                else:
+                    optional_break = i != len_sl_1
                 line = hymncore.Line(l, optional_break)
                 v.lines.append(line)
 

@@ -662,12 +662,13 @@ class DuplicateWithTextUI(PropertyGridUI):
     SLIDE_FR_TEXT = _("Find and replace text for Slide")
     ARCHIVE_LYRIC_FILES = _("Archive as lyric files")
     ARCHIVE_FR_TEXT = _("Find and replace text for archive")
+    OPTION_SPLIT_LINE_AT_EVERY = _("Optional split lines at every nth line")
 
     def __init__(self, uimgr, name, proc=None):
         super().__init__(uimgr, name, proc=proc)
 
         if self.command is None:
-            self.command = cmd.DuplicateWithText("", "", "", [], "", False, "")
+            self.command = cmd.DuplicateWithText("", "", "", [], "", False, "", 0)
 
     def initialize_fixed_properties(self, pg):
         pg.Append(wxpg.PropertyCategory(_("1 - Range specification")))
@@ -684,6 +685,7 @@ class DuplicateWithTextUI(PropertyGridUI):
         pg.Append(wxpg.PropertyCategory(_("4 - Archive processing")))
         pg.Append(wxpg.BoolProperty(self.ARCHIVE_LYRIC_FILES))
         pg.Append(wxpg.StringProperty(self.ARCHIVE_FR_TEXT))
+        pg.Append(wxpg.StringProperty(self.OPTION_SPLIT_LINE_AT_EVERY))
 
     def TransferFromWindow(self):
         self.command.slide_range = self.set_modified(
@@ -707,7 +709,10 @@ class DuplicateWithTextUI(PropertyGridUI):
             self.command.archive_lyric_file,
             self.ui.GetPropertyValueAsBool(self.ARCHIVE_LYRIC_FILES),
         )
-        self.command.archive_fr_dict = self.ui.GetPropertyValueAsString(self.ARCHIVE_FR_TEXT)
+        self.command.archive_fr_dict = self.set_modified(self.command.archive_fr_dict, self.ui.GetPropertyValueAsString(self.ARCHIVE_FR_TEXT))
+        optional_line_break = self.ui.GetPropertyValueAsString(self.OPTION_SPLIT_LINE_AT_EVERY)
+        optional_line_break = int(optional_line_break) if optional_line_break.isdigit() else 0
+        self.command.optional_line_break = self.set_modified(self.command.optional_line_break, optional_line_break)
 
         return True
 
@@ -723,6 +728,7 @@ class DuplicateWithTextUI(PropertyGridUI):
 
         self.ui.SetPropertyValue(self.ARCHIVE_LYRIC_FILES, self.command.archive_lyric_file)
         self.ui.SetPropertyValueString(self.ARCHIVE_FR_TEXT, self.command.archive_fr_dict)
+        self.ui.SetPropertyValueString(self.OPTION_SPLIT_LINE_AT_EVERY, str(self.command.optional_line_break))
 
         return True
 
