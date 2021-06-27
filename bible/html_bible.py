@@ -1,48 +1,11 @@
 """
 """
 
-import csv
 import html
 import os
 import re
-import xml.sax.saxutils
 
-from bibcore import Verse, Chapter, Book, Bible
-import biblang
-
-
-class CSVWriter:
-    def _get_extension(self):
-        return ".csv"
-
-    def write_bible(self, dirname, bible, encoding=None):
-        if encoding and encoding.lower() == "utf-8":
-            encoding = "utf-8-sig"
-        booksname = os.path.join(dirname, "books.csv")
-        self._write_books(booksname, bible, encoding)
-
-        versesname = os.path.join(dirname, "verses.csv")
-        self._write_verses(versesname, bible, encoding)
-
-    def _write_books(self, booksname, bible, encoding=None):
-        with open(booksname, "wt", newline="", encoding=encoding) as csvfile:
-            f = csv.writer(csvfile)
-            for i, b in enumerate(bible.books):
-                book_no = i + 1
-                old_new = "2" if b.new_testament else "1"
-                line = [str(book_no), old_new, b.name, b.short_name]
-                f.writerow(line)
-
-    def _write_verses(self, versesname, bible, encoding=None):
-        with open(versesname, "wt", newline="", encoding=encoding) as csvfile:
-            f = csv.writer(csvfile)
-            for b, book in enumerate(bible.books):
-                bible.ensure_loaded(book)
-
-                for c, chapter in enumerate(book.chapters):
-                    for _v, verse in enumerate(chapter.verses):
-                        line = [str(b + 1), str(c + 1), verse.no, verse.text]
-                        f.writerow(line)
+from . import biblang
 
 
 class HTMLWriter:
@@ -310,57 +273,6 @@ function load_book(bookno) {
 <div id='bibleContent'>
 </div>
 
-""",
-            file=file,
-            end="",
-        )
-
-
-class OpenSongXMLWriter:
-    def _get_extension(self):
-        return ".xml"
-
-    def write_bible(self, dirname, bible, encoding="utf-8"):
-        if encoding == None:
-            encoding = "utf-8"
-
-        filename = os.path.join(dirname, "bible.xml")
-        with open(os.path.join(dirname, filename), "wt", encoding=encoding) as file:
-            self._write_xml_header(file, encoding)
-
-            for book in bible.books:
-                bible.ensure_loaded(book)
-
-                print(f' <b n="{book.name}">', file=file)
-
-                for chapter in book.chapters:
-                    print(f'  <c n="{chapter.no}">', file=file)
-
-                    for verse in chapter.verses:
-                        verse_no = verse.no
-                        if verse_no is None:
-                            verse_no = ""
-                        text = xml.sax.saxutils.escape(verse.text)
-                        print(f'   <v n="{verse_no}">{text}</v>', file=file)
-
-                    print(f"  </c>", file=file)
-
-                print(f" </b>", file=file)
-
-            self._write_xml_footer(file)
-
-    def _write_xml_header(self, file, encoding):
-        print(
-            f"""<?xml version="1.0" encoding="{encoding}"?>
-<bible>
-""",
-            file=file,
-            end="",
-        )
-
-    def _write_xml_footer(self, file):
-        print(
-            f"""</bible>
 """,
             file=file,
             end="",
