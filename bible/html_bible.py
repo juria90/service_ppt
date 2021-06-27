@@ -5,7 +5,7 @@ import html
 import os
 import re
 
-from . import biblang
+from bible import biblang
 
 
 class HTMLWriter:

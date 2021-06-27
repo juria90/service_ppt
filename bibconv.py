@@ -2,29 +2,23 @@
 """
 """
 import argparse
-import os
 
-import fileformat
-from csv_bible import CSVWriter
-from html_bible import HTMLWriter
-from mybible import MyBibleWriter
-from opensong_bible import OpenSongXMLWriter
-from zefania_bible import ZefaniaWriter
+from bible import csv_bible, fileformat, html_bible, mybible, opensong_bible, zefania_bible
 
 
 def write_bible(bible, out_format, filename, encoding, dynamic_page, remove_bible_tags):
     writer = None
     if out_format == "csv":
-        writer = CSVWriter()
+        writer = csv_bible.CSVWriter()
     elif out_format == "html":
         process_bible_tags = remove_bible_tags == False
-        writer = HTMLWriter(dynamic_page, process_bible_tags)
+        writer = html_bible.HTMLWriter(dynamic_page, process_bible_tags)
     elif out_format == "MyBible":
-        writer = MyBibleWriter()
+        writer = mybible.MyBibleWriter()
     elif out_format == "opensong-xml":
-        writer = OpenSongXMLWriter()
+        writer = opensong_bible.OpenSongXMLWriter()
     elif out_format == "zefania":
-        writer = ZefaniaWriter()
+        writer = zefania_bible.ZefaniaWriter()
 
     if writer:
         writer.write_bible(filename, bible, encoding=encoding)
@@ -75,9 +69,9 @@ if __name__ == "__main__":
         [
             "--in-format", "MyBible", "개역개정",
             # "--in-format", "MyBible", "NIV",
+            # '--in-format', 'MyBible', 'ESV',
             # '--in-format', 'Sword', 'GerLut1545',
             # '--in-format', 'Zefania', 'Spanish Reina-Valera',
-            # '--in-format', 'MySword', 'ESV',
             # '--remove-special-chars',
             "--remove-bible-tags",
             "false",

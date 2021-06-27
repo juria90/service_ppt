@@ -4,7 +4,7 @@
 import csv
 import os
 
-from .bibcore import Verse, Chapter, Book, Bible
+from bible.bibcore import Verse, Chapter, Book, Bible
 
 
 class CSVWriter:

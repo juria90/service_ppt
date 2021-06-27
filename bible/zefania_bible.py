@@ -143,7 +143,7 @@ class ZefaniaWriter:
         )
 
     def _write_info(self, file, bible):
-        from fileformat import get_bible_info
+        from .fileformat import get_bible_info
 
         dt_str = datetime.today().strftime("%Y-%m-%d")
         bible_name = xml.sax.saxutils.escape(bible.name)
