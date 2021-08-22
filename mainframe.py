@@ -417,12 +417,11 @@ class Frame(wx.Frame):
                 _("Service definition files (*.sdf)|*.sdf"),
                 wx.FD_OPEN | wx.FD_FILE_MUST_EXIST,
             )
-            if dlg.ShowModal() == wx.ID_CANCEL:
-                return
-
+            result = dlg.ShowModal()
             filename = dlg.GetPath()
             dlg.Destroy()
-
+            if result == wx.ID_CANCEL:
+                return
         try:
             self.uimgr.open(filename)
         except (json.JSONDecodeError, Exception):
@@ -479,10 +478,11 @@ class Frame(wx.Frame):
                 _("Service definition files (*.sdf)|*.sdf"),
                 wx.FD_SAVE | wx.FD_OVERWRITE_PROMPT,
             )
-            if dlg.ShowModal() == wx.ID_CANCEL:
-                return
-
+            result = dlg.ShowModal()
             filename = dlg.GetPath()
+            dlg.Destroy()
+            if result == wx.ID_CANCEL:
+                return
 
         self.uimgr.save(filename)
 
@@ -538,12 +538,11 @@ class Frame(wx.Frame):
             [x[2] for x in COMMAND_INFO],
         )
         result = dlg.ShowModal()
-        if result != wx.ID_OK:
-            return
-
         command_index = dlg.GetSelection()
         command_name = COMMAND_INFO[command_index][2]
         dlg.Destroy()
+        if result != wx.ID_OK:
+            return
 
         index = self.command_ctrl.GetFirstSelected()
         if index < 0:

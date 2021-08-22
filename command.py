@@ -22,6 +22,7 @@ from bible import fileformat as bibfileformat
 from hymn import hymncore
 from hymn.openlpservice import OpenLPServiceWriter
 from hymn.openlyrics import OpenLyricsReader, OpenLyricsWriter
+from wordwrap import WordWrap
 
 if sys.platform.startswith("win32"):
     import powerpoint_win32 as PowerPoint
@@ -712,9 +713,7 @@ class DuplicateWithText(Command):
         repeat_range,
         find_text,
         replace_texts,
-        slide_fr_dict,
         archive_lyric_file,
-        archive_fr_dict,
         optional_line_break,
     ):
         """DuplicateWithText finds all occurrence of find_text and replace it replace_texts,
@@ -728,10 +727,11 @@ class DuplicateWithText(Command):
         self.repeat_range = repeat_range
         self.find_text = find_text
         self.replace_texts = replace_texts
-        self.slide_fr_dict = slide_fr_dict
         self.archive_lyric_file = archive_lyric_file
-        self.archive_fr_dict = archive_fr_dict
         self.optional_line_break = optional_line_break
+        self.enable_wordwrap = False
+        self.wordwrap_font = ""
+        self.wordwrap_pagewidth = 0
 
     def execute(self, cm, prs):
         cm.progress_message(0, _("Duplicating slides and replacing texts."))
@@ -763,7 +763,7 @@ class DuplicateWithText(Command):
             # Then, replace texts to get the final slides.
             template_slide_count = slide_range[1] - slide_range[0] + 1
             repeatable_slide_count = repeat_range[1] - repeat_range[0] + 1
-            replace_texts = self.process_replace_texts(self.slide_fr_dict)
+            replace_texts = self.replace_texts
             total_slide_count = len(replace_texts)
 
             duplicate_count = total_slide_count - template_slide_count
@@ -783,31 +783,18 @@ class DuplicateWithText(Command):
             lyric_filelist = self.produce_as_lyric_file(cm)
             cm.add_lyric_file(lyric_filelist)
 
-    def process_replace_texts(self, dict_str):
-        fr_dict = None
-        try:
-            fr_dict = json.loads(dict_str)
-        except json.decoder.JSONDecodeError:
-            fr_dict = None
-
-        replace_texts = self.replace_texts
-        if isinstance(fr_dict, dict):
-            replace_texts = []
-            for text in self.replace_texts:
-                _, new_text = replace_all_notes_text(text, fr_dict)
-                replace_texts.append(new_text)
-
-        return replace_texts
-
     def produce_as_lyric_file(self, cm):
         song = hymncore.Song()
         song.title = self.find_text.replace("{", "").replace("}", "")
-        replace_texts = self.process_replace_texts(self.archive_fr_dict)
+        replace_texts = self.replace_texts
+        if self.enable_wordwrap and self.wordwrap_font and self.wordwrap_pagewidth > 0:
+            with WordWrap(self.wordwrap_font) as wwo:
+                replace_texts = wwo.wordwrap(replace_texts, self.wordwrap_pagewidth)
         for vno, text in enumerate(replace_texts):
             text = cm.replace_format_vars(text)
             v = hymncore.Verse()
             v.no = "v" + str(vno + 1)
-            sl = self.process_lyric_linebreak(text).splitlines()
+            sl = text.splitlines()
             len_sl_1 = len(sl) - 1
             for i, l in enumerate(sl):
                 if self.optional_line_break != 0:
@@ -833,10 +820,6 @@ class DuplicateWithText(Command):
         os.remove(filename)
 
         return {"song": song, "xml_content": xml_content}
-
-    def process_lyric_linebreak(self, s: str):
-        s = s.replace("\u200b", "\n")
-        return s
 
 
 class GenerateBibleVerse(Command):

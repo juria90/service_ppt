@@ -564,7 +564,9 @@ class InsertLyricsUI(PropertyGridUI):
     ARCHIVE_LYRIC_FILES = _("Archive lyric files")
 
     FILE_D = _("File %d")
-    LYRIC_FILES_WILDCARD = _("Powerpoint files (*.ppt;*.pptx)|*.ppt;*.pptx|Lyric xml files (*.xml)|*.xml")
+    LYRIC_FILES_WILDCARD = _(
+        "Powerpoint/Lyric files (*.ppt;*.pptx;*.xml)|*.ppt;*.pptx;*.xml|Powerpoint files (*.ppt;*.pptx)|*.ppt;*.pptx|Lyric xml files (*.xml)|*.xml"
+    )
 
     def __init__(self, uimgr, name, proc=None):
         super().__init__(uimgr, name, proc=proc)
@@ -659,16 +661,17 @@ class DuplicateWithTextUI(PropertyGridUI):
     REPEAT_RANGE = _("Repeat range")
     FIND_TEXT = _("Text to find")
     REPLACE_TEXT = _("Texts to replace (a blank line for a separation)")
-    SLIDE_FR_TEXT = _("Find and replace text for Slide")
     ARCHIVE_LYRIC_FILES = _("Archive as lyric files")
-    ARCHIVE_FR_TEXT = _("Find and replace text for archive")
     OPTION_SPLIT_LINE_AT_EVERY = _("Optional split lines at every nth line")
+    ENABLE_WORDWRAP = _("Enable word wrap")
+    WORDWRAP_FONT = _("Font")
+    PAGE_WITDH = _("Page width")
 
     def __init__(self, uimgr, name, proc=None):
         super().__init__(uimgr, name, proc=proc)
 
         if self.command is None:
-            self.command = cmd.DuplicateWithText("", "", "", [], "", False, "", 0)
+            self.command = cmd.DuplicateWithText("", "", "", [], False, 0)
 
     def initialize_fixed_properties(self, pg):
         pg.Append(wxpg.PropertyCategory(_("1 - Range specification")))
@@ -679,13 +682,14 @@ class DuplicateWithTextUI(PropertyGridUI):
         pg.Append(wxpg.StringProperty(self.FIND_TEXT))
         pg.Append(wxpg.LongStringProperty(self.REPLACE_TEXT))
 
-        pg.Append(wxpg.PropertyCategory(_("3 - Slide processing")))
-        pg.Append(wxpg.StringProperty(self.SLIDE_FR_TEXT))
-
-        pg.Append(wxpg.PropertyCategory(_("4 - Archive processing")))
+        pg.Append(wxpg.PropertyCategory(_("3 - Archive processing")))
         pg.Append(wxpg.BoolProperty(self.ARCHIVE_LYRIC_FILES))
-        pg.Append(wxpg.StringProperty(self.ARCHIVE_FR_TEXT))
         pg.Append(wxpg.StringProperty(self.OPTION_SPLIT_LINE_AT_EVERY))
+
+        pg.Append(wxpg.PropertyCategory(_("4 - Word wrap archive text")))
+        pg.Append(wxpg.BoolProperty(self.ENABLE_WORDWRAP))
+        pg.Append(wxpg.FontProperty(self.WORDWRAP_FONT))
+        pg.Append(wxpg.IntProperty(self.PAGE_WITDH))
 
     def TransferFromWindow(self):
         self.command.slide_range = self.set_modified(
@@ -703,16 +707,31 @@ class DuplicateWithTextUI(PropertyGridUI):
         lines = [l.strip() for l in lines if l.strip()]
         self.command.replace_texts = self.set_modified(self.command.replace_texts, lines)
 
-        self.command.slide_fr_dict = self.ui.GetPropertyValueAsString(self.SLIDE_FR_TEXT)
-
         self.command.archive_lyric_file = self.set_modified(
             self.command.archive_lyric_file,
             self.ui.GetPropertyValueAsBool(self.ARCHIVE_LYRIC_FILES),
         )
-        self.command.archive_fr_dict = self.set_modified(self.command.archive_fr_dict, self.ui.GetPropertyValueAsString(self.ARCHIVE_FR_TEXT))
         optional_line_break = self.ui.GetPropertyValueAsString(self.OPTION_SPLIT_LINE_AT_EVERY)
         optional_line_break = int(optional_line_break) if optional_line_break.isdigit() else 0
         self.command.optional_line_break = self.set_modified(self.command.optional_line_break, optional_line_break)
+
+        self.command.enable_wordwrap = self.set_modified(
+            self.command.enable_wordwrap,
+            self.ui.GetPropertyValueAsBool(self.ENABLE_WORDWRAP),
+        )
+
+        font_property = self.ui.GetPropertyByLabel(self.WORDWRAP_FONT)
+        font_obj = font_property.GetValue()
+        wordwrap_font = font_obj.GetNativeFontInfoDesc()
+        self.command.wordwrap_font = self.set_modified(
+            self.command.wordwrap_font,
+            wordwrap_font,
+        )
+        wordwrap_pagewidth = int(self.ui.GetPropertyValueAsLongLong(self.PAGE_WITDH))
+        self.command.wordwrap_pagewidth = self.set_modified(
+            self.command.wordwrap_pagewidth,
+            wordwrap_pagewidth,
+        )
 
         return True
 
@@ -724,11 +743,16 @@ class DuplicateWithTextUI(PropertyGridUI):
         replace_texts = "\n\n".join(self.command.replace_texts)
         self.ui.SetPropertyValueString(self.REPLACE_TEXT, replace_texts)
 
-        self.ui.SetPropertyValueString(self.SLIDE_FR_TEXT, self.command.slide_fr_dict)
-
         self.ui.SetPropertyValue(self.ARCHIVE_LYRIC_FILES, self.command.archive_lyric_file)
-        self.ui.SetPropertyValueString(self.ARCHIVE_FR_TEXT, self.command.archive_fr_dict)
         self.ui.SetPropertyValueString(self.OPTION_SPLIT_LINE_AT_EVERY, str(self.command.optional_line_break))
+
+        self.ui.SetPropertyValue(self.ENABLE_WORDWRAP, self.command.enable_wordwrap)
+
+        font_property = self.ui.GetPropertyByLabel(self.WORDWRAP_FONT)
+        font_obj = wx.Font(str(self.command.wordwrap_font))
+        font_property.SetValue(font_obj)
+
+        self.ui.SetPropertyValue(self.PAGE_WITDH, self.command.wordwrap_pagewidth)
 
         return True
 
