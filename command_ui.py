@@ -1,6 +1,7 @@
 """This file contains classes for Command UI that can edit the command settings.
 """
 
+from io import StringIO
 import json
 import pickle
 import re
@@ -28,6 +29,55 @@ def set_translation(trans):
     _ = trans.gettext
 
     cmd.set_translation(trans)
+
+
+class StringBuilder:
+     _file_str = None
+
+     def __init__(self):
+         self._file_str = StringIO()
+
+     def __str__(self):
+         return self._file_str.getvalue()
+
+     def append(self, str):
+         self._file_str.write(str)
+
+
+def unescape_backslash(s):
+    """unescape_backslash() unescapes \ x into x for wxpg.LongStringProperty."""
+    sb = StringBuilder()
+    escape = False
+    for i in range(len(s)):
+        ch = s[i]
+        if escape:
+            if ch == '\\':
+                ch = '\\'
+            escape = False
+            sb.append(ch)
+        elif ch == '\\':
+            escape = True
+        else:
+            escape = False
+            sb.append(ch)
+
+    result = str(sb)
+    return result
+
+
+def escape_backslash(s):
+    """escape_backslash() escapes x into \ x for wxpg.LongStringProperty."""
+    sb = StringBuilder()
+    escape = False
+    for i in range(len(s)):
+        ch = s[i]
+        if ch == '\\':
+            sb.append('\\\\')
+        else:
+            sb.append(ch)
+
+    result = str(sb)
+    return result
 
 
 class CommandUI(wx.EvtHandler):
@@ -661,6 +711,7 @@ class DuplicateWithTextUI(PropertyGridUI):
     REPEAT_RANGE = _("Repeat range")
     FIND_TEXT = _("Text to find")
     REPLACE_TEXT = _("Texts to replace (a blank line for a separation)")
+    PREPROCESS_SCRIPT = _("Preprocessing script before replace (Use input and output for input/output variables)")
     ARCHIVE_LYRIC_FILES = _("Archive as lyric files")
     OPTION_SPLIT_LINE_AT_EVERY = _("Optional split lines at every nth line")
     ENABLE_WORDWRAP = _("Enable word wrap")
@@ -671,7 +722,7 @@ class DuplicateWithTextUI(PropertyGridUI):
         super().__init__(uimgr, name, proc=proc)
 
         if self.command is None:
-            self.command = cmd.DuplicateWithText("", "", "", [], False, 0)
+            self.command = cmd.DuplicateWithText("", "", "", [], "", False, 0)
 
     def initialize_fixed_properties(self, pg):
         pg.Append(wxpg.PropertyCategory(_("1 - Range specification")))
@@ -681,6 +732,7 @@ class DuplicateWithTextUI(PropertyGridUI):
         pg.Append(wxpg.PropertyCategory(_("2 - Text to find and replace")))
         pg.Append(wxpg.StringProperty(self.FIND_TEXT))
         pg.Append(wxpg.LongStringProperty(self.REPLACE_TEXT))
+        pg.Append(wxpg.LongStringProperty(self.PREPROCESS_SCRIPT))
 
         pg.Append(wxpg.PropertyCategory(_("3 - Archive processing")))
         pg.Append(wxpg.BoolProperty(self.ARCHIVE_LYRIC_FILES))
@@ -702,10 +754,14 @@ class DuplicateWithTextUI(PropertyGridUI):
 
         self.command.find_text = self.ui.GetPropertyValueAsString(self.FIND_TEXT)
         text = self.ui.GetPropertyValueAsString(self.REPLACE_TEXT)
-        text = text.replace("\\n", "\n")
+        text = unescape_backslash(text)
         lines = re.split(r"(\n){2}", text)
         lines = [l.strip() for l in lines if l.strip()]
         self.command.replace_texts = self.set_modified(self.command.replace_texts, lines)
+
+        text = self.ui.GetPropertyValueAsString(self.PREPROCESS_SCRIPT)
+        text = unescape_backslash(text)
+        self.command.preprocessing_script = self.set_modified(self.command.preprocessing_script, text)
 
         self.command.archive_lyric_file = self.set_modified(
             self.command.archive_lyric_file,
@@ -741,7 +797,12 @@ class DuplicateWithTextUI(PropertyGridUI):
 
         self.ui.SetPropertyValueString(self.FIND_TEXT, self.command.find_text)
         replace_texts = "\n\n".join(self.command.replace_texts)
+        replace_texts = escape_backslash(replace_texts)
         self.ui.SetPropertyValueString(self.REPLACE_TEXT, replace_texts)
+
+        preprocessing_script = self.command.preprocessing_script
+        preprocessing_script = escape_backslash(preprocessing_script)
+        self.ui.SetPropertyValueString(self.PREPROCESS_SCRIPT, preprocessing_script)
 
         self.ui.SetPropertyValue(self.ARCHIVE_LYRIC_FILES, self.command.archive_lyric_file)
         self.ui.SetPropertyValueString(self.OPTION_SPLIT_LINE_AT_EVERY, str(self.command.optional_line_break))

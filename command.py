@@ -713,6 +713,7 @@ class DuplicateWithText(Command):
         repeat_range,
         find_text,
         replace_texts,
+        preprocessing_script,
         archive_lyric_file,
         optional_line_break,
     ):
@@ -727,6 +728,7 @@ class DuplicateWithText(Command):
         self.repeat_range = repeat_range
         self.find_text = find_text
         self.replace_texts = replace_texts
+        self.preprocessing_script = preprocessing_script
         self.archive_lyric_file = archive_lyric_file
         self.optional_line_break = optional_line_break
         self.enable_wordwrap = False
@@ -764,6 +766,12 @@ class DuplicateWithText(Command):
             template_slide_count = slide_range[1] - slide_range[0] + 1
             repeatable_slide_count = repeat_range[1] - repeat_range[0] + 1
             replace_texts = self.replace_texts
+            if len(self.preprocessing_script):
+                replace_texts = self.run_script(self.preprocessing_script, self.replace_texts)
+                if replace_texts is None:
+                    replace_texts = self.replace_texts
+            else:
+                replace_texts = self.replace_texts
             total_slide_count = len(replace_texts)
 
             duplicate_count = total_slide_count - template_slide_count
@@ -820,6 +828,15 @@ class DuplicateWithText(Command):
         os.remove(filename)
 
         return {"song": song, "xml_content": xml_content}
+
+    def run_script(self, script, text_list):
+        try:
+            gdict = {"input": text_list}
+            exec(script, gdict)
+            return gdict["output"]
+        except Exception as e:
+            print("Error: %s" % e)
+            pass
 
 
 class GenerateBibleVerse(Command):

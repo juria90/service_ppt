@@ -6,7 +6,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2021-09-05 07:39-0700\n"
+"POT-Creation-Date: 2021-09-19 21:51-0700\n"
 "PO-Revision-Date: 2020-05-30 11:26-0700\n"
 "Last-Translator: James Lee <juria90@yahoo.com>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -45,43 +45,43 @@ msgstr "저장(&S)\tCtrl+S"
 msgid "(Untitled)"
 msgstr "(제목 없음)"
 
-#: command_ui.py:515
+#: command_ui.py:565
 msgid "1 - Basic Settings"
 msgstr "1 - 기본 설정"
 
-#: command_ui.py:778
+#: command_ui.py:839
 msgid "1 - Bible specification"
 msgstr "1 - 성경 설정"
 
-#: command_ui.py:677
+#: command_ui.py:728
 msgid "1 - Range specification"
 msgstr "1 - 범위 설정"
 
-#: command_ui.py:586
+#: command_ui.py:636
 msgid "1 - Slide settings"
 msgstr "1 - 악보 파일 설정"
 
-#: command_ui.py:519
+#: command_ui.py:569
 msgid "2 - List of files to insert"
 msgstr "2 - 삽입할 파일 목록"
 
-#: command_ui.py:590
+#: command_ui.py:640
 msgid "2 - Lyric settings"
 msgstr "1 - 가사 설정"
 
-#: command_ui.py:681
+#: command_ui.py:732
 msgid "2 - Text to find and replace"
 msgstr "찾아서 바꿀 글"
 
-#: command_ui.py:685
+#: command_ui.py:737
 msgid "3 - Archive processing"
 msgstr "가사 저장"
 
-#: command_ui.py:597
+#: command_ui.py:647
 msgid "3 - List of lyric files to insert"
 msgstr "3 - 삽입할 가사 파일 목록"
 
-#: command_ui.py:689
+#: command_ui.py:741
 msgid "4 - Word wrap archive text"
 msgstr "가사 자동 줄 바꾸기"
 
@@ -93,15 +93,15 @@ msgstr "명령 추가"
 msgid "Add slide command"
 msgstr "슬라이드 명령 추가"
 
-#: command_ui.py:768
+#: command_ui.py:829
 msgid "Additional Bible verses"
 msgstr "추가적인 성경 구절"
 
-#: command_ui.py:664
+#: command_ui.py:715
 msgid "Archive as lyric files"
 msgstr "가사 파일로 저장"
 
-#: command_ui.py:564
+#: command_ui.py:614
 msgid "Archive lyric files"
 msgstr "가사 파일"
 
@@ -109,7 +109,7 @@ msgstr "가사 파일"
 msgid "Bible &Format:"
 msgstr "성경 포맷(&F)"
 
-#: command_ui.py:764
+#: command_ui.py:825
 msgid "Bible Version"
 msgstr "성경 버전"
 
@@ -117,23 +117,23 @@ msgstr "성경 버전"
 msgid "Bible settings"
 msgstr "성경 설정"
 
-#: command.py:869
+#: command.py:886
 #, python-brace-format
 msgid ""
 "Cannot find the Bible format={bible_format} and version={bible_version}."
 msgstr "성경 포맷={bible_format}과 버전={bible_version}를 찾을 수 없습니다."
 
-#: command.py:917
+#: command.py:934
 #, python-brace-format
 msgid "Cannot find the Bible verse={verse} in {verses}."
 msgstr "성경 구절={verse}를 {} 중에서 찾을 수 없습니다."
 
-#: command.py:914
+#: command.py:931
 #, python-brace-format
 msgid "Cannot find the Bible verse={verse}."
 msgstr "성경 구절 {verse}를 찾을 수 없습니다."
 
-#: command.py:1189 command.py:1195
+#: command.py:1206 command.py:1212
 #, python-brace-format
 msgid "Cannot open a lyric file '{filename}'."
 msgstr "가사 파일 '{filename}'을 열 수 없습니다."
@@ -158,11 +158,11 @@ msgstr "성경 구절을 '{filename}'로 저장할 수 없습니다."
 msgid "Cannot save the notes file '{filename}'."
 msgstr "프리젠테이션을 파일 '{filename}'로 저장할 수 없습니다."
 
-#: command_ui.py:831 command_ui.py:895
+#: command_ui.py:892 command_ui.py:956
 msgid "Clean up output directory"
 msgstr "출력 디렉토리의 파일들 지우기"
 
-#: command.py:1433
+#: command.py:1450
 msgid "Cleaning up after running all the commands."
 msgstr "모든 명령들을 실행한 후에 뒷정리 중입니다."
 
@@ -170,11 +170,11 @@ msgstr "모든 명령들을 실행한 후에 뒷정리 중입니다."
 msgid "Close window and exit the program."
 msgstr "창을 닫고 프로그램 종료합니다."
 
-#: command_ui.py:833
+#: command_ui.py:894
 msgid "Color to make transparent"
 msgstr "투명하게 만들 색상"
 
-#: command.py:1117 command.py:1134
+#: command.py:1134 command.py:1151
 msgid "Converting to transparent images."
 msgstr "투명 이미지로 변환하는 중입니다"
 
@@ -186,15 +186,15 @@ msgstr "새로운 프리젠테이션 만듭니다."
 msgid "Current Bible &Version:"
 msgstr "현재 선택된 성경 버전(&V):"
 
-#: command_ui.py:389
+#: command_ui.py:439
 msgid "Datetime"
 msgstr "날짜"
 
-#: command_ui.py:369
+#: command_ui.py:419
 msgid "Datetime value"
 msgstr "날짜 값"
 
-#: command_ui.py:368
+#: command_ui.py:418
 msgid "Datetime variable name"
 msgstr "날짜 변수 이름"
 
@@ -206,7 +206,7 @@ msgstr "명령 삭제"
 msgid "Directory settings"
 msgstr "디렉토리 설정"
 
-#: command_ui.py:139
+#: command_ui.py:189
 msgid "Displaying PopupMessage."
 msgstr "팝업 메세지 띄우는 중입니다."
 
@@ -214,11 +214,11 @@ msgstr "팝업 메세지 띄우는 중입니다."
 msgid "Duplicate slides"
 msgstr "슬라이드 복제"
 
-#: command.py:737 command.py:955
+#: command.py:739 command.py:972
 msgid "Duplicating slides and replacing texts."
 msgstr "슬라이드를 복제 후에 글을 바꾸는 중입니다."
 
-#: command.py:946
+#: command.py:963
 #, python-brace-format
 msgid "Duplicating {repeat_count} slide for Bible Verse."
 msgid_plural "Duplicating {repeat_count} slides for Bible Verse."
@@ -229,11 +229,11 @@ msgstr[1] "성경 구절을 위하여 {repeat_count}개의 슬라이드들을 �
 msgid "E&xit\tCtrl+Q"
 msgstr "나가기(&X)\tCtrl+Q"
 
-#: command_ui.py:766
+#: command_ui.py:827
 msgid "Each Bible verse name"
 msgstr "각각의 성경 구절 이름"
 
-#: command_ui.py:666
+#: command_ui.py:717
 msgid "Enable word wrap"
 msgstr "자동 줄 바꾸기"
 
@@ -257,7 +257,7 @@ msgstr "쉐입을 이미지로 저장"
 msgid "Export slides as images"
 msgstr "슬라이드를 이미지로 저장"
 
-#: command.py:1098 command.py:1159
+#: command.py:1115 command.py:1176
 #, python-brace-format
 msgid "Exporting slide shapes as images to '{dirname}'."
 msgstr "슬라이드 쉐입을 이미지로 '{dirname}'에 내보내는 중입니다."
@@ -267,12 +267,12 @@ msgstr "슬라이드 쉐입을 이미지로 '{dirname}'에 내보내는 중입�
 msgid "Failed to open file '{filename}'."
 msgstr "프리젠테이션을 파일 '{filename}'로 저장 중입니다."
 
-#: command_ui.py:500 command_ui.py:566
+#: command_ui.py:550 command_ui.py:616
 #, python-format
 msgid "File %d"
 msgstr "파일 %d"
 
-#: command_ui.py:281 command_ui.py:322
+#: command_ui.py:331 command_ui.py:372
 msgid "File paths"
 msgstr "파일 경로"
 
@@ -280,7 +280,7 @@ msgstr "파일 경로"
 msgid "Find and replace texts"
 msgstr "글을 찾아서 바꾸기"
 
-#: command_ui.py:667
+#: command_ui.py:718
 msgid "Font"
 msgstr "글꼴"
 
@@ -288,15 +288,15 @@ msgstr "글꼴"
 msgid "Generate Bible verses slides"
 msgstr "성경 구절 슬라이드 생성"
 
-#: command_ui.py:832
+#: command_ui.py:893
 msgid "Generate transparent image"
 msgstr "투명 이미지 생성 중"
 
-#: command_ui.py:829 command_ui.py:893
+#: command_ui.py:890 command_ui.py:954
 msgid "Image type"
 msgstr "이미지 종류"
 
-#: command_ui.py:498
+#: command_ui.py:548
 msgid "Insert location"
 msgstr "삽입할 위치"
 
@@ -336,43 +336,43 @@ msgstr[1] "{file_count}개의 파일들에서 슬라이드를 삽입 중입니�
 msgid "Intializing commands."
 msgstr "명령들을 초기화 중."
 
-#: command_ui.py:551
+#: command_ui.py:601
 msgid "Lyric file types"
 msgstr "가사 파일 종류"
 
-#: command_ui.py:563
+#: command_ui.py:613
 msgid "Lyric pattern"
 msgstr "찾을 가사 패턴"
 
-#: command_ui.py:561
+#: command_ui.py:611
 msgid "Lyric repeat range"
 msgstr "가사 반복 범위"
 
-#: command_ui.py:562
+#: command_ui.py:612
 msgid "Lyric separator slides"
 msgstr "가사 구분 슬라이드 범위"
 
-#: command_ui.py:555
+#: command_ui.py:605
 msgid "Lyric slide and text files"
 msgstr "가사 슬라이드 및 텍스트 파일"
 
-#: command_ui.py:553
+#: command_ui.py:603
 msgid "Lyric slide files"
 msgstr "가사 슬라이드 파일"
 
-#: command_ui.py:554
+#: command_ui.py:604
 msgid "Lyric text files"
 msgstr "가사 텍스트 파일"
 
-#: command_ui.py:310
+#: command_ui.py:360
 msgid "Lyrics archive file"
 msgstr "가사 저장 파일"
 
-#: command_ui.py:765
+#: command_ui.py:826
 msgid "Main Bible verse name"
 msgstr "기본 성경 구절 이름"
 
-#: command_ui.py:767
+#: command_ui.py:828
 msgid "Main Bible verses"
 msgstr "기본 성경 구절"
 
@@ -388,7 +388,7 @@ msgstr "위로 옮기기"
 msgid "No repeatable slides are found. Aborting the command."
 msgstr "복제할 수 있는 슬라이드가 없어서 명령을 중단합니다."
 
-#: command_ui.py:271 command_ui.py:311
+#: command_ui.py:321 command_ui.py:361
 msgid "Notes file"
 msgstr "노트 파일"
 
@@ -416,7 +416,7 @@ msgstr "최근에 사용된 파일 열기"
 msgid "Open an existing file."
 msgstr "존재하는 파일 열기"
 
-#: command_ui.py:328
+#: command_ui.py:378
 msgid "OpenLP service files (*.osz)|*.osz|Zip files (*.zip)|*.zip"
 msgstr "OpenLP service files (*.osz)|*.osz|Zip files (*.zip)|*.zip"
 
@@ -430,15 +430,15 @@ msgstr "노트 파일 '{filename}' 여는 중입니다."
 msgid "Opening a template presentation file '{filename}'."
 msgstr "프리젠테이션 파일 '{filename}' 여는 중입니다."
 
-#: command_ui.py:665
+#: command_ui.py:716
 msgid "Optional split lines at every nth line"
 msgstr "매 몇번째 줄마다 선택적 줄 바꾸기"
 
-#: command_ui.py:830 command_ui.py:894
+#: command_ui.py:891 command_ui.py:955
 msgid "Output directory"
 msgstr "출력 디렉토리"
 
-#: command_ui.py:668
+#: command_ui.py:719
 msgid "Page width"
 msgstr "페이지 너비"
 
@@ -450,11 +450,11 @@ msgstr "슬라이드 명령을 선택하세요."
 msgid "Pop up a message"
 msgstr "메세지 띄우기"
 
-#: command_ui.py:23
+#: command_ui.py:24
 msgid "Powerpoint files (*.ppt;*.pptx)|*.ppt;*.pptx"
 msgstr "파워포인트 파일 (*.ppt;*.pptx)|*.ppt;*.pptx"
 
-#: command_ui.py:568
+#: command_ui.py:618
 msgid ""
 "Powerpoint/Lyric files (*.ppt;*.pptx;*.xml)|*.ppt;*.pptx;*.xml|Powerpoint "
 "files (*.ppt;*.pptx)|*.ppt;*.pptx|Lyric xml files (*.xml)|*.xml"
@@ -464,31 +464,37 @@ msgstr ""
 msgid "Preferences"
 msgstr "설정"
 
-#: command_ui.py:270 command_ui.py:309
+#: command_ui.py:714
+msgid ""
+"Preprocessing script before replace (Use input and output for input/output "
+"variables)"
+msgstr ""
+
+#: command_ui.py:320 command_ui.py:359
 msgid "Presentation file"
 msgstr "프리젠테이션 파일 열기"
 
-#: command.py:930
+#: command.py:947
 msgid "Processing Bible Verse."
 msgstr "성경 구절을 처리 중입니다."
 
-#: command.py:1077
+#: command.py:1094
 msgid "Processing PromptCommand."
 msgstr "메세지 명령을 처리 중입니다."
 
-#: command.py:1436
+#: command.py:1453
 msgid "Processing is done successfully."
 msgstr "명령들의 처리가 완료 되었습니다."
 
-#: command_ui.py:661
+#: command_ui.py:711
 msgid "Repeat range"
 msgstr "반복 범위"
 
-#: command_ui.py:769
+#: command_ui.py:830
 msgid "Repeating slides range"
 msgstr "반복할 슬라이드 범위"
 
-#: command.py:776
+#: command.py:784
 msgid "Replacing texts."
 msgstr "글을 바꾸는 중입니다."
 
@@ -555,15 +561,15 @@ msgstr "노트를 파일 '{filename}'로 저장 중입니다."
 msgid "Saving the presentation to the file '{filename}'."
 msgstr "프리젠테이션을 파일 '{filename}'로 저장 중입니다."
 
-#: command_ui.py:558
+#: command_ui.py:608
 msgid "Score repeat range"
 msgstr "악보 파일 반복 범위"
 
-#: command_ui.py:559
+#: command_ui.py:609
 msgid "Score separator slides"
 msgstr "악보 파일 구분 슬라이드 범위"
 
-#: command_ui.py:499
+#: command_ui.py:549
 msgid "Separator slides"
 msgstr "구분 슬라이드 범위"
 
@@ -579,27 +585,27 @@ msgstr "예배 정의 파일 (*.sdf)|*.sdf"
 msgid "Show and edit preferences."
 msgstr "설정 보거나 변경하기"
 
-#: command_ui.py:660
+#: command_ui.py:710
 msgid "Slide range"
 msgstr "슬라이드 범위"
 
-#: command_ui.py:828 command_ui.py:892
+#: command_ui.py:889 command_ui.py:953
 msgid "Slides to export"
 msgstr "내보낼 슬라이드들"
 
-#: command.py:1412
+#: command.py:1429
 msgid "Start processing commands."
 msgstr "명령들의 처리를 시작합니다."
 
-#: command_ui.py:286 command_ui.py:332 command_ui.py:335
+#: command_ui.py:336 command_ui.py:382 command_ui.py:385
 msgid "Text files (*.txt)|*.txt"
 msgstr "단순 문서 파일들 (*.txt)|*.txt"
 
-#: command_ui.py:662
+#: command_ui.py:712
 msgid "Text to find"
 msgstr "찾을 글"
 
-#: command_ui.py:663
+#: command_ui.py:713
 msgid "Texts to replace (a blank line for a separation)"
 msgstr "바꿀 글들 (공백 라인은 구분 표시)"
 
@@ -624,21 +630,21 @@ msgstr ""
 msgid "Unknown file extension for lyrics archive file '{filename}'."
 msgstr "가사 파일 '{filename}'은 알려지지 않은 확장자입니다."
 
-#: command_ui.py:370
+#: command_ui.py:420
 #, python-format
 msgid "Variable name %d"
 msgstr "찾을 글 %d"
 
-#: command_ui.py:396
+#: command_ui.py:446
 msgid "Variable names and values to be used for find and replace"
 msgstr "찾고 바꾸기를 위한 변수 이름과 값"
 
-#: command_ui.py:371
+#: command_ui.py:421
 #, python-format
 msgid "Variable value %d"
 msgstr "변수 값 %d"
 
-#: command_ui.py:312
+#: command_ui.py:362
 msgid "Verses file"
 msgstr "성경 구절 파일"
 
