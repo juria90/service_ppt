@@ -145,9 +145,7 @@ class PpBaselineAlignment(enum.IntEnum):
     ppBaselineAlignFarEast50 = 4  # Align FarEast50.
     ppBaselineAlignMixed = -2  # Mixed alignment.
     ppBaselineAlignTop = 2  # Aligned to the top.
-    ppBaselineAlignAuto = (
-        5  # https://github.com/DefinitelyTyped/DefinitelyTyped/blob/master/types/activex-powerpoint/index.d.ts
-    )
+    ppBaselineAlignAuto = 5  # https://github.com/DefinitelyTyped/DefinitelyTyped/blob/master/types/activex-powerpoint/index.d.ts
 
 
 # https://github.com/DefinitelyTyped/DefinitelyTyped/blob/master/types/activex-powerpoint/index.d.ts

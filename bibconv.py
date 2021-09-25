@@ -34,9 +34,7 @@ def str_to_bool(value):
 
 def parse_cmdline():
     parser = argparse.ArgumentParser(description="Convert Bible text to various format.")
-    parser.add_argument(
-        "--in-format", choices=["MyBible", "MySword", "Sword", "Zefania"], required=True, help="Valid input format."
-    )
+    parser.add_argument("--in-format", choices=["MyBible", "MySword", "Sword", "Zefania"], required=True, help="Valid input format.")
     parser.add_argument("in_version", nargs=1, help="Input Bible Version.")
     parser.add_argument(
         "--dynamic-page",
@@ -47,9 +45,7 @@ def parse_cmdline():
         help="Generate dynamic index.html page.",
     )
     parser.add_argument("--remove-special-chars", action="store_true", help="Remove special chars in MyBible.")
-    parser.add_argument(
-        "--remove-bible-tags", type=str_to_bool, nargs="?", const=True, help="Remove Bible Tags in MySword."
-    )
+    parser.add_argument("--remove-bible-tags", type=str_to_bool, nargs="?", const=True, help="Remove Bible Tags in MySword.")
     parser.add_argument(
         "--out-format",
         choices=["csv", "html", "MyBible", "opensong-xml", "zefania"],
@@ -67,7 +63,9 @@ if __name__ == "__main__":
     # args = parser.parse_args()
     args = parser.parse_args(
         [
-            "--in-format", "MyBible", "개역개정",
+            "--in-format",
+            "MyBible",
+            "개역개정",
             # "--in-format", "MyBible", "NIV",
             # '--in-format', 'MyBible', 'ESV',
             # '--in-format', 'Sword', 'GerLut1545',
@@ -79,7 +77,11 @@ if __name__ == "__main__":
             # "--out-format", "html", "--out-encoding", "utf-8", r"C:\Users\juria\Church\Bible.html\NIV",
             # '--out-format', 'MyBible', '--out-encoding', 'utf-8', r'C:\Users\juria\Church\Bible.text\ESV',
             # '--out-format', 'opensong-xml', r'C:\Users\juria\Church\bible-output',
-            "--out-format", "zefania", "--out-encoding", "utf-8", r"C:\Users\juria\Church\bible-output",
+            "--out-format",
+            "zefania",
+            "--out-encoding",
+            "utf-8",
+            r"C:\Users\juria\Church\bible-output",
         ]
     )
 
@@ -90,6 +92,4 @@ if __name__ == "__main__":
         fileformat.set_format_option(fileformat.FORMAT_MYSWORD, "remove_bible_tags", True)
 
     bible = fileformat.read_version(args.in_format, args.in_version[0])
-    write_bible(
-        bible, args.out_format, args.out_filename[0], args.out_encoding, args.dynamic_page, args.remove_bible_tags
-    )
+    write_bible(bible, args.out_format, args.out_filename[0], args.out_encoding, args.dynamic_page, args.remove_bible_tags)

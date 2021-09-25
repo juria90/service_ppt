@@ -146,14 +146,7 @@ class Frame(wx.Frame):
             window_rect = (tl[0] + wh[0] // 4, tl[1] + wh[1] // 4, wh[0] // 2, wh[1] // 2)
 
         app_display_name = _("Service Presentation Generator")
-        style = (
-            wx.DEFAULT_DIALOG_STYLE
-            | wx.SYSTEM_MENU
-            | wx.CLOSE_BOX
-            | wx.RESIZE_BORDER
-            | wx.MAXIMIZE_BOX
-            | wx.MINIMIZE_BOX
-        )
+        style = wx.DEFAULT_DIALOG_STYLE | wx.SYSTEM_MENU | wx.CLOSE_BOX | wx.RESIZE_BORDER | wx.MAXIMIZE_BOX | wx.MINIMIZE_BOX
         wx.Frame.__init__(
             self,
             None,

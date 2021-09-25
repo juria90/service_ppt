@@ -225,9 +225,7 @@ class OpenFile(Command):
             )
 
             if not os.path.exists(self.filename):
-                cm.error_message(
-                    _("Cannot open a template presentation file '{filename}'.").format(filename=self.filename)
-                )
+                cm.error_message(_("Cannot open a template presentation file '{filename}'.").format(filename=self.filename))
                 raise FileNotFoundError(errno.ENOENT, os.strerror(errno.ENOENT), self.filename)
 
             prs = cm.powerpoint.open_presentation(self.filename)
@@ -241,9 +239,7 @@ class OpenFile(Command):
             )
 
             if not os.path.exists(self.notes_filename):
-                cm.error_message(
-                    _("Cannot open a template notes file '{filename}'.").format(filename=self.notes_filename)
-                )
+                cm.error_message(_("Cannot open a template notes file '{filename}'.").format(filename=self.notes_filename))
                 raise FileNotFoundError(errno.ENOENT, os.strerror(errno.ENOENT), self.notes_filename)
 
             notes = ""
@@ -285,9 +281,7 @@ class SaveFiles(Command):
             elif ext == ".osz":
                 self.create_osz_lyric_files(cm, archive_filename, all_lyric_files)
             else:
-                cm.error_message(
-                    _("Unknown file extension for lyrics archive file '{filename}'.").format(filename=archive_filename)
-                )
+                cm.error_message(_("Unknown file extension for lyrics archive file '{filename}'.").format(filename=archive_filename))
 
         if self.notes_filename:
             notes_filename = cm.replace_format_vars(self.notes_filename)
@@ -321,9 +315,7 @@ class SaveFiles(Command):
                     for v in verses_text:
                         print(f"{v.no} {v.text}", file=f)
             except FileNotFoundError:
-                cm.error_message(
-                    _("Cannot save bible verses to the file '{filename}'.").format(filename=verses_filename)
-                )
+                cm.error_message(_("Cannot save bible verses to the file '{filename}'.").format(filename=verses_filename))
 
     def create_zip_lyric_files(self, zipfilename, files):
         with zipfile.ZipFile(zipfilename, "w", zipfile.ZIP_DEFLATED) as zipf:
@@ -929,9 +921,7 @@ class GenerateBibleVerse(Command):
                     if verse == verses:
                         cm.error_message(_("Cannot find the Bible verse={verse}.").format(verse=verse))
                     else:
-                        cm.error_message(
-                            _("Cannot find the Bible verse={verse} in {verses}.").format(verse=verse, verses=verses)
-                        )
+                        cm.error_message(_("Cannot find the Bible verse={verse} in {verses}.").format(verse=verse, verses=verses))
                     continue
 
                 all_verses_text = all_verses_text + verses_text

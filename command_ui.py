@@ -33,16 +33,16 @@ def set_translation(trans):
 
 
 class StringBuilder:
-     _file_str = None
+    _file_str = None
 
-     def __init__(self):
-         self._file_str = StringIO()
+    def __init__(self):
+        self._file_str = StringIO()
 
-     def __str__(self):
-         return self._file_str.getvalue()
+    def __str__(self):
+        return self._file_str.getvalue()
 
-     def append(self, str):
-         self._file_str.write(str)
+    def append(self, str):
+        self._file_str.write(str)
 
 
 def unescape_backslash(s):
@@ -52,13 +52,13 @@ def unescape_backslash(s):
     for i in range(len(s)):
         ch = s[i]
         if escape:
-            if ch == 'n':
-                ch = '\n'
-            elif ch == 'r':
-                ch = '\r'
+            if ch == "n":
+                ch = "\n"
+            elif ch == "r":
+                ch = "\r"
             escape = False
             sb.append(ch)
-        elif ch == '\\':
+        elif ch == "\\":
             escape = True
         else:
             escape = False
@@ -74,8 +74,8 @@ def escape_backslash(s):
     escape = False
     for i in range(len(s)):
         ch = s[i]
-        if ch == '\\':
-            sb.append('\\\\')
+        if ch == "\\":
+            sb.append("\\\\")
         else:
             sb.append(ch)
 
@@ -377,9 +377,7 @@ class SaveFilesUI(PropertyGridUI):
         file_prop = self.create_savefile_property(self.PRESENTATION_FILE, self.wildcard)
         pg.Append(file_prop)
 
-        file_prop = self.create_savefile_property(
-            self.LYRICS_ARCHIVE_FILE, _("OpenLP service files (*.osz)|*.osz|Zip files (*.zip)|*.zip")
-        )
+        file_prop = self.create_savefile_property(self.LYRICS_ARCHIVE_FILE, _("OpenLP service files (*.osz)|*.osz|Zip files (*.zip)|*.zip"))
         pg.Append(file_prop)
 
         file_prop = self.create_savefile_property(self.NOTES_FILE, _("Text files (*.txt)|*.txt"))
@@ -747,9 +745,7 @@ class DuplicateWithTextUI(PropertyGridUI):
         pg.Append(wxpg.IntProperty(self.PAGE_WITDH))
 
     def TransferFromWindow(self):
-        self.command.slide_range = self.set_modified(
-            self.command.slide_range, self.ui.GetPropertyValueAsString(self.SLIDE_RANGE)
-        )
+        self.command.slide_range = self.set_modified(self.command.slide_range, self.ui.GetPropertyValueAsString(self.SLIDE_RANGE))
         self.command.repeat_range = self.set_modified(
             self.command.repeat_range,
             self.ui.GetPropertyValueAsString(self.REPEAT_RANGE),
@@ -861,9 +857,7 @@ class GenerateBibleVerseUI(PropertyGridUI):
             self.command.each_verse_name,
             self.ui.GetPropertyValueAsString(self.EACH_VERSE_NAME),
         )
-        self.command.main_verses = self.set_modified(
-            self.command.main_verses, self.ui.GetPropertyValueAsString(self.MAIN_VERSES)
-        )
+        self.command.main_verses = self.set_modified(self.command.main_verses, self.ui.GetPropertyValueAsString(self.MAIN_VERSES))
         self.command.additional_verses = self.set_modified(
             self.command.additional_verses,
             self.ui.GetPropertyValueAsString(self.ADDITONAL_VERSES),
@@ -912,15 +906,9 @@ class ExportSlidesUI(PropertyGridUI):
         pg.Append(wxpg.ColourProperty(self.TRANSPARENT_COLOR))
 
     def TransferFromWindow(self):
-        self.command.slide_range = self.set_modified(
-            self.command.slide_range, self.ui.GetPropertyValueAsString(self.SLIDE_RANGE)
-        )
-        self.command.image_type = self.set_modified(
-            self.command.image_type, self.ui.GetPropertyValueAsString(self.IMAGE_TYPE)
-        )
-        self.command.out_dirname = self.set_modified(
-            self.command.out_dirname, self.ui.GetPropertyValueAsString(self.OUTPUT_DIR)
-        )
+        self.command.slide_range = self.set_modified(self.command.slide_range, self.ui.GetPropertyValueAsString(self.SLIDE_RANGE))
+        self.command.image_type = self.set_modified(self.command.image_type, self.ui.GetPropertyValueAsString(self.IMAGE_TYPE))
+        self.command.out_dirname = self.set_modified(self.command.out_dirname, self.ui.GetPropertyValueAsString(self.OUTPUT_DIR))
 
         cleanup_output_dir = self.ui.GetPropertyValueAsBool(self.CLEANUP_OUTPUT_DIR)
         transparent_image = self.ui.GetPropertyValueAsBool(self.TRANSPARENT_IMAGE)
@@ -972,15 +960,9 @@ class ExportShapesUI(PropertyGridUI):
         pg.Append(wxpg.BoolProperty(self.CLEANUP_OUTPUT_DIR))
 
     def TransferFromWindow(self):
-        self.command.slide_range = self.set_modified(
-            self.command.slide_range, self.ui.GetPropertyValueAsString(self.SLIDE_RANGE)
-        )
-        self.command.image_type = self.set_modified(
-            self.command.image_type, self.ui.GetPropertyValueAsString(self.IMAGE_TYPE)
-        )
-        self.command.out_dirname = self.set_modified(
-            self.command.out_dirname, self.ui.GetPropertyValueAsString(self.OUTPUT_DIR)
-        )
+        self.command.slide_range = self.set_modified(self.command.slide_range, self.ui.GetPropertyValueAsString(self.SLIDE_RANGE))
+        self.command.image_type = self.set_modified(self.command.image_type, self.ui.GetPropertyValueAsString(self.IMAGE_TYPE))
+        self.command.out_dirname = self.set_modified(self.command.out_dirname, self.ui.GetPropertyValueAsString(self.OUTPUT_DIR))
 
         cleanup_output_dir = self.ui.GetPropertyValueAsBool(self.CLEANUP_OUTPUT_DIR)
         flags = 0
