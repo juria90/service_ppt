@@ -2,8 +2,8 @@
 """
 
 from threading import *
-import time
 import traceback
+
 import wx
 
 from autoresize_listctrl import AutoresizeListCtrl

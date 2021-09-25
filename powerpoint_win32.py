@@ -2,13 +2,11 @@
 """
 
 import enum
-import errno
-import os
-import pywintypes
 import traceback
-import win32api
 
 # pip install pywin32
+import pywintypes
+import win32api
 import win32com.client
 
 from process_exists import process_exists

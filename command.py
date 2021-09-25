@@ -2,7 +2,6 @@
 """
 import datetime
 import errno
-import json
 import locale
 import math
 import os

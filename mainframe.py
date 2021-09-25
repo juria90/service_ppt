@@ -4,6 +4,7 @@
 import gettext
 import json
 import os
+
 import wx
 
 import command_ui as cmdui

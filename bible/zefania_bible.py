@@ -7,8 +7,8 @@ import os
 import xml.etree.ElementTree as ET
 import xml.sax.saxutils
 
-# pip install iso-639
-from iso639 import languages
+# pip install iso639-lang
+from iso639 import Lang
 
 from .bibcore import BibleInfo, Verse, Chapter, Book, Bible, FileFormat
 from . import biblang
@@ -47,7 +47,7 @@ class ZefaniaReader:
                 if lang_node is not None:
                     lang_part2 = lang_node.text.strip().lower()
                     try:
-                        lang = languages.get(part2b=lang_part2)
+                        lang = Lang(part2b=lang_part2)
                         bible.lang = lang.part1
                     except KeyError:
                         bible.lang = biblang.LANG_EN

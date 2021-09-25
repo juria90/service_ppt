@@ -2,9 +2,9 @@
 """service_ppt.py has the main() starting function.
 """
 
-import os
 import sys
 import traceback
+
 import wx
 
 from mainframe import Frame

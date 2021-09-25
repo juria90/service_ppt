@@ -4,8 +4,6 @@
 import csv
 import os
 
-from bible.bibcore import Verse, Chapter, Book, Bible
-
 
 class CSVWriter:
     def _get_extension(self):

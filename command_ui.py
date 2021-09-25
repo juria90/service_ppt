@@ -5,6 +5,7 @@ from io import StringIO
 import json
 import pickle
 import re
+
 import wx
 import wx.propgrid as wxpg
 
@@ -51,8 +52,10 @@ def unescape_backslash(s):
     for i in range(len(s)):
         ch = s[i]
         if escape:
-            if ch == '\\':
-                ch = '\\'
+            if ch == 'n':
+                ch = '\n'
+            elif ch == 'r':
+                ch = '\r'
             escape = False
             sb.append(ch)
         elif ch == '\\':

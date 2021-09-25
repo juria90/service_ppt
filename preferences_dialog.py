@@ -1,7 +1,6 @@
 """This file contains PreferencesDialog class.
 """
 
-import os
 import wx
 import wx.adv
 

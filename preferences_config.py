@@ -1,6 +1,7 @@
 """This file contains PreferencesConfig class.
 """
 import typing
+
 import wx
 
 

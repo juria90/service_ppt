@@ -1,12 +1,7 @@
 #!/usr/bin/env python
 """
 """
-import gettext
-
 from .biblang import L18N
-
-
-_ = lambda s: s
 
 
 class BibleInfo:

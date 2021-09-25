@@ -2,7 +2,7 @@
 https://pypi.org/project/pysword/
 """
 
-from .bibcore import BibleInfo, Verse, Chapter, Book, Bible, FileFormat
+from .bibcore import Verse, Chapter, Book, Bible, FileFormat
 from . import biblang
 
 

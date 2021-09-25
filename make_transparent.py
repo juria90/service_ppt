@@ -3,6 +3,7 @@
 """
 import argparse
 import glob
+
 import numpy as np
 
 # pip install Pillow
