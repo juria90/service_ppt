@@ -11,6 +11,7 @@ def write_bible(bible, out_format, filename, encoding, dynamic_page, remove_bibl
     if out_format == "csv":
         writer = csv_bible.CSVWriter()
     elif out_format == "html":
+        dynamic_page=False
         process_bible_tags = remove_bible_tags == False
         writer = html_bible.HTMLWriter(dynamic_page, process_bible_tags)
     elif out_format == "MyBible":

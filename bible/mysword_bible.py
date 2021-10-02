@@ -79,9 +79,11 @@ class MySwordReader:
         if self.remove_tags:
             text = re.sub("<CI>", " ", text)
             text = re.sub("<(CM|FI|Fi|FO|Fo|FR|Fr|FU|Fu|PF[0-7]|PI[0-7])>", "", text)
-            text = re.sub("<RF>.*<Rf>", "", text)
+
+            # match non-greedy: https://docs.python.org/3/howto/regex.html#greedy-versus-non-greedy
+            text = re.sub("<RF>.*?<Rf>", "", text)
             # Ignore 'Title Start' in the middle.
-            text = re.sub("<TS>.*<Ts>", "", text)
+            text = re.sub("<TS>.*?<Ts>", "", text)
 
         text = text.strip()
 
