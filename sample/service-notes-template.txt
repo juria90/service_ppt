@@ -6,4 +6,4 @@
 Your Church Name
 {preacher}
 {sermon_title}
-{bible_verse}
+{bible_verse1}

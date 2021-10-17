@@ -1,6 +1,9 @@
 #!/usr/bin/env python
 """
 """
+from locale import resetlocale
+import re
+from wx.core import NO
 from .biblang import L18N
 
 
@@ -214,6 +217,50 @@ class Bible:
 
         return self.book_to_index_map
 
+    def translate_to_bible_index(self, text_range):
+        """translate_to_bible_index() returns Book index, chapter, verse1/verse2 tuple.
+
+        The text_range should be formatted as <Book> <Chapter>:<Verse1>[-<Verse2>],
+        where Book can be long or short name, Chapter and Verse1/Verse2 are valid numbers.
+        """
+        bt, ct, v1t, v2t = L18N.parse_verse_range(self.lang, text_range)
+
+        b2i_map = self.get_book_to_index_map()
+        if bt in b2i_map:
+            bi = b2i_map[bt]
+
+            return bi, ct, v1t, v2t
+
+        return None
+
+    def extract_texts_from_bible_index(self, bi, ct, v1t, v2t):
+        """extract_texts() returns list of Verse within given bible index.
+        """
+        book = self.books[bi]
+        chapter = None
+        verses = []
+
+        if not book.is_loaded():
+            self.reader.read_book(book, bi)
+
+        for c in book.chapters:
+            if ct != c.no:
+                continue
+
+            chapter = c
+            for v in c.verses:
+                if v.in_range(v1t, v2t):
+                    v.chapter = chapter
+                    v.book = book
+                    verses.append(v)
+
+            break
+
+        if len(verses) == 0:
+            return None
+
+        return verses
+
     def extract_texts(self, text_range):
         """extract_texts() returns list of Verse within given text_range.
 
@@ -221,36 +268,12 @@ class Bible:
         where Book can be long or short name, Chapter and Verse1/Verse2 are valid numbers.
         """
 
-        bt, ct, v1t, v2t = L18N.parse_verse_range(self.lang, text_range)
-
-        book = None
-        chapter = None
-        verses = []
-        b2i_map = self.get_book_to_index_map()
-        if bt in b2i_map:
-            i = b2i_map[bt]
-            b = self.books[i]
-
-            if not b.is_loaded():
-                self.reader.read_book(b, i)
-
-            book = b
-            for c in b.chapters:
-                if ct != c.no:
-                    continue
-
-                chapter = c
-                for v in c.verses:
-                    if v.in_range(v1t, v2t):
-                        v.chapter = chapter
-                        v.book = book
-                        verses.append(v)
-
-                break
-
-        if len(verses) == 0:
+        result = self.translate_to_bible_index(text_range)
+        if result is None:
             return None
 
+        bi, ct, v1t, v2t = result
+        verses = self.extract_texts_from_bible_index(bi, ct, v1t, v2t)
         return verses
 
 

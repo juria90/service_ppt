@@ -821,9 +821,12 @@ class GenerateBibleVerseUI(PropertyGridUI):
     proc_class = cmd.GenerateBibleVerse
     current_bible_format = bibfileformat.FORMAT_MYBIBLE
 
-    BIBLE_VERSION = _("Bible Version")
-    MAIN_VERSE_NAME = _("Main Bible verse name")
-    EACH_VERSE_NAME = _("Each Bible verse name")
+    BIBLE_VERSION1 = _("Bible Version 1")
+    MAIN_VERSE_NAME1 = _("Main Bible verse name 1")
+    EACH_VERSE_NAME1 = _("Each Bible verse name 1")
+    BIBLE_VERSION2 = _("Bible Version 2")
+    MAIN_VERSE_NAME2 = _("Main Bible verse name 2")
+    EACH_VERSE_NAME2 = _("Each Bible verse name 2")
     MAIN_VERSES = _("Main Bible verses")
     ADDITONAL_VERSES = _("Additional Bible verses")
     REPEAT_RANGE = _("Repeating slides range")
@@ -832,31 +835,50 @@ class GenerateBibleVerseUI(PropertyGridUI):
         super().__init__(uimgr, name, proc=proc)
 
         if self.command is None:
-            self.command = cmd.GenerateBibleVerse(GenerateBibleVerseUI.current_bible_format, "", "", "", "", "", "")
+            self.command = cmd.GenerateBibleVerse(GenerateBibleVerseUI.current_bible_format)
 
     def initialize_fixed_properties(self, pg):
-        pg.Append(wxpg.PropertyCategory(_("1 - Bible specification")))
+        pg.Append(wxpg.PropertyCategory(_("1 - Bible #1")))
         versions = bibfileformat.enum_versions(GenerateBibleVerseUI.current_bible_format)
-        pg.Append(wxpg.EnumProperty(self.BIBLE_VERSION, labels=versions, value=0))
-        pg.Append(wxpg.StringProperty(self.MAIN_VERSE_NAME))
-        pg.Append(wxpg.StringProperty(self.EACH_VERSE_NAME))
+        pg.Append(wxpg.EnumProperty(self.BIBLE_VERSION1, labels=versions, value=0))
+        pg.Append(wxpg.StringProperty(self.MAIN_VERSE_NAME1))
+        pg.Append(wxpg.StringProperty(self.EACH_VERSE_NAME1))
+        pg.Append(wxpg.PropertyCategory(_("2 - Bible #2")))
+        pg.Append(wxpg.EnumProperty(self.BIBLE_VERSION2, labels=versions, value=-1))
+        pg.Append(wxpg.StringProperty(self.MAIN_VERSE_NAME2))
+        pg.Append(wxpg.StringProperty(self.EACH_VERSE_NAME2))
+        pg.Append(wxpg.PropertyCategory(_("3 - Other Bible specification")))
         pg.Append(wxpg.StringProperty(self.MAIN_VERSES))
         pg.Append(wxpg.StringProperty(self.ADDITONAL_VERSES))
         pg.Append(wxpg.StringProperty(self.REPEAT_RANGE))
 
     def TransferFromWindow(self):
-        self.command.bible_version = self.set_modified(
-            self.command.bible_version,
-            self.ui.GetPropertyValueAsString(self.BIBLE_VERSION),
+        self.command.bible_version1 = self.set_modified(
+            self.command.bible_version1,
+            self.ui.GetPropertyValueAsString(self.BIBLE_VERSION1),
         )
-        self.command.main_verse_name = self.set_modified(
-            self.command.main_verse_name,
-            self.ui.GetPropertyValueAsString(self.MAIN_VERSE_NAME),
+        self.command.main_verse_name1 = self.set_modified(
+            self.command.main_verse_name1,
+            self.ui.GetPropertyValueAsString(self.MAIN_VERSE_NAME1),
         )
-        self.command.each_verse_name = self.set_modified(
-            self.command.each_verse_name,
-            self.ui.GetPropertyValueAsString(self.EACH_VERSE_NAME),
+        self.command.each_verse_name1 = self.set_modified(
+            self.command.each_verse_name1,
+            self.ui.GetPropertyValueAsString(self.EACH_VERSE_NAME1),
         )
+
+        self.command.bible_version2 = self.set_modified(
+            self.command.bible_version2,
+            self.ui.GetPropertyValueAsString(self.BIBLE_VERSION2),
+        )
+        self.command.main_verse_name2 = self.set_modified(
+            self.command.main_verse_name2,
+            self.ui.GetPropertyValueAsString(self.MAIN_VERSE_NAME2),
+        )
+        self.command.each_verse_name2 = self.set_modified(
+            self.command.each_verse_name2,
+            self.ui.GetPropertyValueAsString(self.EACH_VERSE_NAME2),
+        )
+
         self.command.main_verses = self.set_modified(self.command.main_verses, self.ui.GetPropertyValueAsString(self.MAIN_VERSES))
         self.command.additional_verses = self.set_modified(
             self.command.additional_verses,
@@ -870,9 +892,14 @@ class GenerateBibleVerseUI(PropertyGridUI):
         return True
 
     def TransferToWindow(self):
-        self.SetPropertyValueString(self.BIBLE_VERSION, self.command.bible_version)
-        self.SetPropertyValueString(self.MAIN_VERSE_NAME, self.command.main_verse_name)
-        self.SetPropertyValueString(self.EACH_VERSE_NAME, self.command.each_verse_name)
+        self.SetPropertyValueString(self.BIBLE_VERSION1, self.command.bible_version1)
+        self.SetPropertyValueString(self.MAIN_VERSE_NAME1, self.command.main_verse_name1)
+        self.SetPropertyValueString(self.EACH_VERSE_NAME1, self.command.each_verse_name1)
+
+        self.SetPropertyValueString(self.BIBLE_VERSION2, self.command.bible_version2)
+        self.SetPropertyValueString(self.MAIN_VERSE_NAME2, self.command.main_verse_name2)
+        self.SetPropertyValueString(self.EACH_VERSE_NAME2, self.command.each_verse_name2)
+
         self.SetPropertyValueString(self.MAIN_VERSES, self.command.main_verses)
         self.SetPropertyValueString(self.ADDITONAL_VERSES, self.command.additional_verses)
         self.SetPropertyValueString(self.REPEAT_RANGE, self.command.repeat_range)

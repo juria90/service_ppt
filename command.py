@@ -312,7 +312,8 @@ class SaveFiles(Command):
                 with open(verses_filename, "wt", encoding="utf-8") as f:
                     f.write(biblang.UNICODE_BOM)
                     print(f"{main_verses}", file=f)
-                    for v in verses_text:
+                    for d in verses_text:
+                        v = d[cm.bible_verse.each_verse_name1]
                         print(f"{v.no} {v.text}", file=f)
             except FileNotFoundError:
                 cm.error_message(_("Cannot save bible verses to the file '{filename}'.").format(filename=verses_filename))
@@ -596,29 +597,27 @@ class BibleVerseFormat(FormatObj):
         # self.value : bible_core.Verse object
 
     @staticmethod
-    def build_fr_dict(each_verse_name: str, slide_text: typing.Any, verse: bibcore.Verse):
+    def build_fr_dict(slide_text: typing.Any, verses: typing.Dict[str, bibcore.Verse]):
         fr_dict = {}
-        if each_verse_name is None:
-            return fr_dict
+        for each_verse_name, verse in verses.items():
+            varname_pattern = FormatObj.build_format_pattern(each_verse_name)
+            varname_re = re.compile(varname_pattern)
 
-        varname_pattern = FormatObj.build_format_pattern(each_verse_name)
-        varname_re = re.compile(varname_pattern)
+            def process_format_var(var: typing.Any):
+                if isinstance(var, list):
+                    for elem in var:
+                        process_format_var(elem)
+                elif isinstance(var, str):
+                    for m in varname_re.finditer(var):
+                        format = m.group(2)
+                        if len(format):
+                            format = format[1:]  # remove ':'
+                        key = "{" + m.group(1) + m.group(2) + "}"
+                        value = BibleVerseFormat.translate_verse(format, verse)
+                        if key not in fr_dict:
+                            fr_dict[key] = value
 
-        def process_format_var(var: typing.Any):
-            if isinstance(var, list):
-                for elem in var:
-                    process_format_var(elem)
-            elif isinstance(var, str):
-                for m in varname_re.finditer(var):
-                    format = m.group(2)
-                    if len(format):
-                        format = format[1:]  # remove ':'
-                    key = "{" + m.group(1) + m.group(2) + "}"
-                    value = BibleVerseFormat.translate_verse(format, verse)
-                    if key not in fr_dict:
-                        fr_dict[key] = value
-
-        process_format_var(slide_text)
+            process_format_var(slide_text)
 
         return fr_dict
 
@@ -834,24 +833,18 @@ class GenerateBibleVerse(Command):
     def __init__(
         self,
         bible_format: str,
-        bible_version: str,
-        main_verse_name: str,
-        each_verse_name: str,
-        main_verses: str,
-        additional_verses: str,
-        repeat_range: str,
     ):
         """GenerateBibleVerse is two operations combined.
 
-        1. It will replace all main_verse_name to main_verses in all slides.
+        1. It will replace all main_verse_name1 to main_verses in all slides.
         2. verses_text will be populated from main_verses and additional_verses.
         Then, the repeat_range slides will be duplicated to match with len(verses_text) == repeated len(repeat_range)
-        and replace each_verse_name to pair (no, text) in verses_text with bible verse variable substitution.
+        and replace each_verse_name1 to pair (no, text) in verses_text with bible verse variable substitution.
 
         bible_format is one of supported bible file format: See also bible.fileformat.
-        bible_version can be a valid Bible Version.
-        main_verse_name is the variable name of the main bible verses.
-        each_verse_name is the variable name of each verse in the slides.
+        bible_version1 and bible_version2 can be a valid Bible Version.
+        main_verse_name1 is the variable name of the main bible verses.
+        each_verse_name1 is the variable name of each verse in the slides.
         main_verses is a comma separated main verse titles for the service.
         additional_verses is an additional comma separated verse titles for the service.
         repeat_range is a slide range mark to duplicate the slides.
@@ -859,29 +852,64 @@ class GenerateBibleVerse(Command):
         super().__init__()
 
         self.bible_format = bible_format
-        self.bible_version = bible_version
-        self.main_verse_name = main_verse_name
-        self.each_verse_name = each_verse_name
-        self.main_verses = main_verses
-        self.additional_verses = additional_verses
-        self.repeat_range = repeat_range
+        self.bible_version1 = ""
+        self.main_verse_name1 = ""
+        self.each_verse_name1 = ""
+        self.bible_version2 = ""
+        self.main_verse_name2 = ""
+        self.each_verse_name2 = ""
+        self.main_verses = ""
+        self.additional_verses = ""
+        self.repeat_range = ""
 
         self._verses_text = []
 
     def populate_all_verses(self, cm: typing.Any):
         self._verses_text = []
 
-        bible = bibfileformat.read_version(self.bible_format, self.bible_version)
-        if bible is None:
-            cm.error_message(
-                _("Cannot find the Bible format={bible_format} and version={bible_version}.").format(
-                    bible_format=self.bible_format, bible_version=self.bible_version
-                )
-            )
-            return
+        bibles = []
+        valid_each_verse_names = []
+        bible_indices = None
+        versions = [self.bible_version1, self.bible_version2]
+        each_verse_names = [self.each_verse_name1, self.each_verse_name2]
+        for i in range(len(versions)):
+            version = versions[i]
+            each_verse_name = each_verse_names[i]
+            if not version or not each_verse_name:
+                continue
 
-        all_verses_text = self.populate_verses(cm, bible, self.main_verses)
-        all_verses_text = all_verses_text + self.populate_verses(cm, bible, self.additional_verses)
+            bible = bibfileformat.read_version(self.bible_format, version)
+            if bible is None:
+                cm.error_message(
+                    _("Cannot find the Bible format={bible_format} and version={version}.").format(
+                        bible_format=self.bible_format, version=version
+                    )
+                )
+                return
+
+            bibles.append(bible)
+            valid_each_verse_names.append(each_verse_name)
+
+            if bible_indices is None:
+                bible_indices = self.translate_to_bible_index(cm, bible, self.main_verses)
+                bible_indices = bible_indices + self.translate_to_bible_index(cm, bible, self.additional_verses)
+
+        all_verses_text = []
+        for bible_index in bible_indices:
+            startpos = len(all_verses_text)
+            verses_text = {}
+            for b in range(len(bibles)):
+                i = startpos
+                bible = bibles[b]
+                bi, ct, v1t, v2t = bible_index
+                texts = bible.extract_texts_from_bible_index(bi, ct, v1t, v2t)
+                for text in texts:
+                    if i < len(all_verses_text):
+                        all_verses_text[i][valid_each_verse_names[b]] = text
+                    else:
+                        verses_text = {valid_each_verse_names[b] : text}
+                        all_verses_text.append(verses_text)
+                    i += 1
 
         self._verses_text = all_verses_text
 
@@ -902,8 +930,8 @@ class GenerateBibleVerse(Command):
 
         return splitted_verses
 
-    def populate_verses(self, cm: typing.Any, bible: typing.Any, verses: str) -> typing.List[typing.Any]:
-        all_verses_text = []
+    def translate_to_bible_index(self, cm: typing.Any, bible: typing.Any, verses: str) -> typing.List[typing.Any]:
+        bible_index = []
         if verses is not None:
             splitted_verses = self.split_verses(verses)
             for verse in splitted_verses:
@@ -913,20 +941,22 @@ class GenerateBibleVerse(Command):
 
                 verses_text = None
                 try:
-                    verses_text = bible.extract_texts(verse)
+                    result = bible.translate_to_bible_index(verse)
+                    if result is None:
+                        if verse == verses:
+                            cm.error_message(_("Cannot find the Bible verse={verse}.").format(verse=verse))
+                        else:
+                            cm.error_message(_("Cannot find the Bible verse={verse} in {verses}.").format(verse=verse, verses=verses))
+
+                    bi, ct, v1t, v2t = result
+                    bible_index.append(result)
                 except ValueError:
                     pass
 
                 if verses_text is None:
-                    if verse == verses:
-                        cm.error_message(_("Cannot find the Bible verse={verse}.").format(verse=verse))
-                    else:
-                        cm.error_message(_("Cannot find the Bible verse={verse} in {verses}.").format(verse=verse, verses=verses))
                     continue
 
-                all_verses_text = all_verses_text + verses_text
-
-        return all_verses_text
+        return bible_index
 
     def execute(self, cm: typing.Any, prs: typing.Any):
         self.execute_on_slides(cm, prs)
@@ -939,7 +969,7 @@ class GenerateBibleVerse(Command):
 
         cm.set_bible_verse(self)
 
-        text_dict = {self.main_verse_name: self.main_verses}
+        text_dict = {self.main_verse_name1: self.main_verses}
         cm.add_global_variables(text_dict)
         cm.process_variable_substitution()
 
@@ -971,13 +1001,13 @@ class GenerateBibleVerse(Command):
     def execute_on_notes(self, cm: typing.Any):
         if cm.notes:
             notes = cm.notes
-            text_dict = {self.main_verse_name: self.main_verses}
+            text_dict = {self.main_verse_name1: self.main_verses}
             _, notes = replace_all_notes_text(notes, text_dict)
 
-            # check whether we need to duplicate the line by checking self.each_verse_name exists.
-            if self.each_verse_name and self.each_verse_name in notes:
+            # check whether we need to duplicate the line by checking self.each_verse_name1 exists.
+            if self.each_verse_name1 and self.each_verse_name1 in notes:
                 lines = notes.split("\n")
-                repeat_range = [i for i, l in enumerate(lines) if self.each_verse_name in l]
+                repeat_range = [i for i, l in enumerate(lines) if self.each_verse_name1 in l]
                 for index in reversed(repeat_range):
                     for _ in range(len(self._verses_text) - 1):
                         lines.insert(index, lines[index])
@@ -990,15 +1020,18 @@ class GenerateBibleVerse(Command):
 
             cm.notes = notes
 
-    def get_verse_dict(self, slide_text: typing.Any, verse: bibcore.Verse):
-        text_dict = BibleVerseFormat.build_fr_dict(self.each_verse_name, slide_text, verse)
+    def get_verse_dict(self, slide_text: typing.Any, verses: typing.Dict[str, bibcore.Verse]):
+        text_dict = BibleVerseFormat.build_fr_dict(slide_text, verses)
         return text_dict
 
     def get_flattened_dict(self):
         return {
-            "bible_version": self.bible_version,
-            "main_verse_name": self.main_verse_name,
-            "each_verse_name": self.each_verse_name,
+            "bible_version1": self.bible_version1,
+            "main_verse_name1": self.main_verse_name1,
+            "each_verse_name1": self.each_verse_name1,
+            "bible_version2": self.bible_version2,
+            "main_verse_name2": self.main_verse_name2,
+            "each_verse_name2": self.each_verse_name2,
             "main_verses": self.main_verses,
             "additional_verses": self.additional_verses,
             "repeat_range": self.repeat_range,
