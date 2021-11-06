@@ -83,6 +83,19 @@ def escape_backslash(s):
     return result
 
 
+class MyFileProperty(wxpg.FileProperty):
+    ignore_open_file = False
+
+    def OnSetValue(self):
+        if self.ignore_open_file:
+            return
+
+        tlws = wx.GetTopLevelWindows()
+        if len(tlws) > 0 and isinstance(tlws[0], wx.Frame):
+            # call mainframe.Frame.open_lyric_file()
+            tlws[0].open_lyric_file(self.m_value)
+
+
 class CommandUI(wx.EvtHandler):
     def __init__(self, uimgr, name, proc=None):
         super().__init__()
@@ -625,6 +638,15 @@ class InsertLyricsUI(PropertyGridUI):
         if self.command is None:
             self.command = cmd.InsertLyrics("", None, "", None, "", False, [], 2)
 
+    @staticmethod
+    def create_openfile_property(prop_name, wildcard):
+        file_prop = MyFileProperty(prop_name)
+        # PG_DIALOG_TITLE
+        file_prop.SetAttribute(wxpg.PG_FILE_DIALOG_STYLE, wx.FD_OPEN | wx.FD_FILE_MUST_EXIST)
+        file_prop.SetAttribute(wxpg.PG_FILE_WILDCARD, wildcard)
+
+        return file_prop
+
     def get_dynamic_label(self, index):
         return self.FILE_D % (index + 1)
 
@@ -652,6 +674,8 @@ class InsertLyricsUI(PropertyGridUI):
         self.dynamic_count = 1
 
     def TransferFromWindow(self):
+        MyFileProperty.ignore_open_file = True
+
         index = self.ui.GetPropertyValueAsInt(self.FILE_TYPE)
         self.command.flags = self.set_modified(self.command.flags, index + 1)
 
@@ -683,9 +707,13 @@ class InsertLyricsUI(PropertyGridUI):
 
         self.command.filelist = self.set_modified(self.command.filelist, self.get_dynamic_properties_from_window())
 
+        MyFileProperty.ignore_open_file = False
+
         return True
 
     def TransferToWindow(self):
+        MyFileProperty.ignore_open_file = True
+
         index = 0
         if self.command.flags > 0:
             index = self.command.flags - 1
@@ -701,6 +729,8 @@ class InsertLyricsUI(PropertyGridUI):
         self.ui.SetPropertyValue(self.ARCHIVE_LYRIC_FILES, self.command.archive_lyric_file)
 
         self.set_dynamic_properties_to_window(self.command.filelist)
+
+        MyFileProperty.ignore_open_file = False
 
         return True
 

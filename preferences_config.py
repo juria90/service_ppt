@@ -21,21 +21,26 @@ class PreferencesConfig:
         self.bible_rootdir = ""
         self.current_bible_version = ""
 
-    def _read_one_string(self, config: wx.ConfigBase, label: str, default_value: str) -> str:
+        self.lyric_open_textfile = False
+        self.lyric_copy_from_template = False
+        self.lyric_application_pathname = ""
+        self.lyric_template_filename = ""
+
+    def _read_one_bool(self, config: wx.ConfigBase, label: str, default_value: bool) -> bool:
         value = default_value
 
         try:
-            value = config.Read(label, default_value)
+            value = config.ReadBool(label, default_value)
         except ValueError:
             pass
 
         return value
 
-    def _read_one_integer(self, config: wx.ConfigBase, label: str, default_value: int) -> int:
+    def _read_one_string(self, config: wx.ConfigBase, label: str, default_value: str) -> str:
         value = default_value
 
         try:
-            value = config.ReadInt(label, default_value)
+            value = config.Read(label, default_value)
         except ValueError:
             pass
 
@@ -47,11 +52,21 @@ class PreferencesConfig:
         self.bible_rootdir = self._read_one_string(config, "bible_rootdir", "")
         self.current_bible_version = self._read_one_string(config, "current_bible_version", "")
 
+        self.lyric_open_textfile = self._read_one_bool(config, "lyric_open_textfile", False)
+        self.lyric_copy_from_template = self._read_one_bool(config, "lyric_copy_from_template", False)
+        self.lyric_application_pathname = self._read_one_string(config, "lyric_application_pathname", "")
+        self.lyric_template_filename = self._read_one_string(config, "lyric_template_filename", "")
+
     def write_config(self, config):
         """write_config writes all configuration to config class."""
         config.Write("current_bible_format", self.current_bible_format)
         config.Write("bible_rootdir", self.bible_rootdir)
         config.Write("current_bible_version", self.current_bible_version)
+
+        config.WriteBool("lyric_open_textfile", self.lyric_open_textfile)
+        config.WriteBool("lyric_copy_from_template", self.lyric_copy_from_template)
+        config.Write("lyric_application_pathname", self.lyric_application_pathname)
+        config.Write("lyric_template_filename", self.lyric_template_filename)
 
     def read_window_rect(self, config: wx.ConfigBase) -> typing.Optional[typing.Tuple[int, typing.List[int]]]:
         s = self._read_one_string(config, "window_rect", "")

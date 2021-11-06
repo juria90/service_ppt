@@ -34,10 +34,19 @@ class PreferencesDialog(wx.adv.PropertySheetDialog):
         self.bible_rootdir = config.bible_rootdir
         self.current_bible_version = config.current_bible_version
 
+        self.lyric_open_textfile = config.lyric_open_textfile
+        self.lyric_copy_from_template = config.lyric_copy_from_template
+        self.lyric_application_pathname = config.lyric_application_pathname
+        self.lyric_template_filename = config.lyric_template_filename
+
         self._bible_format_combo = None
         self._bible_rootdir_stext = None
         self._bible_rootdir_ctrl = None
         self._bible_version_combo = None
+
+        self._lyric_open_check = None
+        self._lyric_copy_check = None
+        self._lyric_template_picker = None
 
         resize_border = wx.RESIZE_BORDER
         wx.adv.PropertySheetDialog.__init__(
@@ -64,6 +73,10 @@ class PreferencesDialog(wx.adv.PropertySheetDialog):
         tab_image2 = -1
         notebook.AddPage(bible_panel, _("Bible settings"), True, tab_image2)
 
+        lyric_panel = self.create_lyric_settings_page(notebook)
+        tab_image3 = -1
+        notebook.AddPage(lyric_panel, _("Lyric settings"), True, tab_image3)
+
         ok_button = self.FindWindow(wx.ID_OK)
         ok_button.Bind(wx.EVT_BUTTON, self.on_ok)
 
@@ -80,7 +93,7 @@ class PreferencesDialog(wx.adv.PropertySheetDialog):
         self.Destroy()
 
     def create_bible_settings_page(self, parent):
-        """Event handler for Cancel."""
+        """Create bible settings page."""
         panel = wx.Panel(parent)
 
         sizer = wx.GridBagSizer()
@@ -216,7 +229,123 @@ class PreferencesDialog(wx.adv.PropertySheetDialog):
         self.is_modified = True
 
     def create_directory_settings_page(self, parent):
-        """Event handler for Cancel."""
+        """Create directory settings page."""
         panel = wx.Panel(parent)
 
         return panel
+
+    def create_lyric_settings_page(self, parent):
+        """Create lyric settings page."""
+        panel = wx.Panel(parent)
+
+        sizer = wx.GridBagSizer()
+        row = 0
+
+        # Open Lyric Text file automatically?
+        self._lyric_open_check = wx.CheckBox(panel, label=_("&Open lyric text file automatically."))
+        self._lyric_open_check.SetValue(self.lyric_open_textfile)
+        self._lyric_open_check.Bind(
+            wx.EVT_CHECKBOX,
+            self.on_lyric_open_check_changed,
+            self._lyric_open_check,
+        )
+        sizer.Add(
+            self._lyric_open_check,
+            pos=(row, 0),
+            span=DEFAULT_SPAN,
+            flag=wx.ALIGN_LEFT | wx.ALIGN_CENTER_VERTICAL | wx.ALL,
+            border=DEFAULT_BORDER,
+        )
+
+        # Application path
+        row = row + 1
+        stext = wx.StaticText(panel, label=_("&Application pathname:"))
+        sizer.Add(
+            stext,
+            pos=(row, 0),
+            span=DEFAULT_SPAN,
+            flag=wx.ALIGN_LEFT | wx.ALIGN_CENTER_VERTICAL | BORDER_STYLE_EXCEPT_TOP,
+            border=DEFAULT_BORDER,
+        )
+
+        self._lyric_application_picker = wx.FilePickerCtrl(panel, path=self.lyric_application_pathname)
+        self._lyric_application_picker.Bind(
+            wx.EVT_FILEPICKER_CHANGED,
+            self.on_application_pathname_changed,
+            self._lyric_application_picker,
+        )
+        sizer.Add(
+            self._lyric_application_picker,
+            pos=(row, 1),
+            span=DEFAULT_SPAN,
+            flag=wx.ALIGN_RIGHT | wx.ALIGN_CENTER_VERTICAL | wx.EXPAND | BORDER_STYLE_RIGHT_BOTTOM,
+            border=DEFAULT_BORDER,
+        )
+        pickctrl = self._lyric_application_picker.GetPickerCtrl()
+        if pickctrl:
+            pickctrl.SetLabel(_("&Browse..."))
+
+        # Use template file if the lyric file doesn't exist yet.
+        row = row + 1
+        self._lyric_copy_check = wx.CheckBox(panel, label=_("Copy from a &template file if the file not exists yet."))
+        self._lyric_copy_check.SetValue(self.lyric_copy_from_template)
+        self._lyric_copy_check.Bind(
+            wx.EVT_CHECKBOX,
+            self.on_lyric_copy_check_changed,
+            self._lyric_copy_check,
+        )
+        sizer.Add(
+            self._lyric_copy_check,
+            pos=(row, 0),
+            span=DEFAULT_SPAN,
+            flag=wx.ALIGN_LEFT | wx.ALIGN_CENTER_VERTICAL | wx.ALL,
+            border=DEFAULT_BORDER,
+        )
+
+        # Template file path
+        row = row + 1
+        stext = wx.StaticText(panel, label=_("Template &filename:"))
+        sizer.Add(
+            stext,
+            pos=(row, 0),
+            span=DEFAULT_SPAN,
+            flag=wx.ALIGN_LEFT | wx.ALIGN_CENTER_VERTICAL | BORDER_STYLE_EXCEPT_TOP,
+            border=DEFAULT_BORDER,
+        )
+
+        self._lyric_template_picker = wx.FilePickerCtrl(panel, path=self.lyric_template_filename)
+        self._lyric_template_picker.Bind(
+            wx.EVT_FILEPICKER_CHANGED,
+            self.on_template_filename_changed,
+            self._lyric_template_picker,
+        )
+        sizer.Add(
+            self._lyric_template_picker,
+            pos=(row, 1),
+            span=DEFAULT_SPAN,
+            flag=wx.ALIGN_RIGHT | wx.ALIGN_CENTER_VERTICAL | wx.EXPAND | BORDER_STYLE_RIGHT_BOTTOM,
+            border=DEFAULT_BORDER,
+        )
+        pickctrl = self._lyric_template_picker.GetPickerCtrl()
+        if pickctrl:
+            pickctrl.SetLabel(_("&Browse..."))
+
+        panel.SetSizerAndFit(sizer)
+
+        return panel
+
+    def on_lyric_open_check_changed(self, _):
+        self.lyric_open_textfile = self._lyric_open_check.GetValue()
+        self.is_modified = True
+
+    def on_lyric_copy_check_changed(self, _):
+        self.lyric_copy_from_template = self._lyric_copy_check.GetValue()
+        self.is_modified = True
+
+    def on_application_pathname_changed(self, _):
+        self.lyric_application_pathname = self._lyric_application_picker.GetPath()
+        self.is_modified = True
+
+    def on_template_filename_changed(self, _):
+        self.lyric_template_filename = self._lyric_template_picker.GetPath()
+        self.is_modified = True

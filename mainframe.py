@@ -4,6 +4,7 @@
 import gettext
 import json
 import os
+import shutil
 
 import wx
 
@@ -521,7 +522,36 @@ class Frame(wx.Frame):
             self.pconfig.bible_rootdir = dlg.bible_rootdir
             self.pconfig.current_bible_version = dlg.current_bible_version
 
+            self.pconfig.lyric_open_textfile = dlg.lyric_open_textfile
+            self.pconfig.lyric_copy_from_template = dlg.lyric_copy_from_template
+            self.pconfig.lyric_application_pathname = dlg.lyric_application_pathname
+            self.pconfig.lyric_template_filename = dlg.lyric_template_filename
+
             self.pconfig.write_config(self.config)
+
+    def open_lyric_file(self, filename):
+        if not self.pconfig.lyric_open_textfile:
+            return
+
+        filename = os.path.splitext(filename)[0] + ".xml"
+        file_exist = os.path.exists(filename)
+
+        if not file_exist:
+            if self.pconfig.lyric_copy_from_template and self.pconfig.lyric_template_filename:
+                shutil.copyfile(self.pconfig.lyric_template_filename, filename)
+                file_exist = os.path.exists(filename)
+
+        cmd = ""
+        if file_exist:
+            if self.pconfig.lyric_application_pathname:
+                cmd = f'"{self.pconfig.lyric_application_pathname}" "{filename}"'
+            else:
+                ft = wx.TheMimeTypesManager.GetFileTypeFromExtension("txt")
+                if ft:
+                    cmd = ft.GetOpenCommand(wx.FileType.MessageParameters(filename, ""))
+
+        if cmd:
+            wx.Execute(cmd, wx.EXEC_ASYNC)
 
     def on_add_command(self, _event: wx.Event):
         """Event handler for the ID_COMMAND_ADD command."""
