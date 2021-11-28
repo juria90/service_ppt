@@ -533,6 +533,11 @@ class Frame(wx.Frame):
         if not self.pconfig.lyric_open_textfile:
             return
 
+        # empty basename when the filename is deleted.
+        _dir, fn = os.path.split(filename)
+        if not os.path.splitext(fn)[0]:
+            return
+
         filename = os.path.splitext(filename)[0] + ".xml"
         file_exist = os.path.exists(filename)
 
