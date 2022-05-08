@@ -130,14 +130,22 @@ class CommandUI(wx.EvtHandler):
 
         self.TransferToWindow()
         self.ui.Show()
+        self.post_activate_ui()
         return True
+
+    def post_activate_ui(self):
+        pass
 
     def deactivate(self):
         if not self.TransferFromWindow():
             return False
 
+        self.pre_deactivate_ui()
         self.ui.Hide()
         return True
+
+    def pre_deactivate_ui(self):
+        pass
 
     def construct_ui(self, parent):
         self.ui = self.uimgr.get_ui_mapping(self.__class__.__name__)
@@ -255,8 +263,6 @@ class PropertyGridUI(CommandUI):
         # Show help as tooltips
         prop_grid.SetExtraStyle(wxpg.PG_EX_HELP_AS_TOOLTIPS)
 
-        prop_grid.Bind(wxpg.EVT_PG_CHANGED, self.on_property_changed, prop_grid)
-
         self.initialize_fixed_properties(prop_grid)
 
         self.initialize_dynamic_properties(prop_grid)
@@ -268,6 +274,12 @@ class PropertyGridUI(CommandUI):
 
     def initialize_dynamic_properties(self, pg):
         pass
+
+    def post_activate_ui(self):
+        self.ui.Bind(wxpg.EVT_PG_CHANGED, self.on_property_changed, self.ui)
+
+    def pre_deactivate_ui(self):
+        self.ui.Unbind(wxpg.EVT_PG_CHANGED, handler=self.on_property_changed)
 
     def get_dynamic_label(self, _index):
         return ""
