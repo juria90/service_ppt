@@ -12,8 +12,15 @@ For OS X, it is using AppleScript but the feature less mature than that of Windo
 This document describes how to set up the environment for the service_ppt application.
 
 ## Install Python 3.
-Install latest Python 3 from https://www.python.org/downloads/.<br>
+Install Python 3.9 from https://www.python.org/downloads/.<br>
 Add python3 to the PATH environment.
+
+## Install packages using requirement.txt
+All the below packages can be install by following commands.
+Or each package can be installed one by one.
+```
+pip install -r requirement.txt
+```
 
 ## Install wxPython
 Install wxPython that is used for main GUI application.
@@ -24,7 +31,7 @@ pip install wxpython
 ## Install 3rd party packages.
 These are common to Windows and Mac OS.
 ```
-pip install iso-639
+pip install iso639-lang
 
 pip install langdetect
 
@@ -42,10 +49,6 @@ For Windows you can get the installer from http://gnuwin32.sourceforge.net/packa
 Windows specific packages.
 ```
 pip install pywin32
-
-pip install pywintypes
-
-pip install win32api
 ```
 
 ## OS X platform
@@ -94,5 +97,5 @@ powerpoint_win32.py - The Windows specific classes using COM to automate PowerPo
 ```
 
 # Service Definition File
-The .sdf file contains the command instrcutions saved from each Command.<br>
+The .sdf file contains the command instructions saved from each Command.<br>
 It is a JSON file format internally.

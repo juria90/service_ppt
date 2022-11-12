@@ -1,11 +1,11 @@
-# https://stackoverflow.com/questions/7787120/python-check-if-a-process-is-running-or-not
-
 import subprocess
 import sys
 
 
 def process_exists(process_name):
     if sys.platform.startswith("win32"):
+        # https://stackoverflow.com/questions/7787120/python-check-if-a-process-is-running-or-not
+
         # Use tasklist to reduce package dependency.
 
         call = "TASKLIST", "/FI", "imagename eq %s" % process_name
@@ -16,4 +16,6 @@ def process_exists(process_name):
         # because Fail message could be translated
         return last_line.lower().startswith(process_name.lower())
     else:
-        raise NotImplementedError("process_exists is not implemented.")
+        call = f"""pgrep "{process_name}" """
+        retcode = subprocess.call(call)
+        return retcode == 0

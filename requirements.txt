@@ -3,6 +3,7 @@ langdetect==1.0.9
 numpy==1.21.2
 Pillow==8.3.2
 pysword==0.2.7
-pywin32==301
+pywin32==301; sys_platform == 'win32'
+py-applescript==1.0.3; sys_platform == 'darwin'
 six==1.16.0
 wxPython==4.1.1
