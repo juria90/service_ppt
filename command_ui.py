@@ -1233,9 +1233,10 @@ class UIManager:
         with open(filename, "wb") as f:
             pickle.dump(proc_list, f, protocol=pickle.HIGHEST_PROTOCOL)
 
-    def execute_commands(self, monitor):
+    def execute_commands(self, monitor, pconfig):
         self.check_modified()
 
         proc_list = [x.command for x in self.command_ui_list]
         cm = cmd.CommandManager()
+        cm.lyric_manager.lyric_search_path = pconfig.lyric_search_path
         cm.execute_commands(proc_list, monitor=monitor)

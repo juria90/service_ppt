@@ -38,6 +38,8 @@ pip install langdetect
 pip install numpy
 
 pip install Pillow
+
+pip install pysword
 ```
 
 ## Set up environment for language translation.

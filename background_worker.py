@@ -197,7 +197,7 @@ class BkgndProgressDialog(wx.Dialog):
 
         if changed:
             self.message_ctrl.SetLabelText(message)
-            self.guage_ctrl.SetValue(value)
+            self.guage_ctrl.SetValue(int(value))
 
         result = not self.cancelled
         return result

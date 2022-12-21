@@ -234,8 +234,7 @@ class Bible:
         return None
 
     def extract_texts_from_bible_index(self, bi, ct, v1t, v2t):
-        """extract_texts() returns list of Verse within given bible index.
-        """
+        """extract_texts() returns list of Verse within given bible index."""
         book = self.books[bi]
         chapter = None
         verses = []

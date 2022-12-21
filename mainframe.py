@@ -5,6 +5,7 @@ import gettext
 import json
 import os
 import shutil
+import typing
 
 import wx
 
@@ -496,7 +497,7 @@ class Frame(wx.Frame):
 
     def on_execute(self, _event: wx.Event):
         def bkgnd_handler(window):
-            self.uimgr.execute_commands(window)
+            self.uimgr.execute_commands(window, self.pconfig)
 
         dialog = BkgndProgressDialog(self, _("Running commands."), _("Intializing commands."), bkgnd_handler)
         dialog.ShowModal()
@@ -523,37 +524,54 @@ class Frame(wx.Frame):
             self.pconfig.current_bible_version = dlg.current_bible_version
 
             self.pconfig.lyric_open_textfile = dlg.lyric_open_textfile
+            self.pconfig.lyric_search_path = dlg.lyric_search_path
             self.pconfig.lyric_copy_from_template = dlg.lyric_copy_from_template
             self.pconfig.lyric_application_pathname = dlg.lyric_application_pathname
             self.pconfig.lyric_template_filename = dlg.lyric_template_filename
 
             self.pconfig.write_config(self.config)
 
-    def open_lyric_file(self, filename):
-        if not self.pconfig.lyric_open_textfile:
-            return
+    def get_lyric_file(self, filename: str) -> typing.Optional[str]:
 
         # empty basename when the filename is deleted.
         _dir, fn = os.path.split(filename)
         if not os.path.splitext(fn)[0]:
+            return None
+
+        xml_pathname = os.path.splitext(filename)[0] + ".xml"
+        file_exist = os.path.exists(xml_pathname)
+        if file_exist:
+            return xml_pathname
+
+        # seach xml file from search path
+        if self.pconfig.lyric_search_path:
+            xml_filename = os.path.splitext(fn)[0] + ".xml"
+            searched_xml_pathname = os.path.join(self.pconfig.lyric_search_path, xml_filename)
+            file_exist = os.path.exists(searched_xml_pathname)
+            if file_exist:
+                return searched_xml_pathname
+
+        # copy template file and return it
+        if self.pconfig.lyric_copy_from_template and self.pconfig.lyric_template_filename:
+            shutil.copyfile(self.pconfig.lyric_template_filename, xml_pathname)
+            file_exist = os.path.exists(xml_pathname)
+            if file_exist:
+                return xml_pathname
+
+        return None
+
+    def open_lyric_file(self, filename):
+        xml_pathname = self.get_lyric_file(filename)
+        if xml_pathname is None:
             return
 
-        filename = os.path.splitext(filename)[0] + ".xml"
-        file_exist = os.path.exists(filename)
-
-        if not file_exist:
-            if self.pconfig.lyric_copy_from_template and self.pconfig.lyric_template_filename:
-                shutil.copyfile(self.pconfig.lyric_template_filename, filename)
-                file_exist = os.path.exists(filename)
-
         cmd = ""
-        if file_exist:
-            if self.pconfig.lyric_application_pathname:
-                cmd = f'"{self.pconfig.lyric_application_pathname}" "{filename}"'
-            else:
-                ft = wx.TheMimeTypesManager.GetFileTypeFromExtension("txt")
-                if ft:
-                    cmd = ft.GetOpenCommand(wx.FileType.MessageParameters(filename, ""))
+        if self.pconfig.lyric_application_pathname:
+            cmd = f'"{self.pconfig.lyric_application_pathname}" "{xml_pathname}"'
+        else:
+            ft = wx.TheMimeTypesManager.GetFileTypeFromExtension("txt")
+            if ft:
+                cmd = ft.GetOpenCommand(wx.FileType.MessageParameters(xml_pathname, ""))
 
         if cmd:
             wx.Execute(cmd, wx.EXEC_ASYNC)

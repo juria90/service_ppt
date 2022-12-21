@@ -443,7 +443,7 @@ class InsertLyrics(Command):
         self.filelist = filelist
         self.flags = flags
 
-    def get_filelist(self, filetype):
+    def get_filelist(self, cm, filetype):
         filelist = []
         if filetype == self.INSERT_LYRIC_SLIDE:
             for fn in self.filelist:
@@ -460,23 +460,23 @@ class InsertLyrics(Command):
                         fn = base + ".ppt"
                 filelist.append(fn)
         elif filetype == self.INSERT_LYRIC_TEXT:
-            filelist = [os.path.splitext(fn)[0] + ".xml" for fn in self.filelist]
+            filelist = [cm.lyric_manager.search_lyric_file(fn) for fn in self.filelist]
 
         return filelist
 
     def execute(self, cm, prs):
         if self.flags & self.INSERT_LYRIC_SLIDE:
-            lyric_filelist = self.get_filelist(self.INSERT_LYRIC_SLIDE)
+            lyric_filelist = self.get_filelist(cm, self.INSERT_LYRIC_SLIDE)
             slides = InsertSlides(self.slide_insert_location, self.slide_separator_slides, lyric_filelist)
             slides.execute(cm, prs)
             del slides
 
         if self.flags & self.INSERT_LYRIC_TEXT:
-            lyric_filelist = self.get_filelist(self.INSERT_LYRIC_TEXT)
+            lyric_filelist = self.get_filelist(cm, self.INSERT_LYRIC_TEXT)
             self.execute_lyric_files(cm, prs, lyric_filelist)
 
         if self.archive_lyric_file:
-            lyric_filelist = self.get_filelist(self.INSERT_LYRIC_TEXT)
+            lyric_filelist = self.get_filelist(cm, self.INSERT_LYRIC_TEXT)
             cm.add_lyric_file(lyric_filelist)
 
     def execute_lyric_files(self, cm, prs, filelist):
@@ -903,11 +903,14 @@ class GenerateBibleVerse(Command):
                 bible = bibles[b]
                 bi, ct, v1t, v2t = bible_index
                 texts = bible.extract_texts_from_bible_index(bi, ct, v1t, v2t)
+                if texts is None:
+                    cm.error_message(_("Cannot extract Bible {bi=}, {ct=}, {v1t=}, {v2t=}."))
+
                 for text in texts:
                     if i < len(all_verses_text):
                         all_verses_text[i][valid_each_verse_names[b]] = text
                     else:
-                        verses_text = {valid_each_verse_names[b] : text}
+                        verses_text = {valid_each_verse_names[b]: text}
                         all_verses_text.append(verses_text)
                     i += 1
 
@@ -1215,6 +1218,7 @@ class LyricManager:
         self.reader = OpenLyricsReader()
         self.lyric_file_map = {}
         self.all_lyric_files = []
+        self.lyric_search_path = None
 
     def reset_exec_vars(self):
         self.lyric_file_map = {}
@@ -1244,6 +1248,24 @@ class LyricManager:
             songs.append(song)
 
         return songs
+
+    def search_lyric_file(self, filename: str) -> typing.Optional[str]:
+
+        _dir, fn = os.path.split(filename)
+        xml_pathname = os.path.splitext(filename)[0] + ".xml"
+        file_exist = os.path.exists(xml_pathname)
+        if file_exist:
+            return xml_pathname
+
+        # seach xml file from search path
+        if self.lyric_search_path:
+            xml_filename = os.path.splitext(fn)[0] + ".xml"
+            searched_xml_pathname = os.path.join(self.lyric_search_path, xml_filename)
+            file_exist = os.path.exists(searched_xml_pathname)
+            if file_exist:
+                return searched_xml_pathname
+
+        return xml_pathname
 
     def add_lyric_file(self, filelist):
         if isinstance(filelist, list):
@@ -1387,6 +1409,10 @@ class CommandManager:
     def read_songs(self, filelist):
         songs = self.lyric_manager.read_songs(filelist)
         return songs
+
+    def search_lyric_files(self, filelist):
+        xml_filelist = [self.lyric_manager.search_lyric_file(file) for file in filelist]
+        return xml_filelist
 
     def add_lyric_file(self, lyric_file):
         self.lyric_manager.add_lyric_file(lyric_file)

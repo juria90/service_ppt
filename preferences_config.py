@@ -22,6 +22,7 @@ class PreferencesConfig:
         self.current_bible_version = ""
 
         self.lyric_open_textfile = False
+        self.lyric_search_path = ""
         self.lyric_copy_from_template = False
         self.lyric_application_pathname = ""
         self.lyric_template_filename = ""
@@ -53,6 +54,7 @@ class PreferencesConfig:
         self.current_bible_version = self._read_one_string(config, "current_bible_version", "")
 
         self.lyric_open_textfile = self._read_one_bool(config, "lyric_open_textfile", False)
+        self.lyric_search_path = self._read_one_string(config, "lyric_search_path", "")
         self.lyric_copy_from_template = self._read_one_bool(config, "lyric_copy_from_template", False)
         self.lyric_application_pathname = self._read_one_string(config, "lyric_application_pathname", "")
         self.lyric_template_filename = self._read_one_string(config, "lyric_template_filename", "")
@@ -64,6 +66,7 @@ class PreferencesConfig:
         config.Write("current_bible_version", self.current_bible_version)
 
         config.WriteBool("lyric_open_textfile", self.lyric_open_textfile)
+        config.Write("lyric_search_path", self.lyric_search_path)
         config.WriteBool("lyric_copy_from_template", self.lyric_copy_from_template)
         config.Write("lyric_application_pathname", self.lyric_application_pathname)
         config.Write("lyric_template_filename", self.lyric_template_filename)
