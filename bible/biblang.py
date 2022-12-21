@@ -62,7 +62,7 @@ def detect_language(text):
 class L18N:
 
     OLD_NEW_TESTAMENT = (_("Old Testament"), _("New Testament"))
-    VERSE_PARSING_PATTERN = _(r"(.*?) ?(\d+):(\d+)(-(\d+))?")
+    VERSE_PARSING_PATTERN = _(r"(.*?) ?(\d+):(\d+)(-((\d+):)?(\d+))?")
     BOOK_CHAPTER_FORMAT = _("{book} {chapter}")
 
     BOOK_NAME = [
@@ -215,15 +215,16 @@ class L18N:
 
     @staticmethod
     def parse_verse_range(lang, text_range):
-        """parse_verse_range() returns (book, chapter, verse{1,2}) tuple based on text_range.
+        """parse_verse_range() returns (book, chapter1, verse1, chapter2, verse2}) tuple based on text_range.
 
-        The text_range should be formatted as <Book> <Chapter>:<Verse1>[-<Verse2>],
-        where Book can be long or short name, Chapter and Verse1/Verse2 are valid numbers.
+        The text_range should be formatted as <Book> <Chapter1>:<Verse1>[[<Chapter2>:]-<Verse2>],
+        where Book can be long or short name, Chapter1/Chapter2 and Verse1/Verse2 are valid numbers.
         """
 
         bt = None
-        ct = None
+        ct1 = None
         v1t = None
+        ct2 = None
         v2t = None
         m = None
 
@@ -234,29 +235,33 @@ class L18N:
         m = re.match(pattern, text_range)
         if m is not None:
             bt = m.group(1)
-            ct = m.group(2)
+            ct1 = m.group(2)
             v1t = m.group(3)
-            v2t = m.group(4)
-            if v2t is not None:
-                v2t = v2t[1:]  # skip '-'
+            ct2 = m.group(6)
+            v2t = m.group(7)
 
         if pattern != L18N.VERSE_PARSING_PATTERN and m is None:
             m = re.match(L18N.VERSE_PARSING_PATTERN, text_range)
             if m is not None:
                 bt = m.group(1)
-                ct = m.group(2)
+                ct1 = m.group(2)
                 v1t = m.group(3)
-                v2t = m.group(4)
-                if v2t is not None:
-                    v2t = v2t[1:]  # skip '-'
+                ct2 = m.group(6)
+                v2t = m.group(7)
 
         if m is None:
             raise ValueError("Invalid text range: %s".format(text_range))
 
         bt = bt.strip()
-        ct = int(ct)
+        ct1 = int(ct1)
         v1t = int(v1t)
+        if ct2 is not None:
+            ct2 = int(ct2)
         if v2t is not None:
             v2t = int(v2t)
 
-        return bt, ct, v1t, v2t
+        if ct2 is not None:
+            if ct1 > ct2 or (ct1 == ct2 and v1t > v2t):
+                raise ValueError("Invalid text range: %s".format(text_range))
+
+        return bt, ct1, v1t, ct2, v2t

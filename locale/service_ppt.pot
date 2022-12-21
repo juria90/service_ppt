@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2021-09-25 15:27-0700\n"
+"POT-Creation-Date: 2022-12-21 01:36-0800\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -18,221 +18,245 @@ msgstr ""
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=INTEGER; plural=EXPRESSION;\n"
 
-#: mainframe.py:45
+#: mainframe.py:47
 msgid "Duplicate slides"
 msgstr ""
 
-#: mainframe.py:51
+#: mainframe.py:53
 msgid "Export slides as images"
 msgstr ""
 
-#: mainframe.py:57
+#: mainframe.py:59
 msgid "Export shapes in slide as images"
 msgstr ""
 
-#: mainframe.py:63
+#: mainframe.py:65
 msgid "Find and replace texts"
 msgstr ""
 
-#: mainframe.py:69
+#: mainframe.py:71
 msgid "Generate Bible verses slides"
 msgstr ""
 
-#: mainframe.py:75
+#: mainframe.py:77
 msgid "Insert lyrics from files"
 msgstr ""
 
-#: mainframe.py:81
+#: mainframe.py:83
 msgid "Insert slides from files"
 msgstr ""
 
-#: mainframe.py:84
+#: mainframe.py:86
 msgid "Open a presentation file"
 msgstr ""
 
-#: mainframe.py:85
+#: mainframe.py:87
 msgid "Pop up a message"
 msgstr ""
 
-#: mainframe.py:89
+#: mainframe.py:91
 msgid "Save the presentation and other files"
 msgstr ""
 
-#: mainframe.py:148
+#: mainframe.py:150
 msgid "Service Presentation Generator"
 msgstr ""
 
-#: mainframe.py:183
+#: mainframe.py:185
 msgid "&File"
 msgstr ""
 
-#: mainframe.py:185
+#: mainframe.py:187
 msgid "&Open...\tCtrl+O"
 msgstr ""
 
-#: mainframe.py:185
+#: mainframe.py:187
 msgid "Open an existing file."
 msgstr ""
 
-#: mainframe.py:189
+#: mainframe.py:191
 msgid "Open &recent"
 msgstr ""
 
-#: mainframe.py:189
+#: mainframe.py:191
 msgid "Open a recently used file."
 msgstr ""
 
-#: mainframe.py:195
+#: mainframe.py:197
 msgid "&Save\tCtrl+S"
 msgstr ""
 
-#: mainframe.py:195
+#: mainframe.py:197
 msgid "Save to a file."
 msgstr ""
 
-#: mainframe.py:198
+#: mainframe.py:200
 msgid "Save &as...\tCtrl+Shift+S"
 msgstr ""
 
-#: mainframe.py:198
+#: mainframe.py:200
 msgid "Save as a file."
 msgstr ""
 
-#: mainframe.py:203
+#: mainframe.py:205
 msgid "&Execute...\tCtrl+E"
 msgstr ""
 
-#: mainframe.py:203
+#: mainframe.py:205
 msgid "Executes the commands."
 msgstr ""
 
-#: mainframe.py:210
+#: mainframe.py:212
 msgid "&Preferences...\tCtrl+,"
 msgstr ""
 
-#: mainframe.py:211
+#: mainframe.py:213
 msgid "Show and edit preferences."
 msgstr ""
 
-#: mainframe.py:217
+#: mainframe.py:219
 msgid "E&xit\tCtrl+Q"
 msgstr ""
 
-#: mainframe.py:217
+#: mainframe.py:219
 msgid "Close window and exit the program."
 msgstr ""
 
-#: mainframe.py:233
+#: mainframe.py:235
 msgid "Open"
 msgstr ""
 
-#: mainframe.py:238
+#: mainframe.py:240
 msgid "Save"
 msgstr ""
 
-#: mainframe.py:243
+#: mainframe.py:245
 msgid "Execute"
 msgstr ""
 
-#: mainframe.py:249
+#: mainframe.py:251
 msgid "Exit"
 msgstr ""
 
-#: mainframe.py:264
+#: mainframe.py:266
 msgid "Add Command"
 msgstr ""
 
-#: mainframe.py:268
+#: mainframe.py:270
 msgid "Delete Command"
 msgstr ""
 
-#: mainframe.py:272
+#: mainframe.py:274
 msgid "Move Down"
 msgstr ""
 
-#: mainframe.py:276
+#: mainframe.py:278
 msgid "Move Up"
 msgstr ""
 
-#: mainframe.py:360
+#: mainframe.py:362
 msgid ""
 "The document is modified.\n"
 "Do you want to save it?"
 msgstr ""
 
-#: mainframe.py:397
+#: mainframe.py:399
 msgid ""
 "The document is modified.\n"
 "Do you want to continue?"
 msgstr ""
 
-#: mainframe.py:408
+#: mainframe.py:410
 msgid "Open File"
 msgstr ""
 
-#: mainframe.py:411 mainframe.py:472
+#: mainframe.py:413 mainframe.py:474
 msgid "Service definition files (*.sdf)|*.sdf"
 msgstr ""
 
-#: mainframe.py:424
+#: mainframe.py:426
 #, python-brace-format
 msgid "Failed to open file '{filename}'."
 msgstr ""
 
-#: mainframe.py:455
+#: mainframe.py:457
 msgid "Save to a file"
 msgstr ""
 
-#: mainframe.py:458
+#: mainframe.py:460
 msgid "Save as a file"
 msgstr ""
 
-#: mainframe.py:500
+#: mainframe.py:502
 msgid "Running commands."
 msgstr ""
 
-#: mainframe.py:500
+#: mainframe.py:502
 msgid "Intializing commands."
 msgstr ""
 
-#: mainframe.py:505
+#: mainframe.py:507
 msgid "(Untitled)"
 msgstr ""
 
-#: mainframe.py:530
+#: mainframe.py:583
 msgid "Please choose a slide command."
 msgstr ""
 
-#: mainframe.py:531
+#: mainframe.py:584
 msgid "Add slide command"
 msgstr ""
 
-#: preferences_dialog.py:44
+#: preferences_dialog.py:54
 msgid "Preferences"
 msgstr ""
 
-#: preferences_dialog.py:61
+#: preferences_dialog.py:71
 msgid "Directory settings"
 msgstr ""
 
-#: preferences_dialog.py:65
+#: preferences_dialog.py:75
 msgid "Bible settings"
 msgstr ""
 
-#: preferences_dialog.py:90
+#: preferences_dialog.py:79
+msgid "Lyric settings"
+msgstr ""
+
+#: preferences_dialog.py:103
 msgid "Bible &Format:"
 msgstr ""
 
-#: preferences_dialog.py:112
+#: preferences_dialog.py:107
 msgid "Root &directory for MyBible, MySword, Zefania:"
 msgstr ""
 
-#: preferences_dialog.py:136
-msgid "&Browse..."
+#: preferences_dialog.py:114
+msgid "Current Bible &Version:"
 msgstr ""
 
-#: preferences_dialog.py:140
-msgid "Current Bible &Version:"
+#: preferences_dialog.py:189
+msgid "Lyric &search pathname:"
+msgstr ""
+
+#: preferences_dialog.py:196
+msgid "&Open lyric text file automatically."
+msgstr ""
+
+#: preferences_dialog.py:201
+msgid "&Application pathname:"
+msgstr ""
+
+#: preferences_dialog.py:208
+msgid "Copy from a &template file if the file not exists yet."
+msgstr ""
+
+#: preferences_dialog.py:215
+msgid "Template &filename:"
+msgstr ""
+
+#: preferences_dialog.py:290 preferences_dialog.py:319
+msgid "&Browse..."
 msgstr ""
 
 #: command.py:218
@@ -289,108 +313,111 @@ msgstr ""
 msgid "Saving Bible verses to file '{filename}'."
 msgstr ""
 
-#: command.py:318
+#: command.py:319
 #, python-brace-format
 msgid "Cannot save bible verses to the file '{filename}'."
 msgstr ""
 
-#: command.py:367
+#: command.py:368
 #, python-brace-format
 msgid "Inserting slides from {file_count} file."
 msgid_plural "Inserting slides from {file_count} files."
 msgstr[0] ""
 msgstr[1] ""
 
-#: command.py:387
+#: command.py:388
 #, python-brace-format
 msgid "Inserting slides from file '{filename}'."
 msgstr ""
 
-#: command.py:484
+#: command.py:485
 #, python-brace-format
 msgid "Inserting lyrics from {file_count} file."
 msgid_plural "Inserting lyrics from {file_count} files."
 msgstr[0] ""
 msgstr[1] ""
 
-#: command.py:492
+#: command.py:493
 msgid "No repeatable slides are found. Aborting the command."
 msgstr ""
 
-#: command.py:519
+#: command.py:520
 #, python-brace-format
 msgid "Inserting lyric from '{filename}'."
 msgstr ""
 
-#: command.py:693
+#: command.py:692
 #, python-brace-format
 msgid "Replacing {text_count} text."
 msgid_plural "Replacing {text_count} texts."
 msgstr[0] ""
 msgstr[1] ""
 
-#: command.py:730 command.py:961
+#: command.py:729 command.py:994
 msgid "Duplicating slides and replacing texts."
 msgstr ""
 
-#: command.py:775
+#: command.py:774
 msgid "Replacing texts."
 msgstr ""
 
-#: command.py:877
+#: command.py:884
 #, python-brace-format
-msgid ""
-"Cannot find the Bible format={bible_format} and version={bible_version}."
+msgid "Cannot find the Bible format={bible_format} and version={version}."
 msgstr ""
 
-#: command.py:922
+#: command.py:907
+msgid "Cannot extract Bible {bi=}, {ct=}, {v1t=}, {v2t=}."
+msgstr ""
+
+#: command.py:950
 #, python-brace-format
 msgid "Cannot find the Bible verse={verse}."
 msgstr ""
 
-#: command.py:924
+#: command.py:952
 #, python-brace-format
 msgid "Cannot find the Bible verse={verse} in {verses}."
 msgstr ""
 
-#: command.py:936
+#: command.py:969
 msgid "Processing Bible Verse."
 msgstr ""
 
-#: command.py:952
+#: command.py:985
 #, python-brace-format
 msgid "Duplicating {repeat_count} slide for Bible Verse."
 msgid_plural "Duplicating {repeat_count} slides for Bible Verse."
 msgstr[0] ""
 msgstr[1] ""
 
-#: command.py:1083
+#: command.py:1119
 msgid "Processing PromptCommand."
 msgstr ""
 
-#: command.py:1104 command.py:1165
+#: command.py:1140 command.py:1201
 #, python-brace-format
 msgid "Exporting slide shapes as images to '{dirname}'."
 msgstr ""
 
-#: command.py:1123 command.py:1140
+#: command.py:1159 command.py:1176
 msgid "Converting to transparent images."
 msgstr ""
 
-#: command.py:1195 command.py:1201
+#: command.py:1232 command.py:1238
 #, python-brace-format
 msgid "Cannot open a lyric file '{filename}'."
 msgstr ""
 
-#: command.py:1418
+#: command.py:1477
 msgid "Start processing commands."
 msgstr ""
 
-#: command.py:1439
+#: command.py:1498
 msgid "Cleaning up after running all the commands."
 msgstr ""
 
-#: command.py:1442
+#: command.py:1501
 msgid "Processing is done successfully."
 msgstr ""
 
@@ -398,249 +425,269 @@ msgstr ""
 msgid "Powerpoint files (*.ppt;*.pptx)|*.ppt;*.pptx"
 msgstr ""
 
-#: command_ui.py:192
+#: command_ui.py:215
 msgid "Displaying PopupMessage."
 msgstr ""
 
-#: command_ui.py:323 command_ui.py:362
+#: command_ui.py:350 command_ui.py:389
 msgid "Presentation file"
 msgstr ""
 
-#: command_ui.py:324 command_ui.py:364
+#: command_ui.py:351 command_ui.py:391
 msgid "Notes file"
 msgstr ""
 
-#: command_ui.py:334 command_ui.py:375
+#: command_ui.py:361 command_ui.py:402
 msgid "File paths"
 msgstr ""
 
-#: command_ui.py:339 command_ui.py:383 command_ui.py:386
+#: command_ui.py:366 command_ui.py:410 command_ui.py:413
 msgid "Text files (*.txt)|*.txt"
 msgstr ""
 
-#: command_ui.py:363
+#: command_ui.py:390
 msgid "Lyrics archive file"
 msgstr ""
 
-#: command_ui.py:365
+#: command_ui.py:392
 msgid "Verses file"
 msgstr ""
 
-#: command_ui.py:380
+#: command_ui.py:407
 msgid "OpenLP service files (*.osz)|*.osz|Zip files (*.zip)|*.zip"
 msgstr ""
 
-#: command_ui.py:419
+#: command_ui.py:446
 msgid "Datetime variable name"
 msgstr ""
 
-#: command_ui.py:420
+#: command_ui.py:447
 msgid "Datetime value"
 msgstr ""
 
-#: command_ui.py:421
+#: command_ui.py:448
 #, python-format
 msgid "Variable name %d"
 msgstr ""
 
-#: command_ui.py:422
+#: command_ui.py:449
 #, python-format
 msgid "Variable value %d"
 msgstr ""
 
-#: command_ui.py:440
+#: command_ui.py:467
 msgid "Datetime"
 msgstr ""
 
-#: command_ui.py:447
+#: command_ui.py:474
 msgid "Variable names and values to be used for find and replace"
 msgstr ""
 
-#: command_ui.py:549
+#: command_ui.py:576
 msgid "Insert location"
 msgstr ""
 
-#: command_ui.py:550
+#: command_ui.py:577
 msgid "Separator slides"
 msgstr ""
 
-#: command_ui.py:551 command_ui.py:617
+#: command_ui.py:578 command_ui.py:644
 #, python-format
 msgid "File %d"
 msgstr ""
 
-#: command_ui.py:566
+#: command_ui.py:593
 msgid "1 - Basic Settings"
 msgstr ""
 
-#: command_ui.py:570
+#: command_ui.py:597
 msgid "2 - List of files to insert"
 msgstr ""
 
-#: command_ui.py:602
+#: command_ui.py:629
 msgid "Lyric file types"
 msgstr ""
 
-#: command_ui.py:604
+#: command_ui.py:631
 msgid "Lyric slide files"
 msgstr ""
 
-#: command_ui.py:605
+#: command_ui.py:632
 msgid "Lyric text files"
 msgstr ""
 
-#: command_ui.py:606
+#: command_ui.py:633
 msgid "Lyric slide and text files"
 msgstr ""
 
-#: command_ui.py:609
+#: command_ui.py:636
 msgid "Score repeat range"
 msgstr ""
 
-#: command_ui.py:610
+#: command_ui.py:637
 msgid "Score separator slides"
 msgstr ""
 
-#: command_ui.py:612
+#: command_ui.py:639
 msgid "Lyric repeat range"
 msgstr ""
 
-#: command_ui.py:613
+#: command_ui.py:640
 msgid "Lyric separator slides"
 msgstr ""
 
-#: command_ui.py:614
+#: command_ui.py:641
 msgid "Lyric pattern"
 msgstr ""
 
-#: command_ui.py:615
+#: command_ui.py:642
 msgid "Archive lyric files"
 msgstr ""
 
-#: command_ui.py:619
+#: command_ui.py:646
 msgid ""
 "Powerpoint/Lyric files (*.ppt;*.pptx;*.xml)|*.ppt;*.pptx;*.xml|Powerpoint "
 "files (*.ppt;*.pptx)|*.ppt;*.pptx|Lyric xml files (*.xml)|*.xml"
 msgstr ""
 
-#: command_ui.py:637
+#: command_ui.py:673
 msgid "1 - Slide settings"
 msgstr ""
 
-#: command_ui.py:641
+#: command_ui.py:677
 msgid "2 - Lyric settings"
 msgstr ""
 
-#: command_ui.py:648
+#: command_ui.py:684
 msgid "3 - List of lyric files to insert"
 msgstr ""
 
-#: command_ui.py:711
+#: command_ui.py:755
 msgid "Slide range"
 msgstr ""
 
-#: command_ui.py:712
+#: command_ui.py:756
 msgid "Repeat range"
 msgstr ""
 
-#: command_ui.py:713
+#: command_ui.py:757
 msgid "Text to find"
 msgstr ""
 
-#: command_ui.py:714
+#: command_ui.py:758
 msgid "Texts to replace (a blank line for a separation)"
 msgstr ""
 
-#: command_ui.py:715
+#: command_ui.py:759
 msgid ""
 "Preprocessing script before replace (Use input and output for input/output "
 "variables)"
 msgstr ""
 
-#: command_ui.py:716
+#: command_ui.py:760
 msgid "Archive as lyric files"
 msgstr ""
 
-#: command_ui.py:717
+#: command_ui.py:761
 msgid "Optional split lines at every nth line"
 msgstr ""
 
-#: command_ui.py:718
+#: command_ui.py:762
 msgid "Enable word wrap"
 msgstr ""
 
-#: command_ui.py:719
+#: command_ui.py:763
 msgid "Font"
 msgstr ""
 
-#: command_ui.py:720
+#: command_ui.py:764
 msgid "Page width"
 msgstr ""
 
-#: command_ui.py:729
+#: command_ui.py:773
 msgid "1 - Range specification"
 msgstr ""
 
-#: command_ui.py:733
+#: command_ui.py:777
 msgid "2 - Text to find and replace"
 msgstr ""
 
-#: command_ui.py:738
+#: command_ui.py:782
 msgid "3 - Archive processing"
 msgstr ""
 
-#: command_ui.py:742
+#: command_ui.py:786
 msgid "4 - Word wrap archive text"
 msgstr ""
 
-#: command_ui.py:824
-msgid "Bible Version"
+#: command_ui.py:868
+msgid "Bible Version 1"
 msgstr ""
 
-#: command_ui.py:825
-msgid "Main Bible verse name"
+#: command_ui.py:869
+msgid "Main Bible verse name 1"
 msgstr ""
 
-#: command_ui.py:826
-msgid "Each Bible verse name"
+#: command_ui.py:870
+msgid "Each Bible verse name 1"
 msgstr ""
 
-#: command_ui.py:827
+#: command_ui.py:871
+msgid "Bible Version 2"
+msgstr ""
+
+#: command_ui.py:872
+msgid "Main Bible verse name 2"
+msgstr ""
+
+#: command_ui.py:873
+msgid "Each Bible verse name 2"
+msgstr ""
+
+#: command_ui.py:874
 msgid "Main Bible verses"
 msgstr ""
 
-#: command_ui.py:828
+#: command_ui.py:875
 msgid "Additional Bible verses"
 msgstr ""
 
-#: command_ui.py:829
+#: command_ui.py:876
 msgid "Repeating slides range"
 msgstr ""
 
-#: command_ui.py:838
-msgid "1 - Bible specification"
-msgstr ""
-
-#: command_ui.py:886 command_ui.py:944
-msgid "Slides to export"
-msgstr ""
-
-#: command_ui.py:887 command_ui.py:945
-msgid "Image type"
-msgstr ""
-
-#: command_ui.py:888 command_ui.py:946
-msgid "Output directory"
-msgstr ""
-
-#: command_ui.py:889 command_ui.py:947
-msgid "Clean up output directory"
+#: command_ui.py:885
+msgid "1 - Bible #1"
 msgstr ""
 
 #: command_ui.py:890
+msgid "2 - Bible #2"
+msgstr ""
+
+#: command_ui.py:894
+msgid "3 - Other Bible specification"
+msgstr ""
+
+#: command_ui.py:957 command_ui.py:1015
+msgid "Slides to export"
+msgstr ""
+
+#: command_ui.py:958 command_ui.py:1016
+msgid "Image type"
+msgstr ""
+
+#: command_ui.py:959 command_ui.py:1017
+msgid "Output directory"
+msgstr ""
+
+#: command_ui.py:960 command_ui.py:1018
+msgid "Clean up output directory"
+msgstr ""
+
+#: command_ui.py:961
 msgid "Generate transparent image"
 msgstr ""
 
-#: command_ui.py:891
+#: command_ui.py:962
 msgid "Color to make transparent"
 msgstr ""

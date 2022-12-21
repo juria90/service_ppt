@@ -17,8 +17,8 @@ msgstr ""
 "Generated-By: pygettext.py 1.5\n"
 
 #: bible\biblang.py:65
-msgid "(.*?) ?(\\d+):(\\d+)(-(\\d+))?"
-msgstr "(.*?) *(\\d+)[장|편|:] *(\\d+)(-(\\d+))?[절]?"
+msgid "(.*?) ?(\\d+):(\\d+)(-((\\d+):)?(\\d+))?"
+msgstr "(.*?) *(\\d+)[장|편|:] *(\\d+)(-((\\d+)[장|편|:])?(\\d+))?[절]?"
 
 #: bible\biblang.py:82
 msgid "1 Chron"

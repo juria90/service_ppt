@@ -1,9 +1,8 @@
 #!/usr/bin/env python
 """
 """
-from locale import resetlocale
-import re
 from wx.core import NO
+
 from .biblang import L18N
 
 
@@ -152,6 +151,15 @@ class Verse:
             else:
                 return v1 == self._number1
 
+    def get_max_no(self):
+        if self.no is None:
+            return None
+
+        if self._number2 is not None:
+            return self._number2
+        else:
+            return self._number1
+
     @staticmethod
     def _intersect(v, v1, v2):
         return v1 <= v and v <= v2
@@ -223,37 +231,61 @@ class Bible:
         The text_range should be formatted as <Book> <Chapter>:<Verse1>[-<Verse2>],
         where Book can be long or short name, Chapter and Verse1/Verse2 are valid numbers.
         """
-        bt, ct, v1t, v2t = L18N.parse_verse_range(self.lang, text_range)
+        bt, ct1, v1t, ct2, v2t = L18N.parse_verse_range(self.lang, text_range)
 
         b2i_map = self.get_book_to_index_map()
         if bt in b2i_map:
             bi = b2i_map[bt]
 
-            return bi, ct, v1t, v2t
+            return bi, ct1, v1t, ct2, v2t
 
         return None
 
-    def extract_texts_from_bible_index(self, bi, ct, v1t, v2t):
+    def extract_texts_from_bible_index(self, bi, ct1, v1t, ct2, v2t):
         """extract_texts() returns list of Verse within given bible index."""
         book = self.books[bi]
-        chapter = None
         verses = []
 
         if not book.is_loaded():
             self.reader.read_book(book, bi)
 
         for c in book.chapters:
-            if ct != c.no:
+            if c.no < ct1:
                 continue
 
-            chapter = c
-            for v in c.verses:
-                if v.in_range(v1t, v2t):
-                    v.chapter = chapter
-                    v.book = book
-                    verses.append(v)
+            # multi chapter
+            if ct2 is not None:
+                if c.no > ct2:
+                    break
+                elif c.no == ct2:
+                    for v in c.verses:
+                        if v.in_range(1, v2t):
+                            v.chapter = c
+                            v.book = book
+                            verses.append(v)
+                elif c.no == ct1:
+                    vmax = max([v.get_max_no() for v in c.verses if v.get_max_no()])
+                    for v in c.verses:
+                        if v.in_range(v1t, vmax):
+                            v.chapter = c
+                            v.book = book
+                            verses.append(v)
+                else:  # c.no < ct2
+                    vmax = max([v.get_max_no() for v in c.verses if v.get_max_no()])
+                    for v in c.verses:
+                        if v.in_range(1, vmax):
+                            v.chapter = c
+                            v.book = book
+                            verses.append(v)
+            else:  # if ct2 is None
+                for v in c.verses:
+                    if v.in_range(v1t, v2t):
+                        v.chapter = c
+                        v.book = book
+                        verses.append(v)
 
-            break
+                if ct2 is None:
+                    break
 
         if len(verses) == 0:
             return None
@@ -271,8 +303,8 @@ class Bible:
         if result is None:
             return None
 
-        bi, ct, v1t, v2t = result
-        verses = self.extract_texts_from_bible_index(bi, ct, v1t, v2t)
+        bi, ct1, v1t, ct2, v2t = result
+        verses = self.extract_texts_from_bible_index(bi, ct1, v1t, ct2, v2t)
         return verses
 
 

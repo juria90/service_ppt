@@ -901,8 +901,8 @@ class GenerateBibleVerse(Command):
             for b in range(len(bibles)):
                 i = startpos
                 bible = bibles[b]
-                bi, ct, v1t, v2t = bible_index
-                texts = bible.extract_texts_from_bible_index(bi, ct, v1t, v2t)
+                bi, ct1, v1t, ct2, v2t = bible_index
+                texts = bible.extract_texts_from_bible_index(bi, ct1, v1t, ct2, v2t)
                 if texts is None:
                     cm.error_message(_("Cannot extract Bible {bi=}, {ct=}, {v1t=}, {v2t=}."))
 
@@ -951,7 +951,7 @@ class GenerateBibleVerse(Command):
                         else:
                             cm.error_message(_("Cannot find the Bible verse={verse} in {verses}.").format(verse=verse, verses=verses))
 
-                    bi, ct, v1t, v2t = result
+                    bi, ct1, v1t, ct2, v2t = result
                     bible_index.append(result)
                 except ValueError:
                     pass

@@ -84,6 +84,8 @@ def escape_backslash(s):
 
 
 class MyFileProperty(wxpg.FileProperty):
+    """Derived class to handle event when filename is changed by user."""
+
     ignore_open_file = False
 
     def OnSetValue(self):
