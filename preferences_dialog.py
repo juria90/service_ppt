@@ -105,9 +105,8 @@ class PreferencesDialog(wx.adv.PropertySheetDialog):
 
         # MyBible root directory
         label = _("Root &directory for MyBible, MySword, Zefania:")
-        self._bible_rootdir_stext, self._bible_rootdir_ctrl = self._create_directory_picker(
-            panel, sizer, row, label, self.bible_rootdir, self.on_bible_dir_changed
-        )
+        _stext, _ctrl = self._create_directory_picker(panel, sizer, row, label, self.bible_rootdir, self.on_bible_dir_changed)
+        self._bible_rootdir_stext, self._bible_rootdir_ctrl = _stext, _ctrl
         row += 1
 
         # current bible version in combo
@@ -134,11 +133,7 @@ class PreferencesDialog(wx.adv.PropertySheetDialog):
         self.current_bible_format = self._bible_format_combo.GetStringSelection()
 
         enable_dir = False
-        if self.current_bible_format in [
-            bibfileformat.FORMAT_MYBIBLE,
-            bibfileformat.FORMAT_MYSWORD,
-            bibfileformat.FORMAT_ZEFANIA,
-        ]:
+        if self.current_bible_format in [bibfileformat.FORMAT_MYBIBLE, bibfileformat.FORMAT_MYSWORD, bibfileformat.FORMAT_ZEFANIA]:
             enable_dir = True
 
         self._bible_rootdir_stext.Enable(enable_dir)
@@ -187,9 +182,8 @@ class PreferencesDialog(wx.adv.PropertySheetDialog):
 
         # Lyric Search Path
         label = _("Lyric &search pathname:")
-        self._lyric_search_path_stext, self._lyric_search_path_picker = self._create_directory_picker(
-            panel, sizer, row, label, self.lyric_search_path, self.on_lyric_search_path_changed
-        )
+        _stext, _picker = self._create_directory_picker(panel, sizer, row, label, self.lyric_search_path, self.on_lyric_search_path_changed)
+        self._lyric_search_path_stext, self._lyric_search_path_picker = _stext, _picker
         row += 1
 
         # Open Lyric Text file automatically?
@@ -199,23 +193,24 @@ class PreferencesDialog(wx.adv.PropertySheetDialog):
 
         # Application path
         label = _("&Application pathname:")
-        _stext, self._lyric_application_picker = self._create_file_picker(
+        _stext, _picker = self._create_file_picker(
             panel, sizer, row, label, self.lyric_application_pathname, self.on_application_pathname_changed
         )
+        self._lyric_application_picker = _picker
         row += 1
 
         # Use template file if the lyric file doesn't exist yet.
         label = _("Copy from a &template file if the file not exists yet.")
-        self._lyric_copy_check = self._create_checkbox(
-            panel, sizer, row, label, self.lyric_copy_from_template, self.on_lyric_copy_check_changed
-        )
+        _check = self._create_checkbox(panel, sizer, row, label, self.lyric_copy_from_template, self.on_lyric_copy_check_changed)
+        self._lyric_copy_check = _check
         row += 1
 
         # Template file path
         label = _("Template &filename:")
-        _stext, self._lyric_template_picker = self._create_file_picker(
+        _stext, _picker = self._create_file_picker(
             panel, sizer, row, label, self.lyric_template_filename, self.on_template_filename_changed
         )
+        self._lyric_template_picker = _picker
         row += 1
 
         panel.SetSizerAndFit(sizer)
@@ -225,66 +220,31 @@ class PreferencesDialog(wx.adv.PropertySheetDialog):
     def _create_checkbox(self, panel, sizer, row, label: str, initial_value: str, handler):
         checkbox = wx.CheckBox(panel, label=label)
         checkbox.SetValue(initial_value)
-        checkbox.Bind(
-            wx.EVT_CHECKBOX,
-            handler,
-            checkbox,
-        )
-        sizer.Add(
-            checkbox,
-            pos=(row, 0),
-            span=DEFAULT_SPAN,
-            flag=wx.ALIGN_LEFT | wx.ALIGN_CENTER_VERTICAL | wx.ALL,
-            border=DEFAULT_BORDER,
-        )
+        checkbox.Bind(wx.EVT_CHECKBOX, handler, checkbox)
+        sizer.Add(checkbox, pos=(row, 0), span=DEFAULT_SPAN, flag=wx.ALIGN_LEFT | wx.ALIGN_CENTER_VERTICAL | wx.ALL, border=DEFAULT_BORDER)
 
         return checkbox
 
     def _create_combobox(self, panel, sizer, row, label: str, handler):
         stext = wx.StaticText(panel, label=label)
-        sizer.Add(
-            stext,
-            pos=(row, 0),
-            span=DEFAULT_SPAN,
-            flag=wx.ALIGN_LEFT | wx.ALIGN_CENTER_VERTICAL | wx.ALL,
-            border=DEFAULT_BORDER,
-        )
+        sizer.Add(stext, pos=(row, 0), span=DEFAULT_SPAN, flag=wx.ALIGN_LEFT | wx.ALIGN_CENTER_VERTICAL | wx.ALL, border=DEFAULT_BORDER)
 
         cbox = wx.ComboBox(panel, style=wx.CB_READONLY)
         cbox.Bind(wx.EVT_COMBOBOX, handler, cbox)
-        sizer.Add(
-            cbox,
-            pos=(row, 1),
-            span=DEFAULT_SPAN,
-            flag=wx.ALIGN_RIGHT | wx.ALIGN_CENTER_VERTICAL | wx.EXPAND | BORDER_STYLE_EXCEPT_LEFT,
-            border=DEFAULT_BORDER,
-        )
+        flag = wx.ALIGN_RIGHT | wx.ALIGN_CENTER_VERTICAL | wx.EXPAND | BORDER_STYLE_EXCEPT_LEFT
+        sizer.Add(cbox, pos=(row, 1), span=DEFAULT_SPAN, flag=flag, border=DEFAULT_BORDER)
 
         return stext, cbox
 
     def _create_directory_picker(self, panel, sizer, row: int, label: str, initial_value: str, handler):
         stext = wx.StaticText(panel, label=label)
-        sizer.Add(
-            stext,
-            pos=(row, 0),
-            span=DEFAULT_SPAN,
-            flag=wx.ALIGN_LEFT | wx.ALIGN_CENTER_VERTICAL | BORDER_STYLE_EXCEPT_TOP,
-            border=DEFAULT_BORDER,
-        )
+        flag = wx.ALIGN_LEFT | wx.ALIGN_CENTER_VERTICAL | BORDER_STYLE_EXCEPT_TOP
+        sizer.Add(stext, pos=(row, 0), span=DEFAULT_SPAN, flag=flag, border=DEFAULT_BORDER)
 
         picker = wx.DirPickerCtrl(panel, path=initial_value)
-        picker.Bind(
-            wx.EVT_DIRPICKER_CHANGED,
-            handler,
-            picker,
-        )
-        sizer.Add(
-            picker,
-            pos=(row, 1),
-            span=DEFAULT_SPAN,
-            flag=wx.ALIGN_RIGHT | wx.ALIGN_CENTER_VERTICAL | wx.EXPAND | BORDER_STYLE_RIGHT_BOTTOM,
-            border=DEFAULT_BORDER,
-        )
+        picker.Bind(wx.EVT_DIRPICKER_CHANGED, handler, picker)
+        flag = wx.ALIGN_RIGHT | wx.ALIGN_CENTER_VERTICAL | wx.EXPAND | BORDER_STYLE_RIGHT_BOTTOM
+        sizer.Add(picker, pos=(row, 1), span=DEFAULT_SPAN, flag=flag, border=DEFAULT_BORDER)
         pickctrl = picker.GetPickerCtrl()
         if pickctrl:
             pickctrl.SetLabel(_("&Browse..."))
@@ -293,27 +253,13 @@ class PreferencesDialog(wx.adv.PropertySheetDialog):
 
     def _create_file_picker(self, panel, sizer, row, label: str, initial_value: str, handler):
         stext = wx.StaticText(panel, label=label)
-        sizer.Add(
-            stext,
-            pos=(row, 0),
-            span=DEFAULT_SPAN,
-            flag=wx.ALIGN_LEFT | wx.ALIGN_CENTER_VERTICAL | BORDER_STYLE_EXCEPT_TOP,
-            border=DEFAULT_BORDER,
-        )
+        flag = wx.ALIGN_LEFT | wx.ALIGN_CENTER_VERTICAL | BORDER_STYLE_EXCEPT_TOP
+        sizer.Add(stext, pos=(row, 0), span=DEFAULT_SPAN, flag=flag, border=DEFAULT_BORDER)
 
         picker = wx.FilePickerCtrl(panel, path=initial_value)
-        picker.Bind(
-            wx.EVT_FILEPICKER_CHANGED,
-            handler,
-            picker,
-        )
-        sizer.Add(
-            picker,
-            pos=(row, 1),
-            span=DEFAULT_SPAN,
-            flag=wx.ALIGN_RIGHT | wx.ALIGN_CENTER_VERTICAL | wx.EXPAND | BORDER_STYLE_RIGHT_BOTTOM,
-            border=DEFAULT_BORDER,
-        )
+        picker.Bind(wx.EVT_FILEPICKER_CHANGED, handler, picker)
+        flag = wx.ALIGN_RIGHT | wx.ALIGN_CENTER_VERTICAL | wx.EXPAND | BORDER_STYLE_RIGHT_BOTTOM
+        sizer.Add(picker, pos=(row, 1), span=DEFAULT_SPAN, flag=flag, border=DEFAULT_BORDER)
         pickctrl = picker.GetPickerCtrl()
         if pickctrl:
             pickctrl.SetLabel(_("&Browse..."))

@@ -699,12 +699,7 @@ end tell
 class App(PPTAppBase):
     @staticmethod
     def is_running():
-        process = subprocess.Popen(
-            'pgrep "Microsoft PowerPoint"',
-            shell=True,
-            stdout=subprocess.PIPE,
-            stderr=subprocess.PIPE,
-        )
+        process = subprocess.Popen('pgrep "Microsoft PowerPoint"', shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
         my_pid, _err = process.communicate()
 
         try:

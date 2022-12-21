@@ -15,74 +15,17 @@ class BibleInfo:
     OLD_TESTAMENT_COUNT = 39
     CHAPTER_COUNT = [
         # old testament
-        50,
-        40,
-        27,
-        36,
-        34,
-        24,
-        21,
-        4,
-        31,
-        24,
-        22,
-        25,
-        29,
-        36,
-        10,
-        13,
-        10,
-        41,
-        150,
-        31,
-        12,
-        8,
-        66,
-        52,
-        5,
-        48,
-        12,
-        14,
-        3,
-        9,
-        1,
-        4,
-        7,
-        3,
-        3,
-        3,
-        2,
-        14,
-        4,
+        # fmt: off
+        50, 40, 27, 36, 34, 24, 21, 4, 31, 24,
+        22, 25, 29, 36, 10, 13, 10, 41, 150, 31,
+        12, 8, 66, 52, 5, 48, 12, 14, 3, 9,
+        1, 4, 7, 3, 3, 3, 2, 14, 4,
         # new testament
-        28,
-        16,
-        24,
-        21,
-        28,
-        16,
-        16,
-        13,
-        6,
-        6,
-        4,
-        4,
-        5,
-        3,
-        6,
-        4,
-        3,
-        1,
-        13,
-        5,
-        5,
-        3,
-        5,
-        1,
-        1,
-        1,
-        22,
+        28, 16, 24, 21, 28, 16, 16, 13, 6, 6,
+        4, 4, 5, 3, 6, 4, 3, 1, 13, 5,
+        5, 3, 5, 1, 1, 1, 22,
     ]
+    # fmt: on
 
     @staticmethod
     def get_book_count():
@@ -231,17 +174,17 @@ class Bible:
         The text_range should be formatted as <Book> <Chapter>:<Verse1>[-<Verse2>],
         where Book can be long or short name, Chapter and Verse1/Verse2 are valid numbers.
         """
-        bt, ct1, v1t, ct2, v2t = L18N.parse_verse_range(self.lang, text_range)
+        bt, ct1, vs1, ct2, vs2 = L18N.parse_verse_range(self.lang, text_range)
 
         b2i_map = self.get_book_to_index_map()
         if bt in b2i_map:
             bi = b2i_map[bt]
 
-            return bi, ct1, v1t, ct2, v2t
+            return bi, ct1, vs1, ct2, vs2
 
         return None
 
-    def extract_texts_from_bible_index(self, bi, ct1, v1t, ct2, v2t):
+    def extract_texts_from_bible_index(self, bi, ct1, vs1, ct2, vs2):
         """extract_texts() returns list of Verse within given bible index."""
         book = self.books[bi]
         verses = []
@@ -259,19 +202,19 @@ class Bible:
                     break
                 elif c.no == ct2:
                     for v in c.verses:
-                        if v.in_range(1, v2t):
+                        if v.in_range(1, vs2):
                             v.chapter = c
                             v.book = book
                             verses.append(v)
                 elif c.no == ct1:
-                    vmax = max([v.get_max_no() for v in c.verses if v.get_max_no()])
+                    vmax = max([no for v in c.verses if (no := v.get_max_no())])
                     for v in c.verses:
-                        if v.in_range(v1t, vmax):
+                        if v.in_range(vs1, vmax):
                             v.chapter = c
                             v.book = book
                             verses.append(v)
                 else:  # c.no < ct2
-                    vmax = max([v.get_max_no() for v in c.verses if v.get_max_no()])
+                    vmax = max([no for v in c.verses if (no := v.get_max_no())])
                     for v in c.verses:
                         if v.in_range(1, vmax):
                             v.chapter = c
@@ -279,7 +222,7 @@ class Bible:
                             verses.append(v)
             else:  # if ct2 is None
                 for v in c.verses:
-                    if v.in_range(v1t, v2t):
+                    if v.in_range(vs1, vs2):
                         v.chapter = c
                         v.book = book
                         verses.append(v)
@@ -303,8 +246,8 @@ class Bible:
         if result is None:
             return None
 
-        bi, ct1, v1t, ct2, v2t = result
-        verses = self.extract_texts_from_bible_index(bi, ct1, v1t, ct2, v2t)
+        bi, ct1, vs1, ct2, vs2 = result
+        verses = self.extract_texts_from_bible_index(bi, ct1, vs1, ct2, vs2)
         return verses
 
 

@@ -131,8 +131,9 @@ class MyBibleReader:
             self._read_book_file(bf, book)
 
     def _read_book_file(self, file, book):
-        chapter = None
+        re_numbers = re.compile(r"^(\d+)(\-\d+)?(.*)")
 
+        chapter = None
         c = 1
         for i, line in enumerate(file):
             if i == 0 and biblang.UNICODE_BOM == line[0]:
@@ -146,7 +147,7 @@ class MyBibleReader:
             v1 = None
             no = None
             text = None
-            m = re.match(r"^(\d+)(\-\d+)?(.*)", line)
+            m = re_numbers.match(line)
             if m:
                 v1 = m.group(1)
                 v2 = None

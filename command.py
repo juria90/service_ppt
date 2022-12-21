@@ -219,10 +219,7 @@ class OpenFile(Command):
 
             prs = cm.powerpoint.new_presentation()
         else:
-            cm.progress_message(
-                0,
-                _("Opening a template presentation file '{filename}'.").format(filename=self.filename),
-            )
+            cm.progress_message(0, _("Opening a template presentation file '{filename}'.").format(filename=self.filename))
 
             if not os.path.exists(self.filename):
                 cm.error_message(_("Cannot open a template presentation file '{filename}'.").format(filename=self.filename))
@@ -233,10 +230,7 @@ class OpenFile(Command):
         cm.set_presentation(prs)
 
         if self.notes_filename:
-            cm.progress_message(
-                90,
-                _("Opening a template notes file '{filename}'.").format(filename=self.notes_filename),
-            )
+            cm.progress_message(90, _("Opening a template notes file '{filename}'.").format(filename=self.notes_filename))
 
             if not os.path.exists(self.notes_filename):
                 cm.error_message(_("Cannot open a template notes file '{filename}'.").format(filename=self.notes_filename))
@@ -261,10 +255,7 @@ class SaveFiles(Command):
 
     def execute(self, cm, prs):
         filename = cm.replace_format_vars(self.filename)
-        cm.progress_message(
-            0,
-            _("Saving the presentation to the file '{filename}'.").format(filename=filename),
-        )
+        cm.progress_message(0, _("Saving the presentation to the file '{filename}'.").format(filename=filename))
         prs.saveas(filename)
 
         all_lyric_files = cm.lyric_manager.all_lyric_files
@@ -272,10 +263,7 @@ class SaveFiles(Command):
             archive_filename = cm.replace_format_vars(self.lyrics_archive_filename)
             filename, ext = os.path.splitext(archive_filename)
             ext = ext.lower()
-            cm.progress_message(
-                80,
-                _("Saving the lyrics to the archive file '{filename}'.").format(filename=archive_filename),
-            )
+            cm.progress_message(80, _("Saving the lyrics to the archive file '{filename}'.").format(filename=archive_filename))
             if ext == ".zip":
                 self.create_zip_lyric_files(archive_filename, all_lyric_files)
             elif ext == ".osz":
@@ -285,10 +273,7 @@ class SaveFiles(Command):
 
         if self.notes_filename:
             notes_filename = cm.replace_format_vars(self.notes_filename)
-            cm.progress_message(
-                90,
-                _("Saving the notes to the file '{filename}'.").format(filename=notes_filename),
-            )
+            cm.progress_message(90, _("Saving the notes to the file '{filename}'.").format(filename=notes_filename))
 
             try:
                 notes = cm.get_notes()
@@ -299,10 +284,7 @@ class SaveFiles(Command):
 
         if self.verses_filename:
             verses_filename = cm.replace_format_vars(self.verses_filename)
-            cm.progress_message(
-                95,
-                _("Saving Bible verses to file '{filename}'.").format(filename=verses_filename),
-            )
+            cm.progress_message(95, _("Saving Bible verses to file '{filename}'.").format(filename=verses_filename))
 
             main_verses = cm.bible_verse.main_verses
             verses_text = cm.bible_verse._verses_text
@@ -364,11 +346,7 @@ class InsertSlides(Command):
 
     def execute(self, cm, prs):
         file_count = len(self.filelist)
-        insert_format = ngettext(
-            "Inserting slides from {file_count} file.",
-            "Inserting slides from {file_count} files.",
-            file_count,
-        )
+        insert_format = ngettext("Inserting slides from {file_count} file.", "Inserting slides from {file_count} files.", file_count)
         cm.progress_message(0, insert_format.format(file_count=file_count))
 
         insert_location = evaluate_to_single_slide(prs, self.insert_location)
@@ -383,10 +361,7 @@ class InsertSlides(Command):
 
         for i, filename in enumerate(self.filelist):
             percent = 100 * i / file_count
-            cm.progress_message(
-                percent,
-                _("Inserting slides from file '{filename}'.").format(filename=filename),
-            )
+            cm.progress_message(percent, _("Inserting slides from file '{filename}'.").format(filename=filename))
 
             added_count = prs.insert_file_slides(insert_location, filename)
             insert_location = insert_location + added_count
@@ -481,11 +456,7 @@ class InsertLyrics(Command):
 
     def execute_lyric_files(self, cm, prs, filelist):
         file_count = len(filelist)
-        insert_format = ngettext(
-            "Inserting lyrics from {file_count} file.",
-            "Inserting lyrics from {file_count} files.",
-            file_count,
-        )
+        insert_format = ngettext("Inserting lyrics from {file_count} file.", "Inserting lyrics from {file_count} files.", file_count)
         cm.progress_message(0, insert_format.format(file_count=file_count))
 
         lyric_insert_location = evaluate_to_single_slide(prs, self.lyric_insert_location)
@@ -504,21 +475,12 @@ class InsertLyrics(Command):
         songs = cm.read_songs(filelist)
 
         # Because the original slides are updated with song, duplicate slides first.
-        self.duplicate_slides(
-            prs,
-            lyric_insert_location,
-            lyric_separator_slides,
-            separator_slide_count,
-            songs,
-        )
+        self.duplicate_slides(prs, lyric_insert_location, lyric_separator_slides, separator_slide_count, songs)
 
         last_index = len(songs) - 1
         for i, song in enumerate(songs):
             percent = 100 * i / file_count
-            cm.progress_message(
-                percent,
-                _("Inserting lyric from '{filename}'.").format(filename=filelist[i]),
-            )
+            cm.progress_message(percent, _("Inserting lyric from '{filename}'.").format(filename=filelist[i]))
 
             lines = list(song.get_lines_by_order())
             for j, l in enumerate(lines):
@@ -552,11 +514,7 @@ class InsertLyrics(Command):
             # Add separator except th first lyric.
             if separator_slide_count != 0 and i < last_index:
                 separator_slide_indices = prs.slide_ID_to_index(lyric_separator_slides)
-                added_count = prs.duplicate_slides(
-                    separator_slide_indices,
-                    lyric_insert_location,
-                    separator_slide_count,
-                )
+                added_count = prs.duplicate_slides(separator_slide_indices, lyric_insert_location, separator_slide_count)
                 lyric_insert_location = lyric_insert_location + added_count
 
 
@@ -826,14 +784,10 @@ class DuplicateWithText(Command):
             return gdict["output"]
         except Exception as e:
             print("Error: %s" % e)
-            pass
 
 
 class GenerateBibleVerse(Command):
-    def __init__(
-        self,
-        bible_format: str,
-    ):
+    def __init__(self, bible_format: str):
         """GenerateBibleVerse is two operations combined.
 
         1. It will replace all main_verse_name1 to main_verses in all slides.
@@ -901,10 +855,10 @@ class GenerateBibleVerse(Command):
             for b in range(len(bibles)):
                 i = startpos
                 bible = bibles[b]
-                bi, ct1, v1t, ct2, v2t = bible_index
-                texts = bible.extract_texts_from_bible_index(bi, ct1, v1t, ct2, v2t)
+                bi, ct1, vs1, ct2, vs2 = bible_index
+                texts = bible.extract_texts_from_bible_index(bi, ct1, vs1, ct2, vs2)
                 if texts is None:
-                    cm.error_message(_("Cannot extract Bible {bi=}, {ct=}, {v1t=}, {v2t=}."))
+                    cm.error_message(_("Cannot extract Bible {bi=}, {ct1=}, {vs1=}, {ct2=}, {vs2=}."))
 
                 for text in texts:
                     if i < len(all_verses_text):
@@ -951,7 +905,7 @@ class GenerateBibleVerse(Command):
                         else:
                             cm.error_message(_("Cannot find the Bible verse={verse} in {verses}.").format(verse=verse, verses=verses))
 
-                    bi, ct1, v1t, ct2, v2t = result
+                    bi, ct1, vs1, ct2, vs2 = result
                     bible_index.append(result)
                 except ValueError:
                     pass
@@ -982,9 +936,7 @@ class GenerateBibleVerse(Command):
         repeat_count = len(repeat_range) * (len(self._verses_text) - 1)
         if repeat_count > 0:
             duplicate_format = ngettext(
-                "Duplicating {repeat_count} slide for Bible Verse.",
-                "Duplicating {repeat_count} slides for Bible Verse.",
-                repeat_count,
+                "Duplicating {repeat_count} slide for Bible Verse.", "Duplicating {repeat_count} slides for Bible Verse.", repeat_count
             )
             cm.progress_message(0, duplicate_format.format(repeat_count=repeat_count))
 
@@ -1135,10 +1087,7 @@ class ExportSlides(Command):
         self.color = color
 
     def execute(self, cm, prs):
-        cm.progress_message(
-            0,
-            _("Exporting slide shapes as images to '{dirname}'.").format(dirname=self.out_dirname),
-        )
+        cm.progress_message(0, _("Exporting slide shapes as images to '{dirname}'.").format(dirname=self.out_dirname))
 
         if self.flags & Export_CleanupFiles:
             rmtree_except_self(self.out_dirname)
@@ -1196,10 +1145,7 @@ class ExportShapes(Command):
         self.flags = flags
 
     def execute(self, cm, prs):
-        cm.progress_message(
-            0,
-            _("Exporting slide shapes as images to '{dirname}'.").format(dirname=self.out_dirname),
-        )
+        cm.progress_message(0, _("Exporting slide shapes as images to '{dirname}'.").format(dirname=self.out_dirname))
 
         if self.flags & Export_CleanupFiles:
             rmtree_except_self(self.out_dirname)

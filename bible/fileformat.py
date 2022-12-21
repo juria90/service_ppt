@@ -10,7 +10,6 @@ FORMAT_MYBIBLE = "MyBible"
 FORMAT_MYSWORD = "MySword"
 FORMAT_SWORD = "Sword"
 FORMAT_ZEFANIA = "Zefania"
-FORMAT_LIST = []
 
 
 def _import_bible_format():

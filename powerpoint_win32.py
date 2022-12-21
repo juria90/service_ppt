@@ -219,11 +219,11 @@ class Font:
         s = ""
         for key, value in self.__dict__.items():
             if s:
-                s = s + ", "
+                s += ", "
             if key == "BaselineOffset":
-                s = s + key + ": " + ("%g" % value)
+                s += key + ": " + ("%g" % value)
             else:
-                s = s + key + ": " + str(value)
+                s += key + ": " + str(value)
 
         s = "Font(" + s + ")"
 
@@ -253,11 +253,11 @@ class ParagraphFormat:
         s = ""
         for key, value in self.__dict__.items():
             if s:
-                s = s + ", "
+                s += ", "
             if key == "SpaceAfter" or key == "SpaceBefore" or key == "SpaceWithin":
-                s = s + key + ": " + ("%g" % value)
+                s += key + ": " + ("%g" % value)
             else:
-                s = s + key + ": " + str(value)
+                s += key + ": " + str(value)
         s = "ParagraphFormat(" + s + ")"
 
         return s
@@ -303,12 +303,7 @@ def get_matching_textframe_info_in_shapes(shapes, text_dict):
             if from_text in text:
                 found_range = text_range.Find(text)
                 bbox = (shape.Left, shape.Top, shape.Width, shape.Height)
-                mbox = (
-                    text_frame.MarginLeft,
-                    text_frame.MarginTop,
-                    text_frame.MarginRight,
-                    text_frame.MarginBottom,
-                )
+                mbox = (text_frame.MarginLeft, text_frame.MarginTop, text_frame.MarginRight, text_frame.MarginBottom)
                 pf = ParagraphFormat(found_range.ParagraphFormat)
                 font = Font(found_range.Font)
                 return (from_text, bbox, mbox, pf, font)
@@ -601,13 +596,7 @@ class Presentation(PresentationBase):
         scale_width = self.prs.PageSetup.SlideWidth * 1.563  # 1500
         scale_height = self.prs.PageSetup.SlideHeight * 1.563  # 844
         shape_range = window.Selection.ShapeRange
-        shape_range.Export(
-            filename,
-            format_type,
-            scale_width,
-            scale_height,
-            PpExportMode.ppRelativeToSlide,
-        )
+        shape_range.Export(filename, format_type, scale_width, scale_height, PpExportMode.ppRelativeToSlide)
 
     def close(self):
         try:

@@ -9,13 +9,12 @@ import typing
 
 import wx
 
-import command_ui as cmdui
-import preferences_config as pc
-import preferences_dialog as pd
-
 from autoresize_listctrl import AutoresizeListCtrl
 from background_worker import BkgndProgressDialog
 from bible import fileformat as bibfileformat
+import command_ui as cmdui
+import preferences_config as pc
+import preferences_dialog as pd
 
 
 _ = lambda s: s
@@ -41,56 +40,16 @@ ILID_SAVE_FILE = 9
 
 COMMAND_INFO = [
     # ILID,                 Image File,          UI String,               UI Class
-    (
-        ILID_DUPLICATE_SLIDES,
-        "slide_duplicate.png",
-        _("Duplicate slides"),
-        cmdui.DuplicateWithTextUI,
-    ),
-    (
-        ILID_EXPORT_SLIDE_IMAGES,
-        "Save picture.png",
-        _("Export slides as images"),
-        cmdui.ExportSlidesUI,
-    ),
-    (
-        ILID_EXPORT_SHAPES_IMAGES,
-        "save shape.png",
-        _("Export shapes in slide as images"),
-        cmdui.ExportShapesUI,
-    ),
-    (
-        ILID_FIND_REPLACE_TEXTS,
-        "slide_text.png",
-        _("Find and replace texts"),
-        cmdui.SetVariablesUI,
-    ),
-    (
-        ILID_GENERATE_BIBLE_VERSES,
-        "slide_bible.png",
-        _("Generate Bible verses slides"),
-        cmdui.GenerateBibleVerseUI,
-    ),
-    (
-        ILID_INSERT_LYRICS,
-        "slide_note.png",
-        _("Insert lyrics from files"),
-        cmdui.InsertLyricsUI,
-    ),
-    (
-        ILID_INSERT_SLIDES,
-        "slide_insert.png",
-        _("Insert slides from files"),
-        cmdui.InsertSlidesUI,
-    ),
+    (ILID_DUPLICATE_SLIDES, "slide_duplicate.png", _("Duplicate slides"), cmdui.DuplicateWithTextUI),
+    (ILID_EXPORT_SLIDE_IMAGES, "Save picture.png", _("Export slides as images"), cmdui.ExportSlidesUI),
+    (ILID_EXPORT_SHAPES_IMAGES, "save shape.png", _("Export shapes in slide as images"), cmdui.ExportShapesUI),
+    (ILID_FIND_REPLACE_TEXTS, "slide_text.png", _("Find and replace texts"), cmdui.SetVariablesUI),
+    (ILID_GENERATE_BIBLE_VERSES, "slide_bible.png", _("Generate Bible verses slides"), cmdui.GenerateBibleVerseUI),
+    (ILID_INSERT_LYRICS, "slide_note.png", _("Insert lyrics from files"), cmdui.InsertLyricsUI),
+    (ILID_INSERT_SLIDES, "slide_insert.png", _("Insert slides from files"), cmdui.InsertSlidesUI),
     (ILID_OPEN_FILE, "Open.png", _("Open a presentation file"), cmdui.OpenFileUI),
     (ILID_POPUP_MESSAGE, "message.png", _("Pop up a message"), cmdui.PopupMessageUI),
-    (
-        ILID_SAVE_FILE,
-        "Save.png",
-        _("Save the presentation and other files"),
-        cmdui.SaveFilesUI,
-    ),
+    (ILID_SAVE_FILE, "Save.png", _("Save the presentation and other files"), cmdui.SaveFilesUI),
 ]
 
 UICLS_TO_ILID_MAP = {pi[3]: pi[0] for pi in COMMAND_INFO}
@@ -149,12 +108,7 @@ class Frame(wx.Frame):
 
         app_display_name = _("Service Presentation Generator")
         style = wx.DEFAULT_DIALOG_STYLE | wx.SYSTEM_MENU | wx.CLOSE_BOX | wx.RESIZE_BORDER | wx.MAXIMIZE_BOX | wx.MINIMIZE_BOX
-        wx.Frame.__init__(
-            self,
-            None,
-            title=app_display_name,
-            style=style,
-        )
+        wx.Frame.__init__(self, None, title=app_display_name, style=style)
         wx.App.Get().SetAppDisplayName(app_display_name)
         self.Bind(wx.EVT_MOVE, self.on_move)
         self.Bind(wx.EVT_SIZE, self.on_move)
@@ -207,11 +161,7 @@ class Frame(wx.Frame):
 
         m_file.AppendSeparator()
 
-        m_pref = m_file.Append(
-            wx.ID_PREFERENCES,
-            _("&Preferences...\tCtrl+,"),
-            _("Show and edit preferences."),
-        )
+        m_pref = m_file.Append(wx.ID_PREFERENCES, _("&Preferences...\tCtrl+,"), _("Show and edit preferences."))
         self.Bind(wx.EVT_MENU, self.on_preferences, m_pref)
 
         m_file.AppendSeparator()
@@ -230,27 +180,11 @@ class Frame(wx.Frame):
     def create_toolbar(self):
         """Creates default Toolbar."""
         toolbar = self.CreateToolBar()
-        _t = toolbar.AddTool(
-            wx.ID_OPEN,
-            _("Open"),
-            wx.Bitmap(os.path.join(self.image_path32, "Open.png")),
-        )
-        _t = toolbar.AddTool(
-            wx.ID_SAVE,
-            _("Save"),
-            wx.Bitmap(os.path.join(self.image_path32, "Save.png")),
-        )
-        _t = toolbar.AddTool(
-            wx.ID_EXECUTE,
-            _("Execute"),
-            wx.Bitmap(os.path.join(self.image_path32, "Play.png")),
-        )
+        _t = toolbar.AddTool(wx.ID_OPEN, _("Open"), wx.Bitmap(os.path.join(self.image_path32, "Open.png")))
+        _t = toolbar.AddTool(wx.ID_SAVE, _("Save"), wx.Bitmap(os.path.join(self.image_path32, "Save.png")))
+        _t = toolbar.AddTool(wx.ID_EXECUTE, _("Execute"), wx.Bitmap(os.path.join(self.image_path32, "Play.png")))
         _t = toolbar.AddSeparator()
-        _t = toolbar.AddTool(
-            wx.ID_EXIT,
-            _("Exit"),
-            wx.Bitmap(os.path.join(self.image_path32, "Exit.png")),
-        )
+        _t = toolbar.AddTool(wx.ID_EXIT, _("Exit"), wx.Bitmap(os.path.join(self.image_path32, "Exit.png")))
         toolbar.Realize()
 
         self.toolbar = toolbar
@@ -302,13 +236,7 @@ class Frame(wx.Frame):
 
         # command panel
         self.command_toolbar = self.create_command_toolbar(parent)
-        sizer.Add(
-            self.command_toolbar,
-            pos=(0, 0),
-            span=DEFAULT_SPAN,
-            flag=wx.ALL,
-            border=DEFAULT_BORDER,
-        )
+        sizer.Add(self.command_toolbar, pos=(0, 0), span=DEFAULT_SPAN, flag=wx.ALL, border=DEFAULT_BORDER)
 
         command_style = wx.LC_REPORT | wx.LC_EDIT_LABELS | wx.LC_NO_HEADER | wx.LC_SINGLE_SEL
         self.command_ctrl = AutoresizeListCtrl(parent, size=(200, -1), style=command_style, name="CommandList")
@@ -318,26 +246,14 @@ class Frame(wx.Frame):
         self.command_ctrl.SetImageList(self.command_imglist, wx.IMAGE_LIST_SMALL)
         self.Bind(wx.EVT_LIST_ITEM_FOCUSED, self.on_command_focused, self.command_ctrl)
         self.Bind(wx.EVT_LIST_END_LABEL_EDIT, self.on_command_end_labeledit, self.command_ctrl)
-        sizer.Add(
-            self.command_ctrl,
-            pos=(1, 0),
-            span=DEFAULT_SPAN,
-            flag=wx.LEFT | wx.RIGHT | wx.BOTTOM | wx.EXPAND,
-            border=DEFAULT_BORDER,
-        )
+        sizer.Add(self.command_ctrl, pos=(1, 0), span=DEFAULT_SPAN, flag=wx.LEFT | wx.RIGHT | wx.BOTTOM | wx.EXPAND, border=DEFAULT_BORDER)
 
         # command settings
         self.settings_panel = wx.Panel(panel)
         ui_sizer = wx.BoxSizer(wx.VERTICAL)
         self.settings_panel.SetSizer(ui_sizer)
 
-        sizer.Add(
-            self.settings_panel,
-            pos=(1, 1),
-            span=DEFAULT_SPAN,
-            flag=wx.RIGHT | wx.BOTTOM | wx.EXPAND,
-            border=DEFAULT_BORDER,
-        )
+        sizer.Add(self.settings_panel, pos=(1, 1), span=DEFAULT_SPAN, flag=wx.RIGHT | wx.BOTTOM | wx.EXPAND, border=DEFAULT_BORDER)
 
         sizer.AddGrowableCol(1)
         sizer.AddGrowableRow(1)
@@ -406,12 +322,7 @@ class Frame(wx.Frame):
         if not filename:
             defDir, defFile = "", ""
             dlg = wx.FileDialog(
-                self,
-                _("Open File"),
-                defDir,
-                defFile,
-                _("Service definition files (*.sdf)|*.sdf"),
-                wx.FD_OPEN | wx.FD_FILE_MUST_EXIST,
+                self, _("Open File"), defDir, defFile, _("Service definition files (*.sdf)|*.sdf"), wx.FD_OPEN | wx.FD_FILE_MUST_EXIST
             )
             result = dlg.ShowModal()
             filename = dlg.GetPath()
@@ -422,11 +333,7 @@ class Frame(wx.Frame):
             self.uimgr.open(filename)
         except (json.JSONDecodeError, Exception):
             title = wx.App.Get().GetAppDisplayName()
-            wx.MessageBox(
-                _("Failed to open file '{filename}'.".format(filename=filename)),
-                caption=title,
-                style=wx.OK | wx.ICON_STOP,
-            )
+            wx.MessageBox(_("Failed to open file '{filename}'.".format(filename=filename)), caption=title, style=wx.OK | wx.ICON_STOP)
             return
 
         self.populate_ui_items()
@@ -448,9 +355,7 @@ class Frame(wx.Frame):
         if len(self.uimgr.command_ui_list) > 0:
             item = 0
             self.command_ctrl.SetItemState(
-                item,
-                wx.LIST_STATE_FOCUSED | wx.LIST_STATE_SELECTED,
-                wx.LIST_STATE_FOCUSED | wx.LIST_STATE_SELECTED,
+                item, wx.LIST_STATE_FOCUSED | wx.LIST_STATE_SELECTED, wx.LIST_STATE_FOCUSED | wx.LIST_STATE_SELECTED
             )
 
     def on_save(self, _event: wx.Event):
@@ -467,12 +372,7 @@ class Frame(wx.Frame):
                 defDir, defFile = os.path.split(self._filename)
 
             dlg = wx.FileDialog(
-                self,
-                title,
-                defDir,
-                defFile,
-                _("Service definition files (*.sdf)|*.sdf"),
-                wx.FD_SAVE | wx.FD_OVERWRITE_PROMPT,
+                self, title, defDir, defFile, _("Service definition files (*.sdf)|*.sdf"), wx.FD_SAVE | wx.FD_OVERWRITE_PROMPT
             )
             result = dlg.ShowModal()
             filename = dlg.GetPath()
@@ -578,12 +478,7 @@ class Frame(wx.Frame):
 
     def on_add_command(self, _event: wx.Event):
         """Event handler for the ID_COMMAND_ADD command."""
-        dlg = wx.SingleChoiceDialog(
-            self,
-            _("Please choose a slide command."),
-            _("Add slide command"),
-            [x[2] for x in COMMAND_INFO],
-        )
+        dlg = wx.SingleChoiceDialog(self, _("Please choose a slide command."), _("Add slide command"), [x[2] for x in COMMAND_INFO])
         result = dlg.ShowModal()
         command_index = dlg.GetSelection()
         command_name = COMMAND_INFO[command_index][2]

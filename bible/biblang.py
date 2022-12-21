@@ -223,9 +223,9 @@ class L18N:
 
         bt = None
         ct1 = None
-        v1t = None
+        vs1 = None
         ct2 = None
-        v2t = None
+        vs2 = None
         m = None
 
         trans = L18N.get_translation(lang)
@@ -236,32 +236,32 @@ class L18N:
         if m is not None:
             bt = m.group(1)
             ct1 = m.group(2)
-            v1t = m.group(3)
+            vs1 = m.group(3)
             ct2 = m.group(6)
-            v2t = m.group(7)
+            vs2 = m.group(7)
 
         if pattern != L18N.VERSE_PARSING_PATTERN and m is None:
             m = re.match(L18N.VERSE_PARSING_PATTERN, text_range)
             if m is not None:
                 bt = m.group(1)
                 ct1 = m.group(2)
-                v1t = m.group(3)
+                vs1 = m.group(3)
                 ct2 = m.group(6)
-                v2t = m.group(7)
+                vs2 = m.group(7)
 
         if m is None:
             raise ValueError("Invalid text range: %s".format(text_range))
 
         bt = bt.strip()
         ct1 = int(ct1)
-        v1t = int(v1t)
+        vs1 = int(vs1)
         if ct2 is not None:
             ct2 = int(ct2)
-        if v2t is not None:
-            v2t = int(v2t)
+        if vs2 is not None:
+            vs2 = int(vs2)
 
         if ct2 is not None:
-            if ct1 > ct2 or (ct1 == ct2 and v1t > v2t):
+            if ct1 > ct2 or (ct1 == ct2 and vs1 > vs2):
                 raise ValueError("Invalid text range: %s".format(text_range))
 
-        return bt, ct1, v1t, ct2, v2t
+        return bt, ct1, vs1, ct2, vs2

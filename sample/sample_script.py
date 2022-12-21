@@ -1,5 +1,5 @@
 # sample script to process input(list of string) and return output(list of string)
-# 
+#
 
 sample_text = """1. 교회 창립 멤버들...
 
@@ -30,6 +30,7 @@ for sec in input:
         output.extend([lns0 + "\n" + l for l in lns1_])
 """
 
+
 def run_script(script, input):
     try:
         gdict = {"input": input}
@@ -38,6 +39,7 @@ def run_script(script, input):
     except Exception as e:
         print("Error: %s" % e)
         pass
+
 
 output = run_script(script, input)
 print(output)

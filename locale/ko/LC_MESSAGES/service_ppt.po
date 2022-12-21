@@ -6,7 +6,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2022-12-21 01:36-0800\n"
+"POT-Creation-Date: 2022-12-21 14:28-0800\n"
 "PO-Revision-Date: 2020-05-30 11:26-0700\n"
 "Last-Translator: James Lee <juria90@yahoo.com>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -17,39 +17,39 @@ msgstr ""
 "Generated-By: pygettext.py 1.5\n"
 "Plural-Forms: nplurals=2; plural=n != 1;\n"
 
-#: preferences_dialog.py:201
+#: preferences_dialog.py:195
 msgid "&Application pathname:"
 msgstr ""
 
-#: preferences_dialog.py:290 preferences_dialog.py:319
+#: preferences_dialog.py:250 preferences_dialog.py:265
 msgid "&Browse..."
 msgstr "브라우즈(&B)..."
 
-#: mainframe.py:205
+#: mainframe.py:159
 msgid "&Execute...\tCtrl+E"
 msgstr "실행(&E)...\tCtrl+E"
 
-#: mainframe.py:185
+#: mainframe.py:139
 msgid "&File"
 msgstr "파일(&F)"
 
-#: preferences_dialog.py:196
+#: preferences_dialog.py:190
 msgid "&Open lyric text file automatically."
 msgstr ""
 
-#: mainframe.py:187
+#: mainframe.py:141
 msgid "&Open...\tCtrl+O"
 msgstr "열기(&O)...\tCtrl+O"
 
-#: mainframe.py:212
+#: mainframe.py:164
 msgid "&Preferences...\tCtrl+,"
 msgstr "설정(&P)...\tCtrl+,"
 
-#: mainframe.py:197
+#: mainframe.py:151
 msgid "&Save\tCtrl+S"
 msgstr "저장(&S)\tCtrl+S"
 
-#: mainframe.py:507
+#: mainframe.py:407
 msgid "(Untitled)"
 msgstr "(제목 없음)"
 
@@ -102,11 +102,11 @@ msgstr "1 - 성경 설정"
 msgid "4 - Word wrap archive text"
 msgstr "가사 자동 줄 바꾸기"
 
-#: mainframe.py:266
+#: mainframe.py:200
 msgid "Add Command"
 msgstr "명령 추가"
 
-#: mainframe.py:584
+#: mainframe.py:481
 msgid "Add slide command"
 msgstr "슬라이드 명령 추가"
 
@@ -140,46 +140,46 @@ msgstr "성경 버전"
 msgid "Bible settings"
 msgstr "성경 설정"
 
-#: command.py:907
-msgid "Cannot extract Bible {bi=}, {ct=}, {v1t=}, {v2t=}."
+#: command.py:861
+msgid "Cannot extract Bible {bi=}, {ct1=}, {vs1=}, {ct2=}, {vs2=}."
 msgstr ""
 
-#: command.py:884
+#: command.py:838
 #, fuzzy, python-brace-format
 msgid "Cannot find the Bible format={bible_format} and version={version}."
 msgstr "성경 포맷={bible_format}과 버전={bible_version}를 찾을 수 없습니다."
 
-#: command.py:952
+#: command.py:906
 #, python-brace-format
 msgid "Cannot find the Bible verse={verse} in {verses}."
 msgstr "성경 구절={verse}를 {} 중에서 찾을 수 없습니다."
 
-#: command.py:950
+#: command.py:904
 #, python-brace-format
 msgid "Cannot find the Bible verse={verse}."
 msgstr "성경 구절 {verse}를 찾을 수 없습니다."
 
-#: command.py:1232 command.py:1238
+#: command.py:1178 command.py:1184
 #, python-brace-format
 msgid "Cannot open a lyric file '{filename}'."
 msgstr "가사 파일 '{filename}'을 열 수 없습니다."
 
-#: command.py:242
+#: command.py:236
 #, python-brace-format
 msgid "Cannot open a template notes file '{filename}'."
 msgstr "노트 파일 '{filename}'을 열 수 없습니다."
 
-#: command.py:228
+#: command.py:225
 #, python-brace-format
 msgid "Cannot open a template presentation file '{filename}'."
 msgstr "프리젠테이션 파일 '{filename}'을 열 수 없습니다."
 
-#: command.py:319
+#: command.py:301
 #, python-brace-format
 msgid "Cannot save bible verses to the file '{filename}'."
 msgstr "성경 구절을 '{filename}'로 저장할 수 없습니다."
 
-#: command.py:298
+#: command.py:283
 #, python-brace-format
 msgid "Cannot save the notes file '{filename}'."
 msgstr "프리젠테이션을 파일 '{filename}'로 저장할 수 없습니다."
@@ -188,11 +188,11 @@ msgstr "프리젠테이션을 파일 '{filename}'로 저장할 수 없습니다.
 msgid "Clean up output directory"
 msgstr "출력 디렉토리의 파일들 지우기"
 
-#: command.py:1498
+#: command.py:1444
 msgid "Cleaning up after running all the commands."
 msgstr "모든 명령들을 실행한 후에 뒷정리 중입니다."
 
-#: mainframe.py:219
+#: mainframe.py:169
 msgid "Close window and exit the program."
 msgstr "창을 닫고 프로그램 종료합니다."
 
@@ -200,11 +200,11 @@ msgstr "창을 닫고 프로그램 종료합니다."
 msgid "Color to make transparent"
 msgstr "투명하게 만들 색상"
 
-#: command.py:1159 command.py:1176
+#: command.py:1108 command.py:1125
 msgid "Converting to transparent images."
 msgstr "투명 이미지로 변환하는 중입니다"
 
-#: preferences_dialog.py:208
+#: preferences_dialog.py:203
 msgid "Copy from a &template file if the file not exists yet."
 msgstr ""
 
@@ -212,7 +212,7 @@ msgstr ""
 msgid "Creating a new presentation."
 msgstr "새로운 프리젠테이션 만듭니다."
 
-#: preferences_dialog.py:114
+#: preferences_dialog.py:113
 msgid "Current Bible &Version:"
 msgstr "현재 선택된 성경 버전(&V):"
 
@@ -228,7 +228,7 @@ msgstr "날짜 값"
 msgid "Datetime variable name"
 msgstr "날짜 변수 이름"
 
-#: mainframe.py:270
+#: mainframe.py:204
 msgid "Delete Command"
 msgstr "명령 삭제"
 
@@ -240,22 +240,22 @@ msgstr "디렉토리 설정"
 msgid "Displaying PopupMessage."
 msgstr "팝업 메세지 띄우는 중입니다."
 
-#: mainframe.py:47
+#: mainframe.py:43
 msgid "Duplicate slides"
 msgstr "슬라이드 복제"
 
-#: command.py:729 command.py:994
+#: command.py:687 command.py:946
 msgid "Duplicating slides and replacing texts."
 msgstr "슬라이드를 복제 후에 글을 바꾸는 중입니다."
 
-#: command.py:985
+#: command.py:939
 #, python-brace-format
 msgid "Duplicating {repeat_count} slide for Bible Verse."
 msgid_plural "Duplicating {repeat_count} slides for Bible Verse."
 msgstr[0] "성경 구절을 위하여 {repeat_count}개의 슬라이드를 복제합니다."
 msgstr[1] "성경 구절을 위하여 {repeat_count}개의 슬라이드들을 복제합니다."
 
-#: mainframe.py:219
+#: mainframe.py:169
 msgid "E&xit\tCtrl+Q"
 msgstr "나가기(&X)\tCtrl+Q"
 
@@ -273,32 +273,32 @@ msgstr "각각의 성경 구절 이름"
 msgid "Enable word wrap"
 msgstr "자동 줄 바꾸기"
 
-#: mainframe.py:245
+#: mainframe.py:185
 msgid "Execute"
 msgstr "실행"
 
-#: mainframe.py:205
+#: mainframe.py:159
 msgid "Executes the commands."
 msgstr "명령들을 실행"
 
-#: mainframe.py:251
+#: mainframe.py:187
 msgid "Exit"
 msgstr "종료"
 
-#: mainframe.py:59
+#: mainframe.py:45
 msgid "Export shapes in slide as images"
 msgstr "쉐입을 이미지로 저장"
 
-#: mainframe.py:53
+#: mainframe.py:44
 msgid "Export slides as images"
 msgstr "슬라이드를 이미지로 저장"
 
-#: command.py:1140 command.py:1201
+#: command.py:1090 command.py:1148
 #, python-brace-format
 msgid "Exporting slide shapes as images to '{dirname}'."
 msgstr "슬라이드 쉐입을 이미지로 '{dirname}'에 내보내는 중입니다."
 
-#: mainframe.py:426
+#: mainframe.py:336
 #, python-brace-format
 msgid "Failed to open file '{filename}'."
 msgstr "프리젠테이션을 파일 '{filename}'로 저장 중입니다."
@@ -312,7 +312,7 @@ msgstr "파일 %d"
 msgid "File paths"
 msgstr "파일 경로"
 
-#: mainframe.py:65
+#: mainframe.py:46
 msgid "Find and replace texts"
 msgstr "글을 찾아서 바꾸기"
 
@@ -320,7 +320,7 @@ msgstr "글을 찾아서 바꾸기"
 msgid "Font"
 msgstr "글꼴"
 
-#: mainframe.py:71
+#: mainframe.py:47
 msgid "Generate Bible verses slides"
 msgstr "성경 구절 슬라이드 생성"
 
@@ -336,43 +336,43 @@ msgstr "이미지 종류"
 msgid "Insert location"
 msgstr "삽입할 위치"
 
-#: mainframe.py:77
+#: mainframe.py:48
 msgid "Insert lyrics from files"
 msgstr "파일에서 가사 읽어오기"
 
-#: mainframe.py:83
+#: mainframe.py:49
 msgid "Insert slides from files"
 msgstr "파일에서 슬라이드 읽어오기"
 
-#: command.py:520
+#: command.py:483
 #, python-brace-format
 msgid "Inserting lyric from '{filename}'."
 msgstr "파일 '{filename}'에서 가사를 삽입 중입니다."
 
-#: command.py:485
+#: command.py:459
 #, python-brace-format
 msgid "Inserting lyrics from {file_count} file."
 msgid_plural "Inserting lyrics from {file_count} files."
 msgstr[0] "{file_count}개의 파일에서 가사를 삽입 중입니다."
 msgstr[1] "{file_count}개의 파일들에서 가사를 삽입 중입니다."
 
-#: command.py:388
+#: command.py:364
 #, python-brace-format
 msgid "Inserting slides from file '{filename}'."
 msgstr "파일 '{filename}'에서 슬라이드를 삽입 중입니다."
 
-#: command.py:368
+#: command.py:349
 #, python-brace-format
 msgid "Inserting slides from {file_count} file."
 msgid_plural "Inserting slides from {file_count} files."
 msgstr[0] "{file_count}개의 파일에서 슬라이드를 삽입 중입니다."
 msgstr[1] "{file_count}개의 파일들에서 슬라이드를 삽입 중입니다."
 
-#: mainframe.py:502
+#: mainframe.py:402
 msgid "Intializing commands."
 msgstr "명령들을 초기화 중."
 
-#: preferences_dialog.py:189
+#: preferences_dialog.py:184
 msgid "Lyric &search pathname:"
 msgstr ""
 
@@ -427,15 +427,15 @@ msgstr "기본 성경 구절 이름"
 msgid "Main Bible verses"
 msgstr "기본 성경 구절"
 
-#: mainframe.py:274
+#: mainframe.py:208
 msgid "Move Down"
 msgstr "아래로 옮기기"
 
-#: mainframe.py:278
+#: mainframe.py:212
 msgid "Move Up"
 msgstr "위로 옮기기"
 
-#: command.py:493
+#: command.py:464
 msgid "No repeatable slides are found. Aborting the command."
 msgstr "복제할 수 있는 슬라이드가 없어서 명령을 중단합니다."
 
@@ -443,27 +443,27 @@ msgstr "복제할 수 있는 슬라이드가 없어서 명령을 중단합니다
 msgid "Notes file"
 msgstr "노트 파일"
 
-#: mainframe.py:235
+#: mainframe.py:183
 msgid "Open"
 msgstr "파일 열기"
 
-#: mainframe.py:191
+#: mainframe.py:145
 msgid "Open &recent"
 msgstr "최근 파일 열기(&R)"
 
-#: mainframe.py:410
+#: mainframe.py:325
 msgid "Open File"
 msgstr "파일 열기"
 
-#: mainframe.py:86
+#: mainframe.py:50
 msgid "Open a presentation file"
 msgstr "프리젠테이션 파일 열기"
 
-#: mainframe.py:191
+#: mainframe.py:145
 msgid "Open a recently used file."
 msgstr "최근에 사용된 파일 열기"
 
-#: mainframe.py:187
+#: mainframe.py:141
 msgid "Open an existing file."
 msgstr "존재하는 파일 열기"
 
@@ -471,12 +471,12 @@ msgstr "존재하는 파일 열기"
 msgid "OpenLP service files (*.osz)|*.osz|Zip files (*.zip)|*.zip"
 msgstr "OpenLP service files (*.osz)|*.osz|Zip files (*.zip)|*.zip"
 
-#: command.py:238
+#: command.py:233
 #, python-brace-format
 msgid "Opening a template notes file '{filename}'."
 msgstr "노트 파일 '{filename}' 여는 중입니다."
 
-#: command.py:224
+#: command.py:222
 #, python-brace-format
 msgid "Opening a template presentation file '{filename}'."
 msgstr "프리젠테이션 파일 '{filename}' 여는 중입니다."
@@ -493,11 +493,11 @@ msgstr "출력 디렉토리"
 msgid "Page width"
 msgstr "페이지 너비"
 
-#: mainframe.py:583
+#: mainframe.py:481
 msgid "Please choose a slide command."
 msgstr "슬라이드 명령을 선택하세요."
 
-#: mainframe.py:87
+#: mainframe.py:51
 msgid "Pop up a message"
 msgstr "메세지 띄우기"
 
@@ -525,15 +525,15 @@ msgstr ""
 msgid "Presentation file"
 msgstr "프리젠테이션 파일 열기"
 
-#: command.py:969
+#: command.py:923
 msgid "Processing Bible Verse."
 msgstr "성경 구절을 처리 중입니다."
 
-#: command.py:1119
+#: command.py:1071
 msgid "Processing PromptCommand."
 msgstr "메세지 명령을 처리 중입니다."
 
-#: command.py:1501
+#: command.py:1447
 msgid "Processing is done successfully."
 msgstr "명령들의 처리가 완료 되었습니다."
 
@@ -545,11 +545,11 @@ msgstr "반복 범위"
 msgid "Repeating slides range"
 msgstr "반복할 슬라이드 범위"
 
-#: command.py:774
+#: command.py:732
 msgid "Replacing texts."
 msgstr "글을 바꾸는 중입니다."
 
-#: command.py:692
+#: command.py:650
 #, python-brace-format
 msgid "Replacing {text_count} text."
 msgid_plural "Replacing {text_count} texts."
@@ -560,54 +560,54 @@ msgstr[1] "{text_count}개의 글들을 바꾸는 중입니다."
 msgid "Root &directory for MyBible, MySword, Zefania:"
 msgstr "MyBible, MySword, Zefania 성경 포맷을 위한 상위 디렉토리(&D):"
 
-#: mainframe.py:502
+#: mainframe.py:402
 msgid "Running commands."
 msgstr "명령을 실행하고 있습니다."
 
-#: mainframe.py:240
+#: mainframe.py:184
 msgid "Save"
 msgstr "저장"
 
-#: mainframe.py:200
+#: mainframe.py:154
 msgid "Save &as...\tCtrl+Shift+S"
 msgstr "다른 이름으로 저장(&A)...\tCtrl+Shift+S"
 
-#: mainframe.py:460
+#: mainframe.py:365
 msgid "Save as a file"
 msgstr "파일로 저장"
 
-#: mainframe.py:200
+#: mainframe.py:154
 msgid "Save as a file."
 msgstr "다른 이름으로 저장"
 
-#: mainframe.py:91
+#: mainframe.py:52
 msgid "Save the presentation and other files"
 msgstr "프리젠테이션을 파일로 저장"
 
-#: mainframe.py:457
+#: mainframe.py:362
 msgid "Save to a file"
 msgstr "파일에 저장"
 
-#: mainframe.py:197
+#: mainframe.py:151
 msgid "Save to a file."
 msgstr "파일에 저장"
 
-#: command.py:304
+#: command.py:287
 #, python-brace-format
 msgid "Saving Bible verses to file '{filename}'."
 msgstr "성경 구절을 '{filename}'로 저장 중입니다."
 
-#: command.py:277
+#: command.py:266
 #, python-brace-format
 msgid "Saving the lyrics to the archive file '{filename}'."
 msgstr "가사를 파일 '{filename}'로 저장 중입니다."
 
-#: command.py:290
+#: command.py:276
 #, python-brace-format
 msgid "Saving the notes to the file '{filename}'."
 msgstr "노트를 파일 '{filename}'로 저장 중입니다."
 
-#: command.py:266
+#: command.py:258
 #, python-brace-format
 msgid "Saving the presentation to the file '{filename}'."
 msgstr "프리젠테이션을 파일 '{filename}'로 저장 중입니다."
@@ -624,15 +624,15 @@ msgstr "악보 파일 구분 슬라이드 범위"
 msgid "Separator slides"
 msgstr "구분 슬라이드 범위"
 
-#: mainframe.py:150
+#: mainframe.py:109
 msgid "Service Presentation Generator"
 msgstr "예배 프리젠테이션 생성기"
 
-#: mainframe.py:413 mainframe.py:474
+#: mainframe.py:325 mainframe.py:375
 msgid "Service definition files (*.sdf)|*.sdf"
 msgstr "예배 정의 파일 (*.sdf)|*.sdf"
 
-#: mainframe.py:213
+#: mainframe.py:164
 msgid "Show and edit preferences."
 msgstr "설정 보거나 변경하기"
 
@@ -644,11 +644,11 @@ msgstr "슬라이드 범위"
 msgid "Slides to export"
 msgstr "내보낼 슬라이드들"
 
-#: command.py:1477
+#: command.py:1423
 msgid "Start processing commands."
 msgstr "명령들의 처리를 시작합니다."
 
-#: preferences_dialog.py:215
+#: preferences_dialog.py:209
 msgid "Template &filename:"
 msgstr ""
 
@@ -664,7 +664,7 @@ msgstr "찾을 글"
 msgid "Texts to replace (a blank line for a separation)"
 msgstr "바꿀 글들 (공백 라인은 구분 표시)"
 
-#: mainframe.py:399
+#: mainframe.py:315
 msgid ""
 "The document is modified.\n"
 "Do you want to continue?"
@@ -672,7 +672,7 @@ msgstr ""
 "문서가 수정되었습니다.\n"
 "계속 진행하시겠습니까?"
 
-#: mainframe.py:362
+#: mainframe.py:278
 msgid ""
 "The document is modified.\n"
 "Do you want to save it?"
@@ -680,7 +680,7 @@ msgstr ""
 "문서가 수정되었습니다.\n"
 "저장하시겠습니까?"
 
-#: command.py:284
+#: command.py:272
 #, fuzzy, python-brace-format
 msgid "Unknown file extension for lyrics archive file '{filename}'."
 msgstr "가사 파일 '{filename}'은 알려지지 않은 확장자입니다."

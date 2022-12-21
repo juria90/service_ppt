@@ -57,8 +57,8 @@ class WorkerThread(Thread):
         wx.PostEvent(self._notify_window, ResultEvent(0))
 
 
-label1 = "More"
-label2 = "Less"
+LABEL_MORE = "More"
+LABEL_LESS = "Less"
 
 
 class BkgndProgressDialog(wx.Dialog):
@@ -95,22 +95,12 @@ class BkgndProgressDialog(wx.Dialog):
 
         text_for_size = (("W" * 40) + "\n") * 3
         self.message_ctrl = wx.StaticText(self, label=text_for_size, style=wx.ST_NO_AUTORESIZE)
-        sizer.Add(
-            self.message_ctrl,
-            proportion=1,
-            flag=wx.ALL | wx.FIXED_MINSIZE | wx.EXPAND,
-            border=DEFAULT_BORDER,
-        )
+        sizer.Add(self.message_ctrl, proportion=1, flag=wx.ALL | wx.FIXED_MINSIZE | wx.EXPAND, border=DEFAULT_BORDER)
 
         self.guage_ctrl = wx.Gauge(self, range=100, style=wx.GA_HORIZONTAL | wx.GA_PROGRESS)
-        sizer.Add(
-            self.guage_ctrl,
-            proportion=0,
-            flag=wx.LEFT | wx.BOTTOM | wx.RIGHT | wx.EXPAND,
-            border=DEFAULT_BORDER,
-        )
+        sizer.Add(self.guage_ctrl, proportion=0, flag=wx.LEFT | wx.BOTTOM | wx.RIGHT | wx.EXPAND, border=DEFAULT_BORDER)
 
-        self.cp = cp = wx.CollapsiblePane(self, label=label1, style=wx.CP_DEFAULT_STYLE | wx.CP_NO_TLW_RESIZE)
+        self.cp = cp = wx.CollapsiblePane(self, label=LABEL_MORE, style=wx.CP_DEFAULT_STYLE | wx.CP_NO_TLW_RESIZE)
         self.Bind(wx.EVT_COLLAPSIBLEPANE_CHANGED, self.on_pane_changed, cp)
         self.create_pane_content(cp.GetPane())
         sizer.Add(cp, 0, wx.ALL | wx.EXPAND, border=DEFAULT_BORDER)
@@ -141,10 +131,10 @@ class BkgndProgressDialog(wx.Dialog):
 
         # and also change the labels
         if self.cp.IsExpanded():
-            self.cp.SetLabel(label2)
+            self.cp.SetLabel(LABEL_LESS)
             self.Fit()
         else:
-            self.cp.SetLabel(label1)
+            self.cp.SetLabel(LABEL_MORE)
 
     def on_close(self, _):
         """Event handler for Close."""

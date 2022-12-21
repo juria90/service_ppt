@@ -100,14 +100,12 @@ class MySwordReader:
             while True:
                 if not self._has_book(cursor, book_count + 1):
                     return book_count
-                book_count = book_count + 1
+                book_count += 1
         else:
             while True:
                 if self._has_book(cursor, book_count - 1):
                     return book_count - 1
-                book_count = book_count - 1
-
-        return 0
+                book_count -= 1
 
     def _has_chapter(self, cursor, book, chapter):
         cursor.execute(f"SELECT Chapter FROM Bible WHERE Book='{book+1}' and Chapter='{chapter}' and Verse='1';")
@@ -120,14 +118,12 @@ class MySwordReader:
             while True:
                 if not self._has_chapter(cursor, book, chapter_count + 1):
                     return chapter_count
-                chapter_count = chapter_count + 1
+                chapter_count += 1
         else:
             while True:
                 if self._has_chapter(cursor, book, chapter_count - 1):
                     return chapter_count - 1
-                chapter_count = chapter_count - 1
-
-        return 0
+                chapter_count -= 1
 
 
 class MySwordFormat(FileFormat):

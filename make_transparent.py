@@ -63,12 +63,7 @@ def parse_color(string):
 
 def parse_cmdline():
     parser = argparse.ArgumentParser(description="Convert a specific color into transparent color in image files.")
-    parser.add_argument(
-        "--color",
-        type=parse_color,
-        default=ImageColor.getrgb("white"),
-        help="CSS3-style color to convert to transparent.",
-    )
+    parser.add_argument("--color", type=parse_color, default=ImageColor.getrgb("white"), help="CSS3-style color to convert to transparent.")
     parser.add_argument("filenames", nargs="+", help="Filenames to conver the color.")
 
     return parser

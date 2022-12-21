@@ -1222,13 +1222,7 @@ class UIManager:
         self.check_modified()
 
         with AtomicFileWriter(filename, "w", encoding="utf-8") as f:
-            json.dump(
-                self.command_ui_list,
-                f,
-                indent=2,
-                cls=CommandEncoder,
-                ensure_ascii=False,
-            )
+            json.dump(self.command_ui_list, f, indent=2, cls=CommandEncoder, ensure_ascii=False)
 
     def save_pickle(self, filename):
         proc_list = [(x.name, x.command) for x in self.command_ui_list]
