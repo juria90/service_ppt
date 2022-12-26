@@ -1,5 +1,6 @@
 """This file contains PreferencesConfig class.
 """
+import json
 import typing
 
 import wx
@@ -26,6 +27,8 @@ class PreferencesConfig:
         self.lyric_copy_from_template = False
         self.lyric_application_pathname = ""
         self.lyric_template_filename = ""
+
+        self.dir_dict = {}
 
     def _read_one_bool(self, config: wx.ConfigBase, label: str, default_value: bool) -> bool:
         value = default_value
@@ -59,6 +62,13 @@ class PreferencesConfig:
         self.lyric_application_pathname = self._read_one_string(config, "lyric_application_pathname", "")
         self.lyric_template_filename = self._read_one_string(config, "lyric_template_filename", "")
 
+        dir_dict = self._read_one_string(config, "dir_dict", "{}")
+        dir_dict = json.loads(dir_dict)
+        if isinstance(dir_dict, dict):
+            self.dir_dict = dir_dict
+        else:
+            self.dir_dict = {}
+
     def write_config(self, config):
         """write_config writes all configuration to config class."""
         config.Write("current_bible_format", self.current_bible_format)
@@ -70,6 +80,9 @@ class PreferencesConfig:
         config.WriteBool("lyric_copy_from_template", self.lyric_copy_from_template)
         config.Write("lyric_application_pathname", self.lyric_application_pathname)
         config.Write("lyric_template_filename", self.lyric_template_filename)
+
+        dir_symbols = json.dumps(self.dir_dict)
+        config.Write("dir_dict", dir_symbols)
 
     def read_window_rect(self, config: wx.ConfigBase) -> typing.Optional[typing.Tuple[int, typing.List[int]]]:
         s = self._read_one_string(config, "window_rect", "")

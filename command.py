@@ -193,6 +193,11 @@ def evaluate_to_multiple_slide(prs, expr):
     return result
 
 
+class DirSymbols(dict):
+    def update_map(self):
+        pass
+
+
 class Command:
     def __init__(self):
         """Command base class."""
@@ -203,6 +208,39 @@ class Command:
 
     def set_enabled(self, enabled):
         self.enabled = enabled
+
+    @staticmethod
+    def translate_one_path(value, dir_dict, to_symbol=True):
+        new_value = None
+        # convert absolute path to symbolized one.
+        if to_symbol:
+            for symbol, directory in dir_dict.items():
+                if value.startswith(directory):
+                    new_value = f"$({symbol})" + value[len(directory) :]
+                    break
+        # convert symbolized path to absolute one.
+        else:
+            for symbol, directory in dir_dict.items():
+                symbol_str = f"$({symbol})"
+                if value.startswith(symbol_str):
+                    new_value = directory + value[len(symbol_str) :]
+                    break
+
+        return new_value
+
+    def translate_dir_symbols(self, dir_dict, to_symbol=True):
+        for attr in self.__dict__:
+            if attr.endswith(("filename", "dirname")):
+                value = getattr(self, attr)
+                new_value = Command.translate_one_path(value, dir_dict, to_symbol)
+                if new_value:
+                    setattr(self, attr, new_value)
+            elif attr.endswith("filelist"):
+                filelist = getattr(self, attr)
+                for i, file in enumerate(filelist):
+                    new_file = Command.translate_one_path(file, dir_dict, to_symbol)
+                    if new_file:
+                        filelist[i] = new_file
 
 
 class OpenFile(Command):

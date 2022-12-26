@@ -3,8 +3,10 @@
 
 import wx
 import wx.adv
+import wx.propgrid as wxpg
 
 from bible import fileformat as bibfileformat
+from dir_symbol_pg import DirSymbolPG
 
 
 _ = lambda s: s
@@ -28,6 +30,9 @@ class PreferencesDialog(wx.adv.PropertySheetDialog):
         self.is_modified = False
 
         self.config = config
+
+        self.dir_dict = config.dir_dict
+
         self.current_bible_format = config.current_bible_format
         self.bible_rootdir = config.bible_rootdir
         self.current_bible_version = config.current_bible_version
@@ -37,6 +42,8 @@ class PreferencesDialog(wx.adv.PropertySheetDialog):
         self.lyric_copy_from_template = config.lyric_copy_from_template
         self.lyric_application_pathname = config.lyric_application_pathname
         self.lyric_template_filename = config.lyric_template_filename
+
+        self._dir_symbols_ctrl = None
 
         self._bible_format_combo = None
         self._bible_rootdir_stext = None
@@ -86,6 +93,11 @@ class PreferencesDialog(wx.adv.PropertySheetDialog):
 
     def on_ok(self, _):
         """Event handler for OK."""
+        dir_dict = self._dir_symbols_ctrl.get_dir_symbols()
+        if self.dir_dict != dir_dict:
+            self.is_modified = True
+            self.dir_dict = dir_dict
+
         self.Destroy()
 
     def on_cancel(self, _):
@@ -171,6 +183,18 @@ class PreferencesDialog(wx.adv.PropertySheetDialog):
     def create_directory_settings_page(self, parent):
         """Create directory settings page."""
         panel = wx.Panel(parent)
+        sizer = wx.BoxSizer(wx.VERTICAL)
+
+        style = wxpg.PG_SPLITTER_AUTO_CENTER | wxpg.PG_TOOLBAR
+        prop_grid = DirSymbolPG(panel, style=style)
+        # Show help as tooltips
+        prop_grid.SetExtraStyle(wxpg.PG_EX_HELP_AS_TOOLTIPS)
+        prop_grid.populate_dir_symbols(self.config.dir_dict)
+        self._dir_symbols_ctrl = prop_grid
+
+        sizer.Add(prop_grid, proportion=100, flag=wx.EXPAND | wx.ALL, border=DEFAULT_BORDER)
+
+        panel.SetSizerAndFit(sizer)
 
         return panel
 

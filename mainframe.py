@@ -330,8 +330,8 @@ class Frame(wx.Frame):
             if result == wx.ID_CANCEL:
                 return
         try:
-            self.uimgr.open(filename)
-        except (json.JSONDecodeError, Exception):
+            self.uimgr.open(filename, self.pconfig.dir_dict)
+        except (json.JSONDecodeError, Exception) as e:
             title = wx.App.Get().GetAppDisplayName()
             wx.MessageBox(_("Failed to open file '{filename}'.".format(filename=filename)), caption=title, style=wx.OK | wx.ICON_STOP)
             return
@@ -380,7 +380,7 @@ class Frame(wx.Frame):
             if result == wx.ID_CANCEL:
                 return
 
-        self.uimgr.save(filename)
+        self.uimgr.save(filename, self.pconfig.dir_dict)
 
         self.update_file_history(filename)
         self.filehistory.Save(self.config)
@@ -428,6 +428,8 @@ class Frame(wx.Frame):
             self.pconfig.lyric_copy_from_template = dlg.lyric_copy_from_template
             self.pconfig.lyric_application_pathname = dlg.lyric_application_pathname
             self.pconfig.lyric_template_filename = dlg.lyric_template_filename
+
+            self.pconfig.dir_dict = dlg.dir_dict
 
             self.pconfig.write_config(self.config)
 

@@ -1,9 +1,9 @@
 """This file contains classes for Command UI that can edit the command settings.
 """
 
+import copy
 from io import StringIO
 import json
-import pickle
 import re
 
 import wx
@@ -1054,6 +1054,37 @@ class ExportShapesUI(PropertyGridUI):
         return True
 
 
+class SymboledDirectory(cmd.Command):
+    def __init__(self, dir_dict):
+        super().__init__()
+
+        self.dir_dict = dir_dict
+
+    def get_flattened_dict(self):
+        return self.dir_dict
+
+    def load_directory_symbols(self):
+        d = copy.deepcopy(self.__dict__)
+
+        keys_to_remove = {"dir_dict", "enabled"}
+        for k in keys_to_remove:
+            del d[k]
+
+        return d
+
+    def execute(self, cm, prs):
+        pass
+
+
+class SymboledDirectoryUI(CommandUI):
+    proc_class = SymboledDirectory
+
+    def __init__(self, uimgr, name, proc=None):
+        super().__init__(uimgr, name, proc=proc)
+
+        self.command = SymboledDirectory([])
+
+
 class CommandEncoder(json.JSONEncoder):
 
     proc_ui_list = [
@@ -1067,6 +1098,7 @@ class CommandEncoder(json.JSONEncoder):
         OpenFileUI,
         PopupMessageUI,
         SaveFilesUI,
+        SymboledDirectoryUI,
     ]
     proc_map = {ui.proc_class.__name__: ui for ui in proc_ui_list}
 
@@ -1075,16 +1107,10 @@ class CommandEncoder(json.JSONEncoder):
     format_map = {fo.__name__: fo for fo in format_list}
 
     def default(self, o):
-        if isinstance(o, CommandUI):
+        if (func := getattr(o, "get_flattened_dict", None)) and callable(func):
             return o.get_flattened_dict()
-        elif isinstance(o, cmd.Command) or isinstance(o, cmd.FormatObj):
-            func = getattr(o, "get_flattened_dict", None)
-            if callable(func):
-                return o.get_flattened_dict()
-            else:
-                return o.__dict__
         else:
-            super().default(o)
+            return o.__dict__
 
         return o
 
@@ -1194,40 +1220,59 @@ class UIManager:
         self.command_ui_list.insert(index - 1, ui)
         self.set_modified()
 
-    def open(self, filename):
+    def open(self, filename, dir_dict):
         command_ui_list = []
         with open(filename, "r", encoding="utf-8") as f:
             command_ui_list = json.load(f, object_hook=CommandEncoder.decoder)
 
+        dir_symbol = None
+        if len(command_ui_list) > 0 and isinstance(command_ui_list[0], SymboledDirectoryUI):
+            dir_symbol = command_ui_list[0]
+            command_ui_list = command_ui_list[1:]
+
+            mycmd = dir_symbol.command
+            loaded_dss = mycmd.load_directory_symbols()
+
+            loaded_dss.update(dir_dict)
+            dir_dict = loaded_dss
+
+        dss = cmd.DirSymbols(dir_dict)
         for ui in command_ui_list:
             ui.uimgr = self
 
-        self.command_ui_list = command_ui_list
-
-    def open_pickle(self, filename):
-        with open(filename, "rb") as f:
-            proc_list = pickle.load(f)
-
-        command_ui_list = []
-        for pair in proc_list:
-            name, proc = pair
-            for uicls in CommandEncoder.proc_ui_list:
-                if isinstance(proc, uicls.proc_class):
-                    ui = uicls(self, name, proc)
-                    command_ui_list.append(ui)
+            if dir_symbol:
+                ui.command.translate_dir_symbols(dss, to_symbol=False)
 
         self.command_ui_list = command_ui_list
+        self.set_modified(False)
 
-    def save(self, filename):
+    def save(self, filename, dir_dict):
         self.check_modified()
+
+        dss = cmd.DirSymbols(dir_dict)
+        dir_symbol = None
+        modified = self.modified
+        if len(dir_dict) > 0:
+            dir_symbol = SymboledDirectoryUI(self, "directories")
+            dir_symbol.command.dir_dict = dir_dict
+            self.insert_item(0, dir_symbol)
+
+            # translate absolute path to symbolized path.
+            for ui in self.command_ui_list[1:]:
+                mycmd = ui.command
+                mycmd.translate_dir_symbols(dss, to_symbol=True)
 
         with AtomicFileWriter(filename, "w", encoding="utf-8") as f:
             json.dump(self.command_ui_list, f, indent=2, cls=CommandEncoder, ensure_ascii=False)
 
-    def save_pickle(self, filename):
-        proc_list = [(x.name, x.command) for x in self.command_ui_list]
-        with open(filename, "wb") as f:
-            pickle.dump(proc_list, f, protocol=pickle.HIGHEST_PROTOCOL)
+        if len(dir_dict) > 0:
+            # revert back the paths.
+            for ui in self.command_ui_list[1:]:
+                mycmd = ui.command
+                mycmd.translate_dir_symbols(dss, to_symbol=False)
+
+            self.delete_item(0)
+            self.set_modified(modified)
 
     def execute_commands(self, monitor, pconfig):
         self.check_modified()
