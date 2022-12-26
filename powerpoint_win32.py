@@ -522,7 +522,7 @@ class Presentation(PresentationBase):
 
         self._slides_deleted(slide_index, 1)
 
-    def copyall_and_close(self):
+    def copy_all_and_close(self):
         all_range = self.prs.Slides.Range()
         all_range.Copy()
         self.close()

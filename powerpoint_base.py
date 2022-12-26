@@ -239,7 +239,7 @@ class PresentationBase:
 
         src_prs = self.app.open_presentation(src_ppt_filename)
         added_count = src_prs.slide_count()
-        src_prs.copyall_and_close()
+        src_prs.copy_all_and_close()
         src_prs = None
 
         self._paste_keep_source_formatting(insert_location)

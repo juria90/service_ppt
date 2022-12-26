@@ -493,7 +493,7 @@ end tell
         except applescript.ScriptError:
             raise
 
-    def copyall_and_close(self):
+    def copy_all_and_close(self):
         self.activate()
 
         cmd = f"""
