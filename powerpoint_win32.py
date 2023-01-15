@@ -5,6 +5,7 @@ import enum
 import traceback
 
 # pip install pywin32
+import pythoncom
 import pywintypes
 import win32api
 import win32com.client
@@ -611,7 +612,7 @@ class App(PPTAppBase):
         return process_exists("powerpnt.exe")
 
     def __init__(self):
-        self.powerpoint = win32com.client.Dispatch("Powerpoint.Application")
+        self.powerpoint = win32com.client.Dispatch("Powerpoint.Application", pythoncom.CoInitialize())
         self.powerpoint.Visible = 1
 
     def new_presentation(self):

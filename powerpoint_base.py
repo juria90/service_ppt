@@ -76,6 +76,16 @@ class PresentationBase:
         self.slide_caches = []
         self.id_to_index = {}
 
+    def reset(self):
+        self.app = None
+        self.prs = None
+
+        self._slide_count = 0
+
+        self.valid_cache = False
+        self.slide_caches = []
+        self.id_to_index = {}
+
     def slide_count(self):
         return 0
 
