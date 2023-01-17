@@ -1296,7 +1296,7 @@ class CommandManager:
             self.prs = None
 
         if not self.running_already and self.powerpoint:
-            self.powerpoint.quit_if_empty()
+            self.powerpoint.quit()
 
         self.powerpoint = None
 
