@@ -86,6 +86,17 @@ class PresentationBase:
         self.slide_caches = []
         self.id_to_index = {}
 
+    def close(self):
+        if self.prs:
+            self.prs.Close()
+            self.prs = None
+
+    def __enter__(self) -> "PresentationBase":
+        return self
+
+    def __exit__(self, exc_type, exc_value, traceback) -> None:
+        self.close()
+
     def slide_count(self):
         return 0
 

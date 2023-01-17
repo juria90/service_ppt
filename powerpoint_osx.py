@@ -61,6 +61,31 @@ class Presentation(PresentationBase):
     def __init__(self, app, prs):
         super().__init__(app, prs)
 
+    def close(self):
+        if self.prs is None:
+            return
+
+        self.activate()
+
+        cmd = f"""
+tell application "System Events"
+	tell process "Microsoft PowerPoint"
+		set frontmost to true
+
+		# Command + W to close the window.
+		keystroke "w" using {{command down}}
+		delay 1
+	end tell
+end tell
+"""
+        try:
+            scpt = applescript.AppleScript(cmd)
+            scpt.run()
+        except applescript.ScriptError:
+            raise
+        finally:
+            self.prs = None
+
     def slide_count(self):
         prs_name = get_KeyData(self.prs)
         cmd = f'set slide_count to count of slides of presentation "{prs_name}"\nreturn slide_count'
@@ -736,11 +761,17 @@ return prs"""
         pcount = run_applescript("", cmd)
         return pcount
 
-    def quit_if_empty(self):
-        presentation_count = self.presentation_count()
-        if presentation_count == 0:
-            self.quit()
+    def quit(self, force=False, only_if_empty=True):
+        call_quit = force
+        if call_quit is False:
+            if only_if_empty and self.presentation_count():
+                call_quit = True
 
-    def quit(self):
+        if call_quit is False:
+            return
+
+        self._quit()
+
+    def _quit(self):
         cmd = "quit"
         run_applescript("", cmd)

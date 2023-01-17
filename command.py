@@ -557,6 +557,8 @@ class InsertLyrics(Command):
 
 
 class FormatObj(object):
+    VAR_FORMAT_SEP = ':'  # Change it to semi-colon(';')
+
     def __init__(self, format="", value=None):
         # self.fobj_type = self.__class__.__name__
         self.format = format  # class specific format string
@@ -569,7 +571,7 @@ class FormatObj(object):
     def build_format_pattern(varnames):
         varname_pattern = ""
         if isinstance(varnames, str) and str:
-            varname_pattern = r"\{(" + re.escape(varnames) + r")(:[^\}]+)?" + r"\}"
+            varname_pattern = r"\{(" + re.escape(varnames) + r")(" + FormatObj.VAR_FORMAT_SEP + "[^\}]+)?" + r"\}"
         else:
             try:
                 for var in varnames:
@@ -580,7 +582,7 @@ class FormatObj(object):
                 print(varnames + " is not iterable.")
 
             if varname_pattern:
-                varname_pattern = r"\{(" + varname_pattern + r")(:[^\}]+)?" + r"\}"
+                varname_pattern = r"\{(" + varname_pattern + r")(" + FormatObj.VAR_FORMAT_SEP + "[^\}]+)?" + r"\}"
 
         return varname_pattern
 
@@ -607,7 +609,7 @@ class BibleVerseFormat(FormatObj):
                     for m in varname_re.finditer(var):
                         format = m.group(2)
                         if len(format):
-                            format = format[1:]  # remove ':'
+                            format = format[1:]  # remove FormatObj.VAR_FORMAT_SEP
                         key = "{" + m.group(1) + m.group(2) + "}"
                         value = BibleVerseFormat.translate_verse(format, verse)
                         if key not in fr_dict:
@@ -1360,7 +1362,7 @@ class CommandManager:
 
                 format = m.group(2)
                 if len(format):
-                    format = format[1:]  # remove ':'
+                    format = format[1:]  # remove FormatObj.VAR_FORMAT_SEP
                 key = "{" + varname + m.group(2) + "}"
                 value = format_obj.build_replace_string(format)
                 self.var_dict[key] = value

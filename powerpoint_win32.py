@@ -15,6 +15,8 @@ from process_exists import process_exists
 from powerpoint_base import SlideCache, PresentationBase, PPTAppBase
 
 
+pythoncom.CoInitialize()
+
 ppLayoutBlank = 12  # Blank
 ppLayoutChart = 8  # Chart
 ppLayoutChartAndText = 6  # Chart and text
@@ -412,6 +414,11 @@ class Presentation(PresentationBase):
     def __init__(self, app, prs):
         super().__init__(app, prs)
 
+    def close(self):
+        if self.prs:
+            self.prs.Close()
+            self.prs = None
+
     def slide_count(self):
         return self.prs.Slides.Count
 
@@ -612,7 +619,7 @@ class App(PPTAppBase):
         return process_exists("powerpnt.exe")
 
     def __init__(self):
-        self.powerpoint = win32com.client.Dispatch("Powerpoint.Application", pythoncom.CoInitialize())
+        self.powerpoint = win32com.client.Dispatch("Powerpoint.Application")
         self.powerpoint.Visible = 1
 
     def new_presentation(self):
@@ -629,9 +636,19 @@ class App(PPTAppBase):
 
         return Presentation(self, prs)
 
-    def quit_if_empty(self):
+    def quit(self, force=False, only_if_empty=True):
+        call_quit = force
+        if call_quit is False:
+            if only_if_empty and self.powerpoint.Presentations.Count == 0:
+                call_quit = True
+
+        if call_quit is False:
+            return
+
+        self._quit()
+
+    def _quit(self):
         try:
-            if self.powerpoint.Presentations.Count == 0:
-                self.powerpoint.Quit()
+            self.powerpoint.Quit()
         except AttributeError:
             pass
