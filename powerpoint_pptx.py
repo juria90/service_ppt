@@ -1,4 +1,4 @@
-"""powerpoint_win32.py implements App and Presentation for Powerpoint in Windows using COM interface.
+"""powerpoint_pptx.py implements App and Presentation for Powerpoint using python-pptx, the pptx file manipulation package.
 """
 
 import copy
@@ -48,13 +48,13 @@ def iterate_text_objects_in_shapes(shapes, fn: Optional[Callable] = None):
                 for cell in row.cells:
                     if fn:
                         try:
-                            result = fn(run)
+                            result = fn(cell)
                             if result:
-                                yield run
+                                yield cell
                         except StopIteration:
                             return
                     else:
-                        yield run
+                        yield cell
 
         if shape.has_chart:
             chart = shape.chart
