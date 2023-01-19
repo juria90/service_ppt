@@ -88,8 +88,11 @@ class PresentationBase:
 
     def close(self):
         if self.prs:
-            self.prs.Close()
+            self._close()
             self.prs = None
+
+    def _close(self):
+        pass
 
     def __enter__(self) -> "PresentationBase":
         return self

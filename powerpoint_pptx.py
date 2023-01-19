@@ -272,6 +272,10 @@ class Presentation(PresentationBase):
     def __init__(self, app, prs):
         super().__init__(app, prs)
 
+    def _close(self):
+        # for python-pptx, no explicit close is required.
+        self.reset()
+
     def slide_count(self):
         return len(self.prs.slides)
 
@@ -427,10 +431,6 @@ class Presentation(PresentationBase):
         https://github.com/DefinitelyTyped/DefinitelyTyped/blob/a102789c764788888edc6a89542cd90f08fdce3d/types/activex-powerpoint/index.d.ts#L4234
         https://stackoverflow.com/questions/45299899/graphic-quality-in-powerpoint-graphics-export
         """
-
-    def close(self):
-        # for python-pptx, no explicit close is required.
-        self.reset()
 
 
 class App(PPTAppBase):

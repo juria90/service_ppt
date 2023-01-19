@@ -61,30 +61,11 @@ class Presentation(PresentationBase):
     def __init__(self, app, prs):
         super().__init__(app, prs)
 
-    def close(self):
-        if self.prs is None:
-            return
-
-        self.activate()
-
-        cmd = f"""
-tell application "System Events"
-	tell process "Microsoft PowerPoint"
-		set frontmost to true
-
-		# Command + W to close the window.
-		keystroke "w" using {{command down}}
-		delay 1
-	end tell
-end tell
-"""
-        try:
-            scpt = applescript.AppleScript(cmd)
-            scpt.run()
-        except applescript.ScriptError:
-            raise
-        finally:
-            self.prs = None
+    def _close(self):
+        prs_name = get_KeyData(self.prs)
+        cmd = f'close presentation "{prs_name}"'
+        run_applescript("", cmd)
+        self.prs = None
 
     def slide_count(self):
         prs_name = get_KeyData(self.prs)
@@ -713,12 +694,6 @@ end tell
             scpt.run()
         except applescript.ScriptError:
             raise
-
-    def close(self):
-        prs_name = get_KeyData(self.prs)
-        cmd = f'close presentation "{prs_name}"'
-        run_applescript("", cmd)
-        self.prs = None
 
 
 class App(PPTAppBase):

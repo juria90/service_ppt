@@ -557,7 +557,7 @@ class InsertLyrics(Command):
 
 
 class FormatObj(object):
-    VAR_FORMAT_SEP = ':'  # Change it to semi-colon(';')
+    VAR_FORMAT_SEP = ":"  # Change it to semi-colon(';')
 
     def __init__(self, format="", value=None):
         # self.fobj_type = self.__class__.__name__

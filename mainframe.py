@@ -78,7 +78,7 @@ class Frame(wx.Frame):
         self.settings_panel = None
         self.uimgr = cmdui.UIManager()
 
-        self._filename = None
+        self._filename = ""
         self.m_save = None
 
         self.config = wx.FileConfig("ServicePPT", vendorName="EMC")
@@ -366,9 +366,9 @@ class Frame(wx.Frame):
 
     def save_file(self, prompt: bool, title: str):
         filename = self._filename
-        if prompt or self._filename is None:
+        if prompt or not self._filename:
             defDir, defFile = "", ""
-            if self._filename is not None:
+            if not self._filename:
                 defDir, defFile = os.path.split(self._filename)
 
             dlg = wx.FileDialog(

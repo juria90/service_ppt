@@ -15,9 +15,6 @@ from process_exists import process_exists
 from powerpoint_base import SlideCache, PresentationBase, PPTAppBase
 
 
-pythoncom.CoInitialize()
-
-
 class PpSlideLayout(IntEnum):
     # https://learn.microsoft.com/en-us/office/vba/api/powerpoint.ppslidelayout
     ppLayoutBlank = 12  # Blank
@@ -425,10 +422,12 @@ class Presentation(PresentationBase):
     def __init__(self, app, prs):
         super().__init__(app, prs)
 
-    def close(self):
-        if self.prs:
+    def _close(self):
+        try:
             self.prs.Close()
-            self.prs = None
+        except AttributeError:
+            pass
+        self.prs = None
 
     def slide_count(self):
         return self.prs.Slides.Count
@@ -617,12 +616,6 @@ class Presentation(PresentationBase):
         shape_range = window.Selection.ShapeRange
         shape_range.Export(filename, format_type, scale_width, scale_height, PpExportMode.ppRelativeToSlide)
 
-    def close(self):
-        try:
-            self.prs.Close()
-        except AttributeError:
-            pass
-
 
 class App(PPTAppBase):
     @staticmethod
@@ -630,6 +623,7 @@ class App(PPTAppBase):
         return process_exists("powerpnt.exe")
 
     def __init__(self):
+        pythoncom.CoInitialize()
         self.powerpoint = win32com.client.Dispatch("Powerpoint.Application")
         self.powerpoint.Visible = 1
 
