@@ -175,7 +175,8 @@ class Frame(wx.Frame):
         enable = False
         if self._filename:
             enable = True
-        self.m_save.Enable(enable)
+        if self.m_save:
+            self.m_save.Enable(enable)
 
     def create_toolbar(self):
         """Creates default Toolbar."""
@@ -239,7 +240,7 @@ class Frame(wx.Frame):
         sizer.Add(self.command_toolbar, pos=(0, 0), span=DEFAULT_SPAN, flag=wx.ALL, border=DEFAULT_BORDER)
 
         command_style = wx.LC_REPORT | wx.LC_EDIT_LABELS | wx.LC_NO_HEADER | wx.LC_SINGLE_SEL
-        self.command_ctrl = AutoresizeListCtrl(parent, size=(200, -1), style=command_style, name="CommandList")
+        self.command_ctrl = AutoresizeListCtrl(parent, size=wx.Size(200, -1), style=command_style, name="CommandList")
         self.command_ctrl.InsertColumn(0, "Command", width=wx.LIST_AUTOSIZE)
         # self.command_ctrl.EnableAlternateRowColours()
         self.command_imglist = self.create_command_type_imagelist()
@@ -285,7 +286,7 @@ class Frame(wx.Frame):
             can_save = result == wx.ID_YES
 
         if can_save:
-            self.on_save(None)
+            self.on_save(wx.Event())
 
         if can_close:
             sw = pc.SW_RESTORED

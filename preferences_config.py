@@ -1,7 +1,7 @@
 """This file contains PreferencesConfig class.
 """
 import json
-import typing
+from typing import Optional, Tuple
 
 import wx
 
@@ -84,14 +84,14 @@ class PreferencesConfig:
         dir_symbols = json.dumps(self.dir_dict)
         config.Write("dir_dict", dir_symbols)
 
-    def read_window_rect(self, config: wx.ConfigBase) -> typing.Optional[typing.Tuple[int, typing.List[int]]]:
+    def read_window_rect(self, config: wx.ConfigBase) -> Optional[Tuple[int, Tuple[int, int, int, int]]]:
         s = self._read_one_string(config, "window_rect", "")
         numbers = [int(n) for n in s.split()]
         if len(numbers) != 5:
             return None
 
-        return numbers[0], numbers[1:]
+        return numbers[0], tuple(numbers[1:])
 
-    def write_window_rect(self, config: wx.ConfigBase, sw: int, rc: typing.List[int]):
+    def write_window_rect(self, config: wx.ConfigBase, sw: int, rc: Tuple[int, int, int, int]):
         s = "%d %d %d %d %d" % (sw, rc[0], rc[1], rc[2], rc[3])
         config.Write("window_rect", s)

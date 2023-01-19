@@ -5,10 +5,10 @@ import copy
 from enum import IntEnum
 from io import BytesIO
 import re
-from typing import Any, Callable, Tuple
+from typing import Any, Callable, Optional, Tuple
 
 from pptx import Presentation as PptxPres
-from pptx.enum.shapes import MSO_SHAPE_TYPE, PP_PLACEHOLDER
+from pptx.enum.shapes import MSO_SHAPE_TYPE, PP_PLACEHOLDER_TYPE
 from pptx.parts.chart import ChartPart
 from pptx.parts.embeddedpackage import EmbeddedXlsxPart
 
@@ -27,7 +27,7 @@ class SlideLayout(IntEnum):
     SLD_LAYOUT_PICTURE_WITH_CAPTION = 8
 
 
-def iterate_text_objects_in_shapes(shapes, fn: Callable = None):
+def iterate_text_objects_in_shapes(shapes, fn: Optional[Callable] = None):
     for shape in shapes:
         if shape.has_text_frame:
             text_frame = shape.text_frame
@@ -148,7 +148,7 @@ def is_text_placeholder(phType):
     VERTICAL_BODY = 6 # Vertical Body
     VERTICAL_TITLE = 5 # Vertical Title
     """
-    if PP_PLACEHOLDER.TITLE <= phType and phType <= PP_PLACEHOLDER.VERTICAL_BODY:
+    if PP_PLACEHOLDER_TYPE.TITLE <= phType and phType <= PP_PLACEHOLDER_TYPE.VERTICAL_BODY:
         return True
 
     return False
