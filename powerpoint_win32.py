@@ -1,7 +1,7 @@
 """powerpoint_win32.py implements App and Presentation for Powerpoint in Windows using COM interface.
 """
 
-import enum
+from enum import IntEnum
 import traceback
 
 # pip install pywin32
@@ -17,107 +17,114 @@ from powerpoint_base import SlideCache, PresentationBase, PPTAppBase
 
 pythoncom.CoInitialize()
 
-ppLayoutBlank = 12  # Blank
-ppLayoutChart = 8  # Chart
-ppLayoutChartAndText = 6  # Chart and text
-ppLayoutClipArtAndText = 10  # ClipArt and text
-ppLayoutClipArtAndVerticalText = 26  # ClipArt and vertical text
-ppLayoutComparison = 34  # Comparison
-ppLayoutContentWithCaption = 35  # Content with caption
-ppLayoutCustom = 32  # Custom
-ppLayoutFourObjects = 24  # Four objects
-ppLayoutLargeObject = 15  # Large object
-ppLayoutMediaClipAndText = 18  # MediaClip and text
-ppLayoutMixed = -2  # Mixed
-ppLayoutObject = 16  # Object
-ppLayoutObjectAndText = 14  # Object and text
-ppLayoutObjectAndTwoObjects = 30  # Object and two objects
-ppLayoutObjectOverText = 19  # Object over text
-ppLayoutOrgchart = 7  # Organization chart
-ppLayoutPictureWithCaption = 36  # Picture with caption
-ppLayoutSectionHeader = 33  # Section header
-ppLayoutTable = 4  # Table
-ppLayoutText = 2  # Text
-ppLayoutTextAndChart = 5  # Text and chart
-ppLayoutTextAndClipArt = 9  # Text and ClipArt
-ppLayoutTextAndMediaClip = 17  # Text and MediaClip
-ppLayoutTextAndObject = 13  # Text and object
-ppLayoutTextAndTwoObjects = 21  # Text and two objects
-ppLayoutTextOverObject = 20  # Text over object
-ppLayoutTitle = 1  # Title
-ppLayoutTitleOnly = 11  # Title only
-ppLayoutTwoColumnText = 3  # Two-column text
-ppLayoutTwoObjects = 29  # Two objects
-ppLayoutTwoObjectsAndObject = 31  # Two objects and object
-ppLayoutTwoObjectsAndText = 22  # Two objects and text
-ppLayoutTwoObjectsOverText = 23  # Two objects over text
-ppLayoutVerticalText = 25  # Vertical text
-ppLayoutVerticalTitleAndText = 27  # Vertical title and text
-ppLayoutVerticalTitleAndTextOverChart = 28  # Vertical title and text over chart
 
-# MsoShapeType: https://docs.microsoft.com/en-us/office/vba/api/office.msoshapetype
-msoPlaceholder = 14
-msoTextBox = 17
-
-# PpPlaceholderType: https://docs.microsoft.com/en-us/office/vba/api/powerpoint.ppplaceholdertype
-ppPlaceholderBitmap = 9  # Bitmap
-ppPlaceholderBody = 2  # Body
-ppPlaceholderCenterTitle = 3  # Center Title
-ppPlaceholderChart = 8  # Chart
-ppPlaceholderDate = 16  # Date
-ppPlaceholderFooter = 15  # Footer
-ppPlaceholderHeader = 14  # Header
-ppPlaceholderMediaClip = 10  # Media Clip
-ppPlaceholderMixed = -2  # Mixed
-ppPlaceholderObject = 7  # Object
-ppPlaceholderOrgChart = 11  # Organization Chart
-ppPlaceholderPicture = 18  # Picture
-ppPlaceholderSlideNumber = 13  # Slide Number
-ppPlaceholderSubtitle = 4  # Subtitle
-ppPlaceholderTable = 12  # Table
-ppPlaceholderTitle = 1  # Title
-ppPlaceholderVerticalBody = 6  # Vertical Body
-ppPlaceholderVerticalObject = 17  # Vertical Object
-ppPlaceholderVerticalTitle = 5  # Vertical Title
-
-"""PpSaveAsFileType enumeration from
-https://docs.microsoft.com/en-us/office/vba/api/powerpoint.ppsaveasfiletype
-"""
-ppSaveAsAddIn = 8
-ppSaveAsAnimatedGIF = 40
-ppSaveAsBMP = 19
-ppSaveAsDefault = 11
-ppSaveAsEMF = 23
-ppSaveAsExternalConverter = 64000
-ppSaveAsGIF = 16
-ppSaveAsJPG = 17
-ppSaveAsMetaFile = 15
-ppSaveAsMP4 = 39
-ppSaveAsOpenDocumentPresentation = 35
-ppSaveAsOpenXMLAddin = 30
-ppSaveAsOpenXMLPicturePresentation = 36
-ppSaveAsOpenXMLPresentation = 24
-ppSaveAsOpenXMLPresentationMacroEnabled = 25
-ppSaveAsOpenXMLShow = 28
-ppSaveAsOpenXMLShowMacroEnabled = 29
-ppSaveAsOpenXMLTemplate = 26
-ppSaveAsOpenXMLTemplateMacroEnabled = 27
-ppSaveAsOpenXMLTheme = 31
-ppSaveAsPDF = 32
-ppSaveAsPNG = 18
-ppSaveAsPresentation = 1
-ppSaveAsRTF = 6
-ppSaveAsShow = 7
-ppSaveAsStrictOpenXMLPresentation = 38
-ppSaveAsTemplate = 5
-ppSaveAsTIF = 21
-ppSaveAsWMV = 37
-ppSaveAsXMLPresentation = 34
-ppSaveAsXPS = 33
+class PpSlideLayout(IntEnum):
+    # https://learn.microsoft.com/en-us/office/vba/api/powerpoint.ppslidelayout
+    ppLayoutBlank = 12  # Blank
+    ppLayoutChart = 8  # Chart
+    ppLayoutChartAndText = 6  # Chart and text
+    ppLayoutClipArtAndText = 10  # ClipArt and text
+    ppLayoutClipArtAndVerticalText = 26  # ClipArt and vertical text
+    ppLayoutComparison = 34  # Comparison
+    ppLayoutContentWithCaption = 35  # Content with caption
+    ppLayoutCustom = 32  # Custom
+    ppLayoutFourObjects = 24  # Four objects
+    ppLayoutLargeObject = 15  # Large object
+    ppLayoutMediaClipAndText = 18  # MediaClip and text
+    ppLayoutMixed = -2  # Mixed
+    ppLayoutObject = 16  # Object
+    ppLayoutObjectAndText = 14  # Object and text
+    ppLayoutObjectAndTwoObjects = 30  # Object and two objects
+    ppLayoutObjectOverText = 19  # Object over text
+    ppLayoutOrgchart = 7  # Organization chart
+    ppLayoutPictureWithCaption = 36  # Picture with caption
+    ppLayoutSectionHeader = 33  # Section header
+    ppLayoutTable = 4  # Table
+    ppLayoutText = 2  # Text
+    ppLayoutTextAndChart = 5  # Text and chart
+    ppLayoutTextAndClipArt = 9  # Text and ClipArt
+    ppLayoutTextAndMediaClip = 17  # Text and MediaClip
+    ppLayoutTextAndObject = 13  # Text and object
+    ppLayoutTextAndTwoObjects = 21  # Text and two objects
+    ppLayoutTextOverObject = 20  # Text over object
+    ppLayoutTitle = 1  # Title
+    ppLayoutTitleOnly = 11  # Title only
+    ppLayoutTwoColumnText = 3  # Two-column text
+    ppLayoutTwoObjects = 29  # Two objects
+    ppLayoutTwoObjectsAndObject = 31  # Two objects and object
+    ppLayoutTwoObjectsAndText = 22  # Two objects and text
+    ppLayoutTwoObjectsOverText = 23  # Two objects over text
+    ppLayoutVerticalText = 25  # Vertical text
+    ppLayoutVerticalTitleAndText = 27  # Vertical title and text
+    ppLayoutVerticalTitleAndTextOverChart = 28  # Vertical title and text over chart
 
 
-# https://docs.microsoft.com/en-us/dotnet/api/microsoft.office.core.msotristate?view=office-pia
-class TriState(enum.Enum):
+class MsoShapeType(IntEnum):
+    # https://docs.microsoft.com/en-us/office/vba/api/office.msoshapetype
+    msoPlaceholder = 14
+    msoTextBox = 17
+
+
+class PpPlaceholderType(IntEnum):
+    # https://docs.microsoft.com/en-us/office/vba/api/powerpoint.ppplaceholdertype
+    ppPlaceholderBitmap = 9  # Bitmap
+    ppPlaceholderBody = 2  # Body
+    ppPlaceholderCenterTitle = 3  # Center Title
+    ppPlaceholderChart = 8  # Chart
+    ppPlaceholderDate = 16  # Date
+    ppPlaceholderFooter = 15  # Footer
+    ppPlaceholderHeader = 14  # Header
+    ppPlaceholderMediaClip = 10  # Media Clip
+    ppPlaceholderMixed = -2  # Mixed
+    ppPlaceholderObject = 7  # Object
+    ppPlaceholderOrgChart = 11  # Organization Chart
+    ppPlaceholderPicture = 18  # Picture
+    ppPlaceholderSlideNumber = 13  # Slide Number
+    ppPlaceholderSubtitle = 4  # Subtitle
+    ppPlaceholderTable = 12  # Table
+    ppPlaceholderTitle = 1  # Title
+    ppPlaceholderVerticalBody = 6  # Vertical Body
+    ppPlaceholderVerticalObject = 17  # Vertical Object
+    ppPlaceholderVerticalTitle = 5  # Vertical Title
+
+
+class PpSaveAsFileType(IntEnum):
+    # https://docs.microsoft.com/en-us/office/vba/api/powerpoint.ppsaveasfiletype
+    ppSaveAsAddIn = 8
+    ppSaveAsAnimatedGIF = 40
+    ppSaveAsBMP = 19
+    ppSaveAsDefault = 11
+    ppSaveAsEMF = 23
+    ppSaveAsExternalConverter = 64000
+    ppSaveAsGIF = 16
+    ppSaveAsJPG = 17
+    ppSaveAsMetaFile = 15
+    ppSaveAsMP4 = 39
+    ppSaveAsOpenDocumentPresentation = 35
+    ppSaveAsOpenXMLAddin = 30
+    ppSaveAsOpenXMLPicturePresentation = 36
+    ppSaveAsOpenXMLPresentation = 24
+    ppSaveAsOpenXMLPresentationMacroEnabled = 25
+    ppSaveAsOpenXMLShow = 28
+    ppSaveAsOpenXMLShowMacroEnabled = 29
+    ppSaveAsOpenXMLTemplate = 26
+    ppSaveAsOpenXMLTemplateMacroEnabled = 27
+    ppSaveAsOpenXMLTheme = 31
+    ppSaveAsPDF = 32
+    ppSaveAsPNG = 18
+    ppSaveAsPresentation = 1
+    ppSaveAsRTF = 6
+    ppSaveAsShow = 7
+    ppSaveAsStrictOpenXMLPresentation = 38
+    ppSaveAsTemplate = 5
+    ppSaveAsTIF = 21
+    ppSaveAsWMV = 37
+    ppSaveAsXMLPresentation = 34
+    ppSaveAsXPS = 33
+
+
+class TriState(IntEnum):
+    # https://docs.microsoft.com/en-us/dotnet/api/microsoft.office.core.msotristate?view=office-pia
     msoFalse = 0
     msoMixed = -2
     msoTrue = -1
@@ -131,7 +138,8 @@ def BoolToTriState(value):
     return int(-1 if value else 0)
 
 
-class PpParagraphAlignment(enum.IntEnum):
+class PpParagraphAlignment(IntEnum):
+    # https://learn.microsoft.com/en-us/office/vba/api/powerpoint.ppparagraphalignment
     ppAlignCenter = 2  # Center align
     ppAlignDistribute = 5  # Distribute
     ppAlignJustify = 4  # Justify
@@ -142,7 +150,8 @@ class PpParagraphAlignment(enum.IntEnum):
     ppAlignThaiDistribute = 6  # Thai distributed
 
 
-class PpBaselineAlignment(enum.IntEnum):
+class PpBaselineAlignment(IntEnum):
+    # https://learn.microsoft.com/en-us/office/vba/api/powerpoint.ppbaselinealignment
     ppBaselineAlignBaseline = 1  # Aligned to the baseline.
     ppBaselineAlignCenter = 3  # Aligned to the center.
     ppBaselineAlignFarEast50 = 4  # Align FarEast50.
@@ -151,16 +160,16 @@ class PpBaselineAlignment(enum.IntEnum):
     ppBaselineAlignAuto = 5  # https://github.com/DefinitelyTyped/DefinitelyTyped/blob/master/types/activex-powerpoint/index.d.ts
 
 
-# https://github.com/DefinitelyTyped/DefinitelyTyped/blob/master/types/activex-powerpoint/index.d.ts
-class PpExportMode(enum.IntEnum):
+class PpExportMode(IntEnum):
+    # https://github.com/DefinitelyTyped/DefinitelyTyped/blob/master/types/activex-powerpoint/index.d.ts
     ppClipRelativeToSlide = 2
     ppRelativeToSlide = 1
     ppScaleToFit = 3
     ppScaleXY = 4
 
 
-# https://github.com/DefinitelyTyped/DefinitelyTyped/blob/a102789c764788888edc6a89542cd90f08fdce3d/types/activex-powerpoint/index.d.ts#L1014
-class PpShapeFormat(enum.IntEnum):
+class PpShapeFormat(IntEnum):
+    # https://github.com/DefinitelyTyped/DefinitelyTyped/blob/a102789c764788888edc6a89542cd90f08fdce3d/types/activex-powerpoint/index.d.ts#L1014
     ppShapeFormatBMP = 3
     ppShapeFormatEMF = 5
     ppShapeFormatGIF = 0
@@ -169,13 +178,15 @@ class PpShapeFormat(enum.IntEnum):
     ppShapeFormatWMF = 4
 
 
-class PpDirection(enum.IntEnum):
+class PpDirection(IntEnum):
+    # https://learn.microsoft.com/en-us/office/vba/api/powerpoint.ppdirection
     ppDirectionLeftToRight = 1  # Left-to-right layout
     ppDirectionMixed = -2  # Mixed layout
     ppDirectionRightToLeft = 2  # Right-to-left layout
 
 
-class PpViewType(enum.IntEnum):
+class PpViewType(IntEnum):
+    # https://learn.microsoft.com/en-us/office/vba/api/powerpoint.ppviewtype
     ppViewHandoutMaster = 4
     ppViewMasterThumbnails = 12
     ppViewNormal = 9
@@ -340,7 +351,7 @@ def dump_shapes(shapes):
         shape = shapes.Item(i+1)
         print('shape %d: %d' % (i, shape.Type))
 
-        if shape.Type == msoPlaceholder:
+        if shape.Type == MsoShapeType.msoPlaceholder:
             print(f'PlaceholderFormat.Type: {shape.PlaceholderFormat.Type}')
 
         if shape.HasTextFrame:
@@ -362,7 +373,7 @@ def is_text_placeholder(phType):
     ppPlaceholderVerticalBody = 6 # Vertical Body
     ppPlaceholderVerticalTitle = 5 # Vertical Title
     """
-    if ppPlaceholderTitle <= phType and phType <= ppPlaceholderVerticalBody:
+    if PpPlaceholderType.ppPlaceholderTitle <= phType and phType <= PpPlaceholderType.ppPlaceholderVerticalBody:
         return True
 
     return False
@@ -373,7 +384,7 @@ def get_placeholder_text(shapes):
     for i in range(shapes.Count):
         shape = shapes.Item(i + 1)
 
-        if shape.Type == msoPlaceholder and shape.HasTextFrame:
+        if shape.Type == MsoShapeType.msoPlaceholder and shape.HasTextFrame:
             phType = shape.PlaceholderFormat.Type
             if is_text_placeholder(phType):
                 text_range = shape.TextFrame.TextRange
@@ -396,7 +407,7 @@ def copy_notes(source_range, dst_range):
     for i in range(shapes.Count):
         shape = shapes.Item(i + 1)
 
-        if shape.Type == msoPlaceholder and shape.HasTextFrame:
+        if shape.Type == MsoShapeType.msoPlaceholder and shape.HasTextFrame:
             phType = shape.PlaceholderFormat.Type
             if phType in text_dict:
                 shape.TextFrame.TextRange.Text = text_dict[phType]
@@ -521,7 +532,7 @@ class Presentation(PresentationBase):
         return added_count
 
     def insert_blank_slide(self, slide_index):
-        self.prs.Slides.Add(slide_index + 1, ppLayoutCustom)
+        self.prs.Slides.Add(slide_index + 1, PpSlideLayout.ppLayoutCustom)
 
         self._slides_inserted(slide_index, 1)
 
@@ -557,15 +568,15 @@ class Presentation(PresentationBase):
 
     def saveas_format(self, filename, image_type="png"):
         """Save .pptx as files using Powerpoint.Application COM service."""
-        format_type = ppSaveAsPNG
+        format_type = PpSaveAsFileType.ppSaveAsPNG
         if image_type == "gif":
-            format_type = ppSaveAsGIF
+            format_type = PpSaveAsFileType.ppSaveAsGIF
         elif image_type == "jpg":
-            format_type = ppSaveAsJPG
+            format_type = PpSaveAsFileType.ppSaveAsJPG
         elif image_type == "png":
-            format_type = ppSaveAsPNG
+            format_type = PpSaveAsFileType.ppSaveAsPNG
         elif image_type == "tif":
-            format_type = ppSaveAsTIF
+            format_type = PpSaveAsFileType.ppSaveAsTIF
 
         self.prs.SaveAs(filename, format_type)
 
