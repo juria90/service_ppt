@@ -266,10 +266,13 @@ class MyBibleFormat(FileFormat):
         dirname = self._get_root_dir()
 
         versions = []
-        for d in os.listdir(dirname):
-            if os.path.isdir(os.path.join(dirname, d)):
-                if os.path.exists(os.path.join(dirname, d, "index.txt")):
-                    versions.append(d)
+        try:
+            for d in os.listdir(dirname):
+                if os.path.isdir(os.path.join(dirname, d)):
+                    if os.path.exists(os.path.join(dirname, d, "index.txt")):
+                        versions.append(d)
+        except FileNotFoundError:
+            pass
 
         return versions
 
