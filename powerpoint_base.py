@@ -122,9 +122,9 @@ class PresentationBase:
         self.id_to_index = {}
         self.valid_cache = False
 
-    def check_modified(self):
+    def refresh_page_cache(self, force: bool = False):
         slide_count = self.slide_count()
-        if self._slide_count != slide_count or len(self.slide_caches) != slide_count:
+        if force or self._slide_count != slide_count or len(self.slide_caches) != slide_count:
             self._slide_count = slide_count
             self.valid_cache = False
             self.slide_caches = []  # invalid all caches
@@ -242,7 +242,6 @@ class PresentationBase:
         pass
 
     def insert_file_slides(self, insert_location, src_ppt_filename):
-
         if insert_location is None:
             insert_location = self.slide_count()
         elif isinstance(insert_location, int):

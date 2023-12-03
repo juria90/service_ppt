@@ -214,14 +214,14 @@ class PopupMessage(cmd.Command):
     def execute(self, cm, prs):
         cm.progress_message(0, _("Displaying PopupMessage."))
 
-        title = wx.App.Get().GetAppDisplayName()
-        wx.MessageBox(
-            self.message,
-            caption=title,
-            style=wx.OK | wx.ICON_INFORMATION | wx.STAY_ON_TOP,
-        )
+        app = wx.App.Get()
+        title = app.GetAppDisplayName()
+        dlg = wx.RichMessageDialog(app.GetTopWindow(), self.message, caption=title, style=wx.OK | wx.ICON_INFORMATION | wx.STAY_ON_TOP)
+        dlg.ShowCheckBox("Refresh page content.", checked=True)
+        dlg.ShowModal()
 
-        prs.check_modified()
+        cm.progress_message(0, _("Refreshing page content."))
+        prs.refresh_page_cache(dlg.IsCheckBoxChecked())
 
 
 class PopupMessageUI(CommandUI):

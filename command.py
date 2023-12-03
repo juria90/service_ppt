@@ -1114,7 +1114,7 @@ class PromptCommand(Command):
         print(f"{self.message}")
         input()
 
-        prs.check_modified()
+        prs.refresh_page_cache()
 
 
 class ExportSlides(Command):
