@@ -1086,7 +1086,6 @@ class SymboledDirectoryUI(CommandUI):
 
 
 class CommandEncoder(json.JSONEncoder):
-
     proc_ui_list = [
         DuplicateWithTextUI,
         ExportSlidesUI,
@@ -1139,7 +1138,7 @@ class CommandEncoder(json.JSONEncoder):
             del o["format_type"]
             if format_type in CommandEncoder.format_map:
                 fobj_cls = CommandEncoder.format_map[format_type]
-                fobj = fobj_cls(None)
+                fobj = fobj_cls()
 
                 fobj.__dict__.update(o)
 

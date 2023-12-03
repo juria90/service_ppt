@@ -132,7 +132,6 @@ def populate_slide_dict(prs, slide_index):
 
 
 def evaluate_to_single_slide(prs, expr):
-
     if not expr:
         return None
 
@@ -160,7 +159,6 @@ def evaluate_to_single_slide(prs, expr):
 
 
 def evaluate_to_multiple_slide(prs, expr):
-
     if expr is None:
         return None
 
@@ -559,7 +557,7 @@ class InsertLyrics(Command):
 class FormatObj(object):
     VAR_FORMAT_SEP = ":"  # Change it to semi-colon(';')
 
-    def __init__(self, format="", value=None):
+    def __init__(self, format="", value: str = ""):
         # self.fobj_type = self.__class__.__name__
         self.format = format  # class specific format string
         self.value = value  # class specific value object
@@ -586,9 +584,12 @@ class FormatObj(object):
 
         return varname_pattern
 
+    def __eq__(self, other: object) -> bool:
+        return self.format == other.format and self.value == other.value
+
 
 class BibleVerseFormat(FormatObj):
-    def __init__(self, format: str = "", value=None):
+    def __init__(self, format: str = "", value: str = ""):
         super().__init__(format, value)
 
         # self.format : '%B' : long book name, '%b': short book name, '%c': chapter.no, '%v': v.no, %t: verse text
@@ -631,7 +632,7 @@ class BibleVerseFormat(FormatObj):
 
 
 class DateTimeFormat(FormatObj):
-    def __init__(self, format: str = "", value=None):
+    def __init__(self, format: str = "", value: str = ""):
         super().__init__(format, value)
 
         # self.format : https://docs.python.org/3/library/datetime.html#strftime-strptime-behavior
@@ -1236,7 +1237,6 @@ class LyricManager:
         return songs
 
     def search_lyric_file(self, filename: str) -> typing.Optional[str]:
-
         _dir, fn = os.path.split(filename)
         xml_pathname = os.path.splitext(filename)[0] + ".xml"
         file_exist = os.path.exists(xml_pathname)

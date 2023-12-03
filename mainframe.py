@@ -1,6 +1,7 @@
 """This file contains main window derived from Frame class.
 """
 
+from enum import IntEnum
 import gettext
 import json
 import os
@@ -22,34 +23,39 @@ _ = lambda s: s
 DEFAULT_SPAN = (1, 1)
 DEFAULT_BORDER = 5
 
-ID_COMMAND_ADD = 100
-ID_COMMAND_DELETE = 101
-ID_COMMAND_UP = 102
-ID_COMMAND_DOWN = 103
 
-ILID_DUPLICATE_SLIDES = 0
-ILID_EXPORT_SLIDE_IMAGES = 1
-ILID_EXPORT_SHAPES_IMAGES = 2
-ILID_FIND_REPLACE_TEXTS = 3
-ILID_GENERATE_BIBLE_VERSES = 4
-ILID_INSERT_LYRICS = 5
-ILID_INSERT_SLIDES = 6
-ILID_OPEN_FILE = 7
-ILID_POPUP_MESSAGE = 8
-ILID_SAVE_FILE = 9
+class CommandEnum(IntEnum):
+    ADD = 100
+    DELETE = 101
+    UP = 102
+    DOWN = 103
+
+
+class ILIDEnum(IntEnum):
+    DUPLICATE_SLIDES = 0
+    EXPORT_SLIDE_IMAGES = 1
+    EXPORT_SHAPES_IMAGES = 2
+    FIND_REPLACE_TEXTS = 3
+    GENERATE_BIBLE_VERSES = 4
+    INSERT_LYRICS = 5
+    INSERT_SLIDES = 6
+    OPEN_FILE = 7
+    POPUP_MESSAGE = 8
+    SAVE_FILE = 9
+
 
 COMMAND_INFO = [
     # ILID,                 Image File,          UI String,               UI Class
-    (ILID_DUPLICATE_SLIDES, "slide_duplicate.png", _("Duplicate slides"), cmdui.DuplicateWithTextUI),
-    (ILID_EXPORT_SLIDE_IMAGES, "Save picture.png", _("Export slides as images"), cmdui.ExportSlidesUI),
-    (ILID_EXPORT_SHAPES_IMAGES, "save shape.png", _("Export shapes in slide as images"), cmdui.ExportShapesUI),
-    (ILID_FIND_REPLACE_TEXTS, "slide_text.png", _("Find and replace texts"), cmdui.SetVariablesUI),
-    (ILID_GENERATE_BIBLE_VERSES, "slide_bible.png", _("Generate Bible verses slides"), cmdui.GenerateBibleVerseUI),
-    (ILID_INSERT_LYRICS, "slide_note.png", _("Insert lyrics from files"), cmdui.InsertLyricsUI),
-    (ILID_INSERT_SLIDES, "slide_insert.png", _("Insert slides from files"), cmdui.InsertSlidesUI),
-    (ILID_OPEN_FILE, "Open.png", _("Open a presentation file"), cmdui.OpenFileUI),
-    (ILID_POPUP_MESSAGE, "message.png", _("Pop up a message"), cmdui.PopupMessageUI),
-    (ILID_SAVE_FILE, "Save.png", _("Save the presentation and other files"), cmdui.SaveFilesUI),
+    (ILIDEnum.DUPLICATE_SLIDES, "slide_duplicate.png", _("Duplicate slides"), cmdui.DuplicateWithTextUI),
+    (ILIDEnum.EXPORT_SLIDE_IMAGES, "Save picture.png", _("Export slides as images"), cmdui.ExportSlidesUI),
+    (ILIDEnum.EXPORT_SHAPES_IMAGES, "save shape.png", _("Export shapes in slide as images"), cmdui.ExportShapesUI),
+    (ILIDEnum.FIND_REPLACE_TEXTS, "slide_text.png", _("Find and replace texts"), cmdui.SetVariablesUI),
+    (ILIDEnum.GENERATE_BIBLE_VERSES, "slide_bible.png", _("Generate Bible verses slides"), cmdui.GenerateBibleVerseUI),
+    (ILIDEnum.INSERT_LYRICS, "slide_note.png", _("Insert lyrics from files"), cmdui.InsertLyricsUI),
+    (ILIDEnum.INSERT_SLIDES, "slide_insert.png", _("Insert slides from files"), cmdui.InsertSlidesUI),
+    (ILIDEnum.OPEN_FILE, "Open.png", _("Open a presentation file"), cmdui.OpenFileUI),
+    (ILIDEnum.POPUP_MESSAGE, "message.png", _("Pop up a message"), cmdui.PopupMessageUI),
+    (ILIDEnum.SAVE_FILE, "Save.png", _("Save the presentation and other files"), cmdui.SaveFilesUI),
 ]
 
 UICLS_TO_ILID_MAP = {pi[3]: pi[0] for pi in COMMAND_INFO}
@@ -198,20 +204,20 @@ class Frame(wx.Frame):
         toolbar = wx.ToolBar(parent, size=(200, -1), style=wx.TB_HORIZONTAL | wx.TB_BOTTOM)
 
         bitmap = wx.Bitmap(os.path.join(self.image_path24, "Add.png"))
-        toolbar.AddTool(ID_COMMAND_ADD, _("Add Command"), bitmap)
-        self.Bind(wx.EVT_TOOL, self.on_add_command, id=ID_COMMAND_ADD)
+        toolbar.AddTool(CommandEnum.ADD, _("Add Command"), bitmap)
+        self.Bind(wx.EVT_TOOL, self.on_add_command, id=CommandEnum.ADD)
 
         bitmap = wx.Bitmap(os.path.join(self.image_path24, "Delete.png"))
-        toolbar.AddTool(ID_COMMAND_DELETE, _("Delete Command"), bitmap)
-        self.Bind(wx.EVT_TOOL, self.on_delete_command, id=ID_COMMAND_DELETE)
+        toolbar.AddTool(CommandEnum.DELETE, _("Delete Command"), bitmap)
+        self.Bind(wx.EVT_TOOL, self.on_delete_command, id=CommandEnum.DELETE)
 
         bitmap = wx.Bitmap(os.path.join(self.image_path24, "Down.png"))
-        toolbar.AddTool(ID_COMMAND_DOWN, _("Move Down"), bitmap)
-        self.Bind(wx.EVT_TOOL, self.on_move_down_command, id=ID_COMMAND_DOWN)
+        toolbar.AddTool(CommandEnum.DOWN, _("Move Down"), bitmap)
+        self.Bind(wx.EVT_TOOL, self.on_move_down_command, id=CommandEnum.DOWN)
 
         bitmap = wx.Bitmap(os.path.join(self.image_path24, "Up.png"))
-        toolbar.AddTool(ID_COMMAND_UP, _("Move Up"), bitmap)
-        self.Bind(wx.EVT_TOOL, self.on_move_up_command, id=ID_COMMAND_UP)
+        toolbar.AddTool(CommandEnum.UP, _("Move Up"), bitmap)
+        self.Bind(wx.EVT_TOOL, self.on_move_up_command, id=CommandEnum.UP)
 
         toolbar.Realize()
 
@@ -435,7 +441,6 @@ class Frame(wx.Frame):
             self.pconfig.write_config(self.config)
 
     def get_lyric_file(self, filename: str) -> typing.Optional[str]:
-
         # empty basename when the filename is deleted.
         _dir, fn = os.path.split(filename)
         if not os.path.splitext(fn)[0]:
@@ -480,7 +485,7 @@ class Frame(wx.Frame):
             wx.Execute(cmd, wx.EXEC_ASYNC)
 
     def on_add_command(self, _event: wx.Event):
-        """Event handler for the ID_COMMAND_ADD command."""
+        """Event handler for the CommandEnum.ADD command."""
         dlg = wx.SingleChoiceDialog(self, _("Please choose a slide command."), _("Add slide command"), [x[2] for x in COMMAND_INFO])
         result = dlg.ShowModal()
         command_index = dlg.GetSelection()
@@ -495,13 +500,13 @@ class Frame(wx.Frame):
         self.insert_command(index, command_index, command_name)
 
     def on_delete_command(self, _event: wx.Event):
-        """Event handler for the ID_COMMAND_DELETE command."""
+        """Event handler for the CommandEnum.DELETE command."""
         index = self.command_ctrl.GetFirstSelected()
         self.command_ctrl.DeleteItem(index)
         self.uimgr.delete_item(index)
 
     def on_move_down_command(self, _event: wx.Event):
-        """Event handler for the ID_COMMAND_DOWN command."""
+        """Event handler for the CommandEnum.DOWN command."""
         index = self.command_ctrl.GetFirstSelected()
         if index + 1 < self.command_ctrl.GetItemCount():
             ui = self.uimgr.command_ui_list[index]
@@ -513,7 +518,7 @@ class Frame(wx.Frame):
             self.command_ctrl.Select(index + 1)
 
     def on_move_up_command(self, _event: wx.Event):
-        """Event handler for the ID_COMMAND_UP command."""
+        """Event handler for the CommandEnum.UP command."""
         index = self.command_ctrl.GetFirstSelected()
         if index > 0:
             ui = self.uimgr.command_ui_list[index]
