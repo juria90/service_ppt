@@ -6,7 +6,7 @@ It also can insert slides that are pre-made such as song slides.<br>
 After it generates slide, it can export slides into images or shapes in slides into transparent images.<br>
 <br>
 All these operations are done using Windows Powerpoint COM service and that means you need to have PowerPoint installed on your machine.<br>
-For OS X, it is using AppleScript but the feature less mature than that of Windows.<br>
+For OS X, it is using AppleScript but the feature is less mature than that of Windows.<br>
 
 # Installation
 This document describes how to set up the environment for the service_ppt application.
@@ -19,7 +19,9 @@ Add python3 to the PATH environment.
 All the below packages can be install by following commands.
 Or each package can be installed one by one.
 ```
-pip install -r requirement.txt
+pip install -r requirement.txt  # For Python 3.9
+
+pip install -r requirement-3.10.txt  # For Python 3.10
 ```
 
 ## Install wxPython
@@ -59,7 +61,9 @@ OS X specific packages.
 pip install py-applescript
 ```
 
-# Set up bible text.
+# Set up data
+
+# # Set up bible text.
 The Bible text can be retrieved from MyBible(Application's proprietary format),<br>
 MySword(https://www.mysword.info/modules-format),<br>
 Sword(https://pypi.org/project/pysword/0),<br>
@@ -67,7 +71,7 @@ and Zefania(https://sourceforge.net/projects/zefania-sharp/files/Bibles/) format
 After installing required bible package and Bible text,<br>
 you need to set up the Active Bible from Application's preference.<br>
 
-# Set up hymn lyrics.
+## Set up hymn lyrics.
 The supported Hymn and lyric format is OpenLyric(https://docs.openlyrics.org/en/latest/).<br>
 But, it can be extended easily.
 
@@ -87,7 +91,7 @@ sample - The sample service.sdf, service definition file that contains command i
 You need to update the pathnames in the file to be full path names before run it.
 ```
 
-# The structure of the application.
+## The structure of the application.
 ```
 service_ppt.pyw - main application start up code.
 mainframe.py - main window UI class.
@@ -99,5 +103,12 @@ powerpoint_win32.py - The Windows specific classes using COM to automate PowerPo
 ```
 
 # Service Definition File
-The .sdf file contains the command instructions saved from each Command.<br>
+The `.sdf` file contains the command instructions saved from each Command.<br>
 It is a JSON file format internally.
+
+# Installer
+
+Use `pyinstaller==5.13.2` to make an executable.
+```
+pyinstaller service_ppt.spec
+```
