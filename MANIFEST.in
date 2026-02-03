@@ -1,0 +1,3 @@
+recursive-include service_ppt/image24 *.png
+recursive-include service_ppt/image32 *.png
+recursive-include service_ppt/locale *.mo

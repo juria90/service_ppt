@@ -1,3 +1,9 @@
+"""Sample script for processing text input.
+
+This module demonstrates how to create custom scripts that process input text
+and return output text, which can be used in service definition files for
+custom text processing operations.
+"""
 # sample script to process input(list of string) and return output(list of string)
 #
 

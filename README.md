@@ -5,61 +5,106 @@ The find and replace text can be applied to a text template file and can be save
 It also can insert slides that are pre-made such as song slides.<br>
 After it generates slide, it can export slides into images or shapes in slides into transparent images.<br>
 <br>
-All these operations are done using Windows Powerpoint COM service and that means you need to have PowerPoint installed on your machine.<br>
-For OS X, it is using AppleScript but the feature is less mature than that of Windows.<br>
+PowerPoint automation is handled by platform-specific backends:<br>
+- **Windows**: Uses COM automation (requires PowerPoint installed)<br>
+- **macOS/Linux**: Uses python-pptx library by default (no PowerPoint installation required), with AppleScript fallback on macOS if python-pptx is unavailable<br>
+Note: Image export features require platform-specific backends (COM on Windows, AppleScript on macOS).<br>
 
 # Installation
 This document describes how to set up the environment for the service_ppt application.
 
-## Install Python 3.
-Install Python 3.9 from https://www.python.org/downloads/.<br>
+## Install Python 3.12 or higher
+Install Python 3.12 or higher from https://www.python.org/downloads/.<br>
 Add python3 to the PATH environment.
 
-## Install packages using requirement.txt
-All the below packages can be install by following commands.
-Or each package can be installed one by one.
-```
-pip install -r requirement.txt  # For Python 3.9
+## Install the package
 
-pip install -r requirement-3.10.txt  # For Python 3.10
-```
+### Using a virtual environment (recommended)
+```bash
+# Create a virtual environment
+python -m venv venv
 
-## Install wxPython
-Install wxPython that is used for main GUI application.
-```
-pip install wxpython
-```
+# Activate the virtual environment
+# On Windows:
+venv\Scripts\activate
+# On macOS/Linux:
+source venv/bin/activate
 
-## Install 3rd party packages.
-These are common to Windows and Mac OS.
-```
-pip install iso639-lang
-
-pip install langdetect
-
-pip install numpy
-
-pip install Pillow
-
-pip install pysword
+# Install the package in editable mode
+pip install -e .
 ```
 
-## Set up environment for language translation.
-Install GNU gettext package and add the bin directory to the PATH environment.<br>
-The 'xgettext', 'msgfmt' and 'msgmerge' will be used for translation strings.<br>
-For Windows you can get the installer from http://gnuwin32.sourceforge.net/packages/gettext.htm.
-
-## Windows platform
-Windows specific packages.
-```
-pip install pywin32
+### Install with development dependencies
+To install with development tools (ruff, pytest):
+```bash
+pip install -e ".[dev]"
 ```
 
-## OS X platform
-OS X specific packages.
+### What gets installed
+The `pyproject.toml` file automatically handles all dependencies:
+- **Core dependencies**: wxPython, iso639-lang, langdetect, numpy, Pillow, pysword, python-pptx, six
+- **Platform-specific dependencies** (installed automatically based on your OS):
+  - `pywin32` on Windows
+  - `py-applescript` on macOS
+
+### Running the application
+After installation, you can run the application using:
+```bash
+# Using the console script (if installed in PATH)
+service-ppt
+
+# Or using Python module syntax
+python -m service_ppt
 ```
-pip install py-applescript
+
+## Set up environment for language translation
+
+### Install GNU gettext
+Install GNU gettext package and ensure the bin directory is in your PATH environment.<br>
+The `xgettext`, `msgfmt` and `msgmerge` commands will be used for translation strings.
+
+- **Windows**: Download from https://mlocati.github.io/articles/gettext-iconv-windows.html or http://gnuwin32.sourceforge.net/packages/gettext.htm
+- **macOS**: Install via Homebrew: `brew install gettext`
+- **Linux**: Install via package manager (e.g., `apt-get install gettext` on Debian/Ubuntu)
+
+### Using the translation scripts
+
+The project includes cross-platform Python scripts in the `scripts/` directory for managing translations:
+
+#### Extract translatable strings
+
+Run `scripts/xgettext.py` to extract translatable strings from the source code and generate `.pot` template files:
+
+```bash
+python scripts/xgettext.py
 ```
+
+This script:
+- Extracts strings from `service_ppt/bible/bibcore.py` and `service_ppt/bible/biblang.py` → `service_ppt/locale/bible.pot`
+- Extracts strings from main application files → `service_ppt/locale/service_ppt.pot`
+- Handles `pgettext` function calls (used for context-aware translations)
+
+#### Update and compile translations
+
+Run `scripts/msgupdate.py` to merge template files with existing translations and compile them:
+
+```bash
+python scripts/msgupdate.py
+```
+
+This script:
+- Merges `.pot` template files with existing `.po` translation files
+- Compiles `.po` files to `.mo` binary format (required at runtime)
+- Processes all locales defined in the script (currently: `ko`)
+
+### Translation workflow
+
+1. **Extract strings**: Run `python scripts/xgettext.py` after adding new translatable strings
+2. **Translate**: Edit the `.po` files in `service_ppt/locale/<locale>/LC_MESSAGES/` (e.g., `service_ppt/locale/ko/LC_MESSAGES/service_ppt.po`)
+3. **Update and compile**: Run `python scripts/msgupdate.py` to merge changes and compile translations
+4. **Test**: Restart the application to see translated strings
+
+The compiled `.mo` files are automatically included in the package distribution.
 
 # Set up data
 
@@ -76,39 +121,81 @@ The supported Hymn and lyric format is OpenLyric(https://docs.openlyrics.org/en/
 But, it can be extended easily.
 
 # Directory structure
+
+## Project root
 ```
-applescript - Test AppleScript files for OS X PowerPoint
+applescript/          - Test AppleScript files for macOS PowerPoint automation
+scripts/              - Utility scripts (cross-platform Python scripts)
+  ├── bibconv.py      - Bible format conversion utility
+  ├── msgupdate.py    - Update and compile translation files
+  ├── osx_sample.py   - Sample script for macOS PowerPoint automation
+  └── xgettext.py     - Extract translatable strings from source code
+sample/               - Sample files and templates
+  ├── service.sdf     - Sample service definition file (update pathnames before use)
+  ├── Service-Template.pptx - Sample PowerPoint template
+  └── service-notes-template.txt - Sample notes template
+screenshot/           - Application screenshots
+service_ppt/          - Main application package
+tests/                - Unit tests
+```
 
-bible - Bible text data structure and format reader.
-
-hymn - Hymn and lyric data structure and reader.
-
-image24, image32 - Icons/Images for Toolbar and command.
-
-locale - Language translation.
-
-sample - The sample service.sdf, service definition file that contains command instructions to generate slides file.
-You need to update the pathnames in the file to be full path names before run it.
+## service_ppt package structure
+```
+service_ppt/
+  ├── bible/          - Bible text data structure and format readers
+  │   ├── bibcore.py  - Core Bible data structures
+  │   ├── biblang.py  - Bible language and translation support
+  │   └── [format readers] - Support for MyBible, MySword, Sword, Zefania, etc.
+  ├── hymn/           - Hymn and lyric data structure and readers
+  │   └── [OpenLyrics support]
+  ├── utilities/      - General utility modules
+  ├── wx_utils/       - wxPython-specific utility modules
+  ├── image24/        - 24x24 pixel icons for toolbar and commands
+  ├── image32/        - 32x32 pixel icons for toolbar and commands
+  ├── locale/         - Language translation files (.mo, .po, .pot)
+  │   └── [locale]/LC_MESSAGES/ - Compiled translations per locale
+  ├── __main__.py     - Application entry point
+  ├── mainframe.py    - Main window UI class
+  ├── command.py      - Command classes for slide generation
+  ├── command_ui.py   - UI classes for command configuration
+  ├── powerpoint_base.py - Base classes for PowerPoint automation
+  ├── powerpoint_win32.py - Windows COM automation backend
+  ├── powerpoint_osx.py - macOS AppleScript automation backend
+  └── powerpoint_pptx.py - Cross-platform python-pptx backend
 ```
 
 ## The structure of the application.
 ```
-service_ppt.pyw - main application start up code.
-mainframe.py - main window UI class.
-command.py - The several **Command** classes to generate slides.
-command_ui.py - The **CommandUI** classes that display UI for each Command classes.
-powerpoint_base.py - The PresentationBase and PPTAppBase base classes that contain the common platform independent PowerPoint automation code
-powerpoint_osx.py - The OS X specific classes using AppleScript to automate PowerPoint.
-powerpoint_win32.py - The Windows specific classes using COM to automate PowerPoint.
+service_ppt/__main__.py - main application entry point (can be run as `python -m service_ppt` or `service-ppt` command).
+service_ppt/mainframe.py - main window UI class.
+service_ppt/command.py - The several **Command** classes to generate slides.
+service_ppt/command_ui.py - The **CommandUI** classes that display UI for each Command classes.
+service_ppt/powerpoint_base.py - The PresentationBase and PPTAppBase base classes that contain the common platform independent PowerPoint automation code
+service_ppt/powerpoint_osx.py - The OS X specific classes using AppleScript to automate PowerPoint.
+service_ppt/powerpoint_win32.py - The Windows specific classes using COM to automate PowerPoint.
+service_ppt/powerpoint_pptx.py - Cross-platform implementation using python-pptx library.
 ```
 
 # Service Definition File
 The `.sdf` file contains the command instructions saved from each Command.<br>
 It is a JSON file format internally.
 
-# Installer
+# Building an Executable
 
-Use `pyinstaller==5.13.2` to make an executable.
+To create a standalone executable, use PyInstaller (version 6.0.0 or higher for Python 3.12+ support).
+
+## Install PyInstaller
+```
+pip install pyinstaller>=6.0.0
+```
+
+## Build the executable
 ```
 pyinstaller service_ppt.spec
 ```
+
+The executable will be created in the `dist/service_ppt/` directory.
+
+**Note:** The `service_ppt.spec` file has been updated to work with the new package structure:
+- Entry point: `service_ppt/__main__.py`
+- Data directories: `service_ppt/image24`, `service_ppt/image32`, `service_ppt/locale`

@@ -5,10 +5,10 @@ block_cipher = None
 
 
 a = Analysis(
-    ['service_ppt.pyw'],
+    ['service_ppt/__main__.py'],
     pathex=["."],
     binaries=[],
-    datas=[("image24", "image24"), ("image32", "image32"), ("locale", "locale"), ("sample", "sample")],
+    datas=[("service_ppt/image24", "service_ppt/image24"), ("service_ppt/image32", "service_ppt/image32"), ("service_ppt/locale", "service_ppt/locale"), ("sample", "sample")],
     hiddenimports=[],
     hookspath=[],
     hooksconfig={},

@@ -1,0 +1,163 @@
+[
+  {
+    "type": "OpenFile",
+    "name": "New File",
+    "data": {
+      "enabled": true,
+      "filename": "",
+      "notes_filename": "service-notes-template.txt"
+    }
+  },
+  {
+    "type": "InsertSlides",
+    "name": "Insert Template Sildes",
+    "data": {
+      "enabled": true,
+      "insert_location": "",
+      "separator_slides": "",
+      "filelist": [
+        "Service-Template.pptx"
+      ]
+    }
+  },
+  {
+    "type": "DuplicateWithText",
+    "name": "Announcement before service",
+    "data": {
+      "enabled": true,
+      "slide_range": "note.contains_text('NOTES_intro_announcement')",
+      "repeat_range": "note.contains_text('NOTES_intro_announcement')",
+      "find_text": "{intro_announcement}",
+      "replace_texts": [
+        "Welcome."
+      ]
+    }
+  },
+  {
+    "type": "SetVariables",
+    "name": "Find and replace texts",
+    "data": {
+      "enabled": true,
+      "format_dict": {
+        "datetime": {
+          "format_type": "DateTimeFormat",
+          "value": "2021-05-07"
+        }
+      },
+      "str_dict": {
+        "service_title": "Sunday Service",
+        "preacher": "Pastor",
+        "sermon_title": "Sermon Title",
+        "prayer": "Elder Sam"
+      }
+    }
+  },
+  {
+    "type": "DuplicateWithText",
+    "name": "Announcement",
+    "data": {
+      "enabled": true,
+      "slide_range": "note.contains_text('MK_announcement')",
+      "repeat_range": "note.contains_text('MK_announcement:repeat')",
+      "find_text": "{announcement}",
+      "replace_texts": [
+        "Welcome."
+      ]
+    }
+  },
+  {
+    "type": "GenerateBibleVerse",
+    "name": "Bible Verse",
+    "data": {
+      "bible_version1": "ESV",
+      "main_verses": "Genesis 1:1",
+      "additional_verses": "Genesis 1:2",
+      "verse_patterns": [
+        "MK_bible_verse",
+        "MK_book_long",
+        "MK_book_short",
+        "MK_chapter",
+        "MK_verse_no",
+        "MK_verse_text"
+      ],
+      "repeat_range": "note.contains_text('MK_bible_verse:repeat')"
+    }
+  },
+  {
+    "type": "DuplicateWithText",
+    "name": "Sermon Summary",
+    "data": {
+      "enabled": true,
+      "slide_range": "note.contains_text('MK_sermon_text')",
+      "repeat_range": "note.contains_text('MK_sermon_text:repeat')",
+      "find_text": "{sermon_text}",
+      "replace_texts": [
+        "1. The Creation"
+      ]
+    }
+  },
+  {
+    "type": "PopupMessage",
+    "name": "Check the slides",
+    "data": {
+      "enabled": true,
+      "message": "Please check the slides before continue."
+    }
+  },
+  {
+    "type": "SaveFiles",
+    "name": "Save the presentation",
+    "data": {
+      "enabled": true,
+      "filename": "{datetime:%Y-%m%d-%A}.pptx",
+      "notes_filename": "service-notes.txt",
+      "verses_filename": "bible-verse.txt"
+    }
+  },
+  {
+    "type": "ExportSlides",
+    "name": "Save introductory announcement",
+    "data": {
+      "enabled": true,
+      "slide_range": "note.contains_text('NOTES_intro_export')",
+      "out_dirname": "Slide-Images\\0Announce",
+      "image_type": "JPEG",
+      "flags": 3,
+      "color": "#FFFFFF"
+    }
+  },
+  {
+    "type": "ExportShapes",
+    "name": "Export bible verses to image files",
+    "data": {
+      "enabled": true,
+      "slide_range": "note.contains_text('MK_transparent_bible_verse')",
+      "out_dirname": "Slide-Images\\1Verse",
+      "image_type": "PNG",
+      "flags": 1
+    }
+  },
+  {
+    "type": "ExportShapes",
+    "name": "Export sermon summary to image files",
+    "data": {
+      "enabled": true,
+      "slide_range": "note.contains_text('MK_transparent_sermon_text')",
+      "out_dirname": "Slide-Images\\2Sermon",
+      "image_type": "PNG",
+      "flags": 1
+    }
+  },
+  {
+    "type": "ExportSlides",
+    "name": "Export ending announcement to image files",
+    "data": {
+      "enabled": true,
+      "slide_range": "note.contains_text('MK_closing_announcement')",
+      "out_dirname": "Slide-Images\\3Ending",
+      "image_type": "JPEG",
+      "flags": 3,
+      "color": "#FFFFFF"
+    }
+  }
+]

@@ -5,12 +5,13 @@
     "version": "0.2.0",
     "configurations": [
         {
-            "name": "Python: service_ppt.pyw",
-            "type": "python",
+            "name": "Python: service_ppt module",
+            "type": "debugpy",
             "request": "launch",
-            "program": "service_ppt.pyw",
+            "module": "service_ppt",
             "console": "integratedTerminal",
-            "justMyCode": true
+            "justMyCode": true,
+            "cwd": "${workspaceFolder}"
         }
     ]
 }
