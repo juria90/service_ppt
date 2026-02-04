@@ -1,4 +1,6 @@
 {
+    "editor.formatOnSave": true,
+    "python.formatting.provider": "ruff",
     "python.testing.pytestArgs": [
         "tests"
     ],

@@ -4,37 +4,49 @@ This module provides a registry of available Bible file formats and a factory
 function to create appropriate format readers based on the format type.
 """
 
-from .mybible import MyBibleFormat
-from .mysword_bible import MySwordFormat
-from .sword_bible import SwordFormat
-from .zefania_bible import ZefaniaFormat
+from enum import Enum
+from typing import TYPE_CHECKING, Any
 
-# Currently supported Bible Program.
-FORMAT_MYBIBLE = "MyBible"
-FORMAT_MYSWORD = "MySword"
-FORMAT_SWORD = "Sword"
-FORMAT_ZEFANIA = "Zefania"
+from service_ppt.bible.bibcore import FileFormat
+from service_ppt.bible.mybible import MyBibleFormat
+from service_ppt.bible.mysword_bible import MySwordFormat
+from service_ppt.bible.sword_bible import SwordFormat
+from service_ppt.bible.zefania_bible import ZefaniaFormat
+
+if TYPE_CHECKING:
+    from service_ppt.bible.bibcore import Bible
 
 
-def _import_bible_format():
-    prog_dict = {}
+class BibleFormat(str, Enum):
+    """Enumeration of supported Bible file formats."""
 
-    prog_dict[FORMAT_MYBIBLE] = MyBibleFormat()
+    MYBIBLE = "MyBible"
+    MYSWORD = "MySword"
+    SWORD = "Sword"
+    ZEFANIA = "Zefania"
 
-    prog_dict[FORMAT_MYSWORD] = MySwordFormat()
+
+def _import_bible_format() -> dict[str, FileFormat]:
+    prog_dict: dict[str, FileFormat] = {}
+
+    prog_dict[BibleFormat.MYBIBLE.value] = MyBibleFormat()
+
+    prog_dict[BibleFormat.MYSWORD.value] = MySwordFormat()
 
     try:
         from pysword.modules import SwordModules
 
         modules = SwordModules()
         found_modules = modules.parse_modules()
-        prog_dict[FORMAT_SWORD] = SwordFormat(modules, found_modules)
+        prog_dict[BibleFormat.SWORD.value] = SwordFormat(modules, found_modules)
     except ImportError:
+        # Optional dependency not available, skip
         pass
     except FileNotFoundError:
+        # File not found, skip
         pass
 
-    prog_dict[FORMAT_ZEFANIA] = ZefaniaFormat()
+    prog_dict[BibleFormat.ZEFANIA.value] = ZefaniaFormat()
 
     return prog_dict
 
@@ -42,11 +54,11 @@ def _import_bible_format():
 FORMAT_LIST = _import_bible_format()
 
 
-def get_format_list():
-    return [p for p in FORMAT_LIST]
+def get_format_list() -> list[str]:
+    return list(FORMAT_LIST)
 
 
-def get_format_option(fileformat, key):
+def get_format_option(fileformat: str, key: str) -> "Any | None":
     if fileformat in FORMAT_LIST:
         format_obj = FORMAT_LIST[fileformat]
         return format_obj.get_option(key)
@@ -54,13 +66,13 @@ def get_format_option(fileformat, key):
     return None
 
 
-def set_format_option(fileformat, key, value):
+def set_format_option(fileformat: str, key: str, value: "Any") -> None:
     if fileformat in FORMAT_LIST:
         format_obj = FORMAT_LIST[fileformat]
         format_obj.set_option(key, value)
 
 
-def enum_versions(fileformat):
+def enum_versions(fileformat: str) -> list[str] | None:
     if fileformat in FORMAT_LIST:
         format_obj = FORMAT_LIST[fileformat]
         return format_obj.enum_versions()
@@ -68,7 +80,7 @@ def enum_versions(fileformat):
     return None
 
 
-def read_version(fileformat, version):
+def read_version(fileformat: str, version: str) -> "Bible | None":
     bible = None
     if fileformat in FORMAT_LIST:
         format_obj = FORMAT_LIST[fileformat]
@@ -77,7 +89,7 @@ def read_version(fileformat, version):
     return bible
 
 
-def get_bible_info(version):
+def get_bible_info(version: str) -> dict[str, str] | None:
     info_dict = {
         "ESV": {
             "creator": "Crossway",

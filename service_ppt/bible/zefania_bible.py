@@ -7,20 +7,20 @@ from the Zefania project.
 Download location: https://sourceforge.net/projects/zefania-sharp/files/Bibles/
 """
 
+from datetime import datetime
 import os
 import xml.etree.ElementTree as ET
 import xml.sax.saxutils
-from datetime import datetime
 
 from iso639 import Lang
 
-from . import biblang
-from .bibcore import Bible, BibleInfo, Book, Chapter, FileFormat, Verse
+from service_ppt.bible import biblang
+from service_ppt.bible.bibcore import Bible, BibleInfo, Book, Chapter, FileFormat, Verse
 
 
 class ZefaniaReader:
     @staticmethod
-    def _get_bible_name(filename, hint_line=10):
+    def _get_bible_name(filename, hint_line=10) -> str | None:
         """Check whether it is a XML file with following xml tag and attributes.
         <XMLBIBLE biblename="King James 2000" type="x-bible">
 
@@ -28,7 +28,7 @@ class ZefaniaReader:
         """
         lines = ""
         with open(filename, encoding="utf-8") as f:
-            for i in range(hint_line):
+            for _ in range(hint_line):
                 lines += f.readline()
 
         parser = ET.XMLPullParser(["start", "end"])
@@ -37,9 +37,9 @@ class ZefaniaReader:
             if event == "start" and elem.tag == "XMLBIBLE" and "biblename" in elem.attrib:
                 return elem.attrib["biblename"]
 
-            return None
+        return None
 
-    def read_bible(self, filename):
+    def read_bible(self, filename: str) -> Bible:
         tree = ET.parse(filename)
         root = tree.getroot()
 
@@ -76,7 +76,7 @@ class ZefaniaReader:
 
         return bible
 
-    def _parse_chapters(self, book, book_node):
+    def _parse_chapters(self, book: Book, book_node: ET.Element) -> None:
         for node in book_node:
             if node.tag == "CHAPTER":
                 chapter = Chapter()
@@ -85,7 +85,7 @@ class ZefaniaReader:
 
                 self._parse_verses(chapter, node)
 
-    def _parse_verses(self, chapter, chapter_node):
+    def _parse_verses(self, chapter: Chapter, chapter_node: ET.Element) -> None:
         for node in chapter_node:
             if node.tag == "VERS":
                 verse = Verse()
@@ -93,7 +93,7 @@ class ZefaniaReader:
                 verse.text = self._concat_children_text(node)
                 chapter.verses.append(verse)
 
-    def _concat_children_text(self, node):
+    def _concat_children_text(self, node: ET.Element) -> str:
         text = ""
         for it in node.itertext():
             t = it.strip()
@@ -107,13 +107,13 @@ class ZefaniaReader:
 
 
 class ZefaniaWriter:
-    def __init__(self):
+    def __init__(self) -> None:
         pass
 
-    def _get_extension(self):
+    def _get_extension(self) -> str:
         return ".xml"
 
-    def write_bible(self, dirname, bible, encoding="utf-8"):
+    def write_bible(self, dirname: str, bible: Bible, encoding: str = "utf-8") -> None:
         extension = self._get_extension()
 
         if encoding is None:
@@ -132,7 +132,7 @@ class ZefaniaWriter:
 
             self._write_footer(file)
 
-    def _write_header(self, file, bible):
+    def _write_header(self, file: object, bible: Bible) -> None:
         print(
             f"""<?xml version="1.0" encoding="utf-8"?>
 <!--Visit the online documentation for Zefania XML Markup-->
@@ -145,8 +145,8 @@ class ZefaniaWriter:
             end="",
         )
 
-    def _write_info(self, file, bible):
-        from .fileformat import get_bible_info
+    def _write_info(self, file: object, bible: Bible) -> None:
+        from service_ppt.bible.bibleformat import get_bible_info
 
         dt_str = datetime.today().strftime("%Y-%m-%d")
         bible_name = xml.sax.saxutils.escape(bible.name)
@@ -185,10 +185,10 @@ class ZefaniaWriter:
             end="",
         )
 
-    def _write_footer(self, file):
+    def _write_footer(self, file: object) -> None:
         print("</XMLBIBLE>", file=file)
 
-    def _write_book(self, file, nth, book):
+    def _write_book(self, file: object, nth: int, book: Book) -> None:
         long_name = xml.sax.saxutils.escape(book.name)
         short_name = xml.sax.saxutils.escape(book.short_name)
         print(f""" <BIBLEBOOK bnumber="{nth + 1}" bname="{long_name}" bsname="{short_name}">""", file=file)
@@ -216,13 +216,13 @@ class ZefaniaWriter:
 
 
 class ZefaniaFormat(FileFormat):
-    def __init__(self):
+    def __init__(self) -> None:
         super().__init__()
 
-        self.versions = None
-        self.options = {"ROOT_DIR": ""}
+        self.versions: dict[str, str] | None = None
+        self.options: dict[str, str] = {"ROOT_DIR": ""}
 
-    def _get_root_dir(self):
+    def _get_root_dir(self) -> str:
         dirname = self.get_option("ROOT_DIR")
         if not dirname:
             dirname = os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "..", "Zefania-Bible-xml")
@@ -231,7 +231,7 @@ class ZefaniaFormat(FileFormat):
 
         return dirname
 
-    def enum_versions(self):
+    def enum_versions(self) -> list[str]:
         dirname = self._get_root_dir()
 
         versions = {}
@@ -246,7 +246,7 @@ class ZefaniaFormat(FileFormat):
 
         return list(self.versions.keys())
 
-    def read_version(self, version):
+    def read_version(self, version: str) -> Bible | None:
         if self.versions is None:
             self.enum_versions()
 

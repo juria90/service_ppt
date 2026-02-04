@@ -9,21 +9,22 @@ import os
 import re
 
 from service_ppt.bible import biblang
+from service_ppt.bible.bibcore import Bible, Book, Chapter, Verse
 
 
 class HTMLWriter:
-    lang = biblang.LANG_EN
-    charset = "utf-8"
+    lang: str = biblang.LANG_EN
+    charset: str = "utf-8"
 
-    def __init__(self, dynamic_page, process_bible_tags):
+    def __init__(self, dynamic_page: bool, process_bible_tags: bool) -> None:
         super().__init__()
-        self.dynamic_page = dynamic_page
-        self.process_bible_tags = process_bible_tags
+        self.dynamic_page: bool = dynamic_page
+        self.process_bible_tags: bool = process_bible_tags
 
-    def _get_extension(self):
+    def _get_extension(self) -> str:
         return ".html"
 
-    def write_bible(self, dirname, bible, encoding="utf-8"):
+    def write_bible(self, dirname: str, bible: Bible, encoding: str = "utf-8") -> None:
         self.lang = bible.lang
 
         extension = self._get_extension()
@@ -38,7 +39,7 @@ class HTMLWriter:
         with open(os.path.join(dirname, filename), "w", encoding=encoding) as file:
             self._write_index(file, bible)
 
-    def _write_html_full_header(self, file, title):
+    def _write_html_full_header(self, file: object, title: str) -> None:
         print(
             f"""<html>
 <head>
@@ -82,7 +83,7 @@ function load_book(bookno) {
             end="",
         )
 
-    def _write_html_footer(self, file):
+    def _write_html_footer(self, file: object) -> None:
         print(
             """</body>
 </html>
@@ -91,7 +92,7 @@ function load_book(bookno) {
             end="",
         )
 
-    def _write_html_simple_header(self, file):
+    def _write_html_simple_header(self, file: object) -> None:
         print(
             f"""<html>
 <head>
@@ -113,7 +114,7 @@ function load_book(bookno) {
             end="",
         )
 
-    def _write_book(self, file, book):
+    def _write_book(self, file: object, book: Book) -> None:
         self._write_book_begin(file, book)
 
         for chapter in book.chapters:
@@ -121,7 +122,7 @@ function load_book(bookno) {
 
         self._write_book_end(file, book)
 
-    def _write_book_begin(self, file, book):
+    def _write_book_begin(self, file: object, book: Book) -> None:
         if self.dynamic_page:
             self._write_html_simple_header(file)
         else:
@@ -129,10 +130,10 @@ function load_book(bookno) {
 
         self._write_book_toc(file, book)
 
-    def _write_book_end(self, file, _book):
+    def _write_book_end(self, file: object, _book: Book) -> None:
         self._write_html_footer(file)
 
-    def _write_book_toc(self, file, book):
+    def _write_book_toc(self, file: object, book: Book) -> None:
         print(f'<h1 align="center">{book.name}</h1>', file=file)
 
         print(' <table border="0" width="100%%" cellpadding="0" cellspacing="0">', file=file)
@@ -157,7 +158,7 @@ function load_book(bookno) {
 
         print(" </table>", file=file)
 
-    def _write_chapter(self, file, book, chapter):
+    def _write_chapter(self, file: object, book: Book, chapter: Chapter) -> None:
         self._write_chapter_begin(file, book, chapter)
 
         for verse in chapter.verses:
@@ -165,14 +166,14 @@ function load_book(bookno) {
 
         self._write_chapter_end(file, book, chapter)
 
-    def _write_chapter_begin(self, file, book, chapter):
+    def _write_chapter_begin(self, file: object, book: Book, chapter: Chapter) -> None:
         bc_name = html.escape(biblang.L18N.get_book_chapter_name(self.lang, book.name, chapter.no))
         print(f'<h2 align="center"><a name="chapter{chapter.no}">{bc_name}</a></h2>', file=file)
 
-    def _write_chapter_end(self, file, book, chapter):
+    def _write_chapter_end(self, file: object, book: Book, chapter: Chapter) -> None:
         pass
 
-    def _process_tags(self, text):
+    def _process_tags(self, text: str) -> str:
         if "<" not in text:
             return text
 
@@ -197,7 +198,7 @@ function load_book(bookno) {
 
         return text
 
-    def _write_verse(self, file, verse):
+    def _write_verse(self, file: object, verse: Verse) -> None:
         text = verse.text
         if self.process_bible_tags:
             text = self._process_tags(text)
@@ -209,7 +210,7 @@ function load_book(bookno) {
         else:
             print(f"<font color=blue>{text}</font><br>", file=file)
 
-    def _write_index(self, file, bible):
+    def _write_index(self, file: object, bible: Bible) -> None:
         """_write_index writes two column table for old and new testament."""
 
         self._write_html_full_header(file, bible.name)
@@ -221,7 +222,7 @@ function load_book(bookno) {
 
         self._write_html_footer(file)
 
-    def _write_index_toc(self, file, bible):
+    def _write_index_toc(self, file: object, bible: Bible) -> None:
         print('<table border="0" width="100%%" cellpadding="0" cellspacing="0">', file=file)
         print("  <tr>", file=file)
         testament_name = biblang.L18N.get_testament_name(False, self.lang)
@@ -233,8 +234,8 @@ function load_book(bookno) {
         extension = self._get_extension()
 
         # assume old testament comes before new testament.
-        old = [b for b in bible.books if b.new_testament == False]
-        new = [b for b in bible.books if b.new_testament != False]
+        old = [b for b in bible.books if not b.new_testament]
+        new = [b for b in bible.books if b.new_testament]
         max_row = max(len(old), len(new))
         for i in range(max_row):
             print("  <tr>", file=file)
@@ -261,7 +262,7 @@ function load_book(bookno) {
 
         print("</table>", file=file)
 
-    def _write_index_dynamic_form(self, file, bible):
+    def _write_index_dynamic_form(self, file: object, bible: Bible) -> None:
         print("""<select name="book" id="book" onchange="changeBible(this)">""", file=file)
 
         for i, book in enumerate(bible.books):

@@ -21,7 +21,6 @@ def process_exists(process_name):
         last_line = output.strip().split("\r\n")[-1]
         # because Fail message could be translated
         return last_line.lower().startswith(process_name.lower())
-    else:
-        call = f"""pgrep "{process_name}" """
-        retcode = subprocess.call(call)
-        return retcode == 0
+    call = f"""pgrep "{process_name}" """
+    retcode = subprocess.call(call)
+    return retcode == 0

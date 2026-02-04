@@ -7,13 +7,6 @@ application and displays the main window for the service_ppt application.
 
 import sys
 import traceback
-from pathlib import Path
-
-# Ensure the parent directory is in the path so we can import service_ppt
-# This is needed when running as a module: python -m service_ppt
-_package_dir = Path(__file__).parent.parent
-if str(_package_dir) not in sys.path:
-    sys.path.insert(0, str(_package_dir))
 
 import wx
 
@@ -25,13 +18,14 @@ def activate_macos_app():
     try:
         # Try using pyobjc if available (comes with py-applescript dependency)
         from AppKit import NSApplication
+
         _macos_app = NSApplication.sharedApplication()
         _macos_app.activateIgnoringOtherApps_(True)
     except ImportError:
         # Fallback: Use ctypes to call NSApplication directly
         try:
             import ctypes
-            from ctypes import c_void_p, c_bool
+            from ctypes import c_bool, c_void_p
             from ctypes.util import find_library
 
             objc = ctypes.cdll.LoadLibrary(find_library("objc"))
@@ -49,6 +43,7 @@ def activate_macos_app():
             objc.objc_msgSend(app_obj, activate, c_bool(True))
         except Exception:
             # If all else fails, silently continue
+            # macOS activation is optional - app will still run without it
             pass
 
 
@@ -61,11 +56,11 @@ def main():
     # app.RedirectStdio(logfn)
     frame = Frame()
     app.SetTopWindow(frame)
-    
+
     # macOS-specific: Use native APIs to activate the application
     if sys.platform == "darwin":
         activate_macos_app()
-    
+
     frame.Show()
     app.MainLoop()
 

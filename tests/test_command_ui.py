@@ -4,19 +4,34 @@ This module contains unit tests for the UIManager class in command_ui,
 testing the open() method with sample service definition files.
 """
 
-import sys
 from pathlib import Path
+from typing import TYPE_CHECKING
 
 import pytest
 
-# Initialize wx before importing command_ui classes
-import wx
+if TYPE_CHECKING:
+    import wx
 
-# Ensure wx is initialized (required for CommandUI which inherits from wx.EvtHandler)
-if not wx.GetApp():
-    app = wx.App(False)
+    from service_ppt.command_ui import UIManager
 
-from service_ppt.command_ui import UIManager
+
+@pytest.fixture(scope="module")
+def wx_app() -> "wx.App":
+    """Initialize wx application for the test module.
+
+    This fixture ensures wx is initialized before any command_ui imports,
+    as command_ui.py uses wx at module level (e.g., wx.LEFT | wx.RIGHT).
+
+    :returns: wx.App instance
+    """
+    # Delayed import of wx - only load when needed for tests
+    # Without delayed import, code formatter pops up Python icon on Mac.
+    import wx
+
+    # Ensure wx is initialized (required for CommandUI which inherits from wx.EvtHandler)
+    if not wx.GetApp():
+        return wx.App(False)
+    return wx.GetApp()
 
 
 @pytest.fixture
@@ -24,20 +39,26 @@ def sample_sdf_path():
     """Return the path to the sample service.sdf file."""
     # Get the tests directory
     tests_dir = Path(__file__).parent
-    sample_path = tests_dir / "data" / "service.sdf"
-    return sample_path
+    return tests_dir / "data" / "service.sdf"
 
 
 @pytest.fixture
-def uimgr():
-    """Create a UIManager instance for testing."""
+def uimgr(wx_app: "wx.App") -> "UIManager":
+    """Create a UIManager instance for testing.
+
+    :param wx_app: wx application instance (ensures wx is initialized)
+    :returns: UIManager instance
+    """
+    # Import UIManager after wx is initialized
+    from service_ppt.command_ui import UIManager
+
     return UIManager()
 
 
 class TestUIManagerOpen:
     """Test UIManager.open() method."""
 
-    def test_open_sample_service_sdf(self, uimgr, sample_sdf_path):
+    def test_open_sample_service_sdf(self, uimgr: "UIManager", sample_sdf_path: Path) -> None:
         """Test opening the sample service.sdf file."""
         # Verify the sample file exists
         assert sample_sdf_path.exists(), f"Sample file not found: {sample_sdf_path}"
@@ -67,13 +88,13 @@ class TestUIManagerOpen:
         # Verify the last command is ExportSlides
         last_ui = uimgr.command_ui_list[-1]
         assert last_ui.__class__.__name__ == "ExportSlidesUI", f"Last command should be ExportSlidesUI, got {last_ui.__class__.__name__}"
-        assert last_ui.name == "Export ending announcement to image files", f"Last command name mismatch"
+        assert last_ui.name == "Export ending announcement to image files", "Last command name mismatch"
 
         # Verify uimgr is set on all UI objects
         for ui in uimgr.command_ui_list:
             assert ui.uimgr is uimgr, "Each UI object should have uimgr reference set"
 
-    def test_open_sample_service_sdf_command_types(self, uimgr, sample_sdf_path):
+    def test_open_sample_service_sdf_command_types(self, uimgr: "UIManager", sample_sdf_path: Path) -> None:
         """Test that all expected command types are loaded from sample file."""
         dir_dict = {}
         uimgr.open(str(sample_sdf_path), dir_dict)
@@ -97,10 +118,12 @@ class TestUIManagerOpen:
 
         assert len(uimgr.command_ui_list) == len(expected_types), "Command count mismatch"
 
-        for i, (ui, expected_type) in enumerate(zip(uimgr.command_ui_list, expected_types)):
-            assert ui.__class__.__name__ == expected_type, f"Command {i} type mismatch: expected {expected_type}, got {ui.__class__.__name__}"
+        for i, (ui, expected_type) in enumerate(zip(uimgr.command_ui_list, expected_types, strict=True)):
+            assert ui.__class__.__name__ == expected_type, (
+                f"Command {i} type mismatch: expected {expected_type}, got {ui.__class__.__name__}"
+            )
 
-    def test_open_sample_service_sdf_command_data(self, uimgr, sample_sdf_path):
+    def test_open_sample_service_sdf_command_data(self, uimgr: "UIManager", sample_sdf_path: Path) -> None:
         """Test that command data is correctly loaded from sample file."""
         dir_dict = {}
         uimgr.open(str(sample_sdf_path), dir_dict)

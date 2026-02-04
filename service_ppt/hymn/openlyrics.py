@@ -5,69 +5,120 @@ This module provides support for reading and writing hymn lyrics in the OpenLyri
 format (https://docs.openlyrics.org/), an open standard for storing song lyrics.
 """
 
+from datetime import datetime
 import os
+from typing import TYPE_CHECKING, TextIO
 import xml.etree.ElementTree as ET
 import xml.sax.saxutils
-from datetime import datetime
 
-from .hymncore import Line, Song, Verse
+if TYPE_CHECKING:
+    from service_ppt.hymn.hymncore import Book
+
+from service_ppt.hymn.hymncore import Line, Song, Verse
 
 
 class OpenLyricsReader:
-    def _get_extension(self):
+    """Reader for OpenLyrics format XML files."""
+
+    def _get_extension(self) -> str:
+        """Get the file extension for OpenLyrics format files.
+
+        :returns: The file extension string (".xml").
+        """
         return ".xml"
 
-    def read_song(self, filename):
+    @staticmethod
+    def _get_element_text(parent: ET.Element | None, tag: str, namespaces: dict[str, str] | None = None) -> str | None:
+        """Find and extract text from a child XML element if it exists and has text.
+
+        :param parent: Parent XML element to search in, or None
+        :param tag: Tag name of the child element to find
+        :param namespaces: Optional namespace dictionary for the find operation
+        :returns: The element's text if the element exists and has text, None otherwise
+        """
+        if parent is None:
+            return None
+        elem = parent.find(tag, namespaces) if namespaces else parent.find(tag)
+        if elem is not None and elem.text is not None:
+            return elem.text
+        return None
+
+    def read_song(self, filename: str) -> Song | None:
+        """Read a song from an OpenLyrics format XML file.
+
+        :param filename: Path to the OpenLyrics XML file to read
+        :returns: A Song object if the file contains valid song data, None otherwise
+        """
         ns = {"ns": "http://openlyrics.info/namespace/2009/song"}
 
         tree = ET.parse(filename)
         root = tree.getroot()
         if not root.tag.endswith("song"):
-            return
+            return None
 
         song = Song()
         props = root.find("ns:properties", ns)
-        if props:
+        if props is not None:
             titles = props.find("ns:titles", ns)
-            if titles:
-                song.title = titles.find("ns:title", ns).text
+            if (title_text := self._get_element_text(titles, "ns:title", ns)) is not None:
+                song.title = title_text
 
             authors = props.find("ns:authors", ns)
-            if authors:
-                song.authors = authors.find("ns:author", ns).text
+            if authors is not None:
+                author_list: list[tuple[str, str]] = []
+                for author_elem in authors.findall("ns:author", ns):
+                    author_name = author_elem.text if author_elem.text else ""
+                    author_type = author_elem.get("type", "words")
+                    if author_type == "translation":
+                        lang = author_elem.get("lang", "")
+                        if lang:
+                            author_type = f"translation/{lang}"
+                    author_list.append((author_type, author_name))
+                if author_list:
+                    song.authors = author_list
 
-            verse_order = props.find("ns:verseOrder", ns)
-            if verse_order is not None:
-                song.verse_order = verse_order.text
+            if (verse_order_text := self._get_element_text(props, "ns:verseOrder", ns)) is not None:
+                song.verse_order = verse_order_text
 
         lyrics = root.find("ns:lyrics", ns)
-        v = None
-        for elem in lyrics.iter():
-            if elem.tag.endswith("verse"):
-                name = elem.get("name", ns)
-                v = Verse()
-                v.no = name
-                song.verses.append(v)
+        v: Verse | None = None
+        if lyrics is not None:
+            for elem in lyrics.iter():
+                if elem.tag.endswith("verse"):
+                    name = elem.get("name")
+                    v = Verse()
+                    v.no = name
+                    song.verses.append(v)
+                elif elem.tag.endswith("lines") and v is not None:
+                    text = "\n".join([line for line in elem.itertext() if line])
+                    optional_break = elem.get("break") == "optional"
+                    line = Line(text, optional_break)
 
-            elif elem.tag.endswith("lines"):
-                text = "\n".join([l for l in elem.itertext() if l])
-                optional_break = elem.get("break", ns) == "optional"
-                line = Line(text, optional_break)
-
-                v.lines.append(line)
+                    v.lines.append(line)
 
         if len(song.verses) != 0:
             return song
-        else:
-            return None
+        return None
 
 
 class OpenLyricsWriter:
-    def _get_extension(self):
+    """Writer for OpenLyrics format XML files."""
+
+    def _get_extension(self) -> str:
+        """Get the file extension for OpenLyrics format files.
+
+        :returns: The file extension string (".xml").
+        """
         return ".xml"
 
-    def write_hymn(self, dirname, book, encoding="utf-8"):
-        if encoding == None:
+    def write_hymn(self, dirname: str, book: "Book", encoding: str = "utf-8") -> None:
+        """Write all songs from a book to OpenLyrics format XML files.
+
+        :param dirname: Directory path where XML files will be written
+        :param book: Book object containing songs to write
+        :param encoding: Character encoding for the XML files (default: "utf-8")
+        """
+        if encoding is None:
             encoding = "utf-8"
 
         for song in book.songs:
@@ -75,7 +126,13 @@ class OpenLyricsWriter:
             filename = os.path.join(dirname, filename)
             self.write_song(filename, song, encoding)
 
-    def write_song(self, filename, song, encoding="utf-8"):
+    def write_song(self, filename: str, song: Song, encoding: str = "utf-8") -> None:
+        """Write a single song to an OpenLyrics format XML file.
+
+        :param filename: Path where the XML file will be written
+        :param song: Song object to write
+        :param encoding: Character encoding for the XML file (default: "utf-8")
+        """
         with open(filename, "w", encoding=encoding) as file:
             self._write_xml_header(file, encoding)
 
@@ -105,7 +162,12 @@ class OpenLyricsWriter:
 
             self._write_xml_footer(file)
 
-    def _write_properties(self, file, song):
+    def _write_properties(self, file: TextIO, song: Song) -> None:
+        """Write song properties section to XML file.
+
+        :param file: Text file object to write to
+        :param song: Song object containing properties to write
+        """
         print(" <properties>", file=file)
 
         if song.title:
@@ -147,7 +209,12 @@ class OpenLyricsWriter:
 
         print(" </properties>", file=file)
 
-    def _write_xml_header(self, file, encoding):
+    def _write_xml_header(self, file: TextIO, encoding: str) -> None:
+        """Write XML header and root element to file.
+
+        :param file: Text file object to write to
+        :param encoding: Character encoding used in the XML file
+        """
         dt_now = datetime.now()
         dt_now_str = dt_now.isoformat(timespec="seconds")
         print(
@@ -158,7 +225,11 @@ class OpenLyricsWriter:
             end="",
         )
 
-    def _write_xml_footer(self, file):
+    def _write_xml_footer(self, file: TextIO) -> None:
+        """Write XML closing tag to file.
+
+        :param file: Text file object to write to
+        """
         print(
             """</song>
 """,

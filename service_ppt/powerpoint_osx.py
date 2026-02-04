@@ -599,6 +599,8 @@ end tell
             cmd = f'save presentation "{prs_name}" in f as presentation'
             run_applescript(prefix_cmd, cmd, reraise_exception=True)
         except applescript.ScriptError:
+            # Save failed, but presentation may already be saved or user cancelled
+            # Error is already logged by run_applescript
             pass
         else:
             _dir, basename = os.path.split(filename)
@@ -707,7 +709,7 @@ class App(PPTAppBase):
 
         try:
             pid = int(my_pid)
-        except:
+        except (ValueError, TypeError):
             return False
 
         return True

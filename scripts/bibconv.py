@@ -7,7 +7,7 @@ supported by the service_ppt application.
 
 import argparse
 
-from service_ppt.bible import csv_bible, fileformat, html_bible, mybible, opensong_bible, zefania_bible
+from service_ppt.bible import bibleformat, csv_bible, html_bible, mybible, opensong_bible, zefania_bible
 
 
 def write_bible(bible, out_format, filename, encoding, dynamic_page, remove_bible_tags):
@@ -16,7 +16,7 @@ def write_bible(bible, out_format, filename, encoding, dynamic_page, remove_bibl
         writer = csv_bible.CSVWriter()
     elif out_format == "html":
         dynamic_page = False
-        process_bible_tags = remove_bible_tags == False
+        process_bible_tags = not remove_bible_tags
         writer = html_bible.HTMLWriter(dynamic_page, process_bible_tags)
     elif out_format == "MyBible":
         writer = mybible.MyBibleWriter()
@@ -90,11 +90,11 @@ if __name__ == "__main__":
         ]
     )
 
-    fileformat.set_format_option(fileformat.FORMAT_MYBIBLE, "remove_special_chars", args.remove_special_chars)
+    bibleformat.set_format_option(bibleformat.BibleFormat.MYBIBLE.value, "remove_special_chars", args.remove_special_chars)
     if args.remove_bible_tags:
-        fileformat.set_format_option(fileformat.FORMAT_MYSWORD, "remove_bible_tags", args.remove_bible_tags)
+        bibleformat.set_format_option(bibleformat.BibleFormat.MYSWORD.value, "remove_bible_tags", args.remove_bible_tags)
     elif args.out_format != "html":
-        fileformat.set_format_option(fileformat.FORMAT_MYSWORD, "remove_bible_tags", True)
+        bibleformat.set_format_option(bibleformat.BibleFormat.MYSWORD.value, "remove_bible_tags", True)
 
-    bible = fileformat.read_version(args.in_format, args.in_version[0])
+    bible = bibleformat.read_version(args.in_format, args.in_version[0])
     write_bible(bible, args.out_format, args.out_filename[0], args.out_encoding, args.dynamic_page, args.remove_bible_tags)

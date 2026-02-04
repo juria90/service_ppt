@@ -7,16 +7,16 @@ mapping for different Bible translations and languages.
 
 import gettext
 import re
+from typing import ClassVar
 
 from langdetect import detect
+
+from service_ppt.utils.i18n import _, pgettext
 
 # iso 639-1
 LANG_EN = "en"
 
 UNICODE_BOM = "\ufeff"
-
-_ = lambda s: s
-pgettext = lambda c, s: s
 
 
 def check_bom(data: bytes) -> str:
@@ -46,16 +46,15 @@ def check_bom(data: bytes) -> str:
     return None
 
 
-def detect_encoding(file):
-    bom = None
+def detect_encoding(file: str) -> str | None:
     with open(file, "rb") as f:
         b = f.read(4)
-        bom = check_bom(b)
+        return check_bom(b)
 
-    return bom
+    return None
 
 
-def detect_language(text):
+def detect_language(text: str) -> str:
     """https://pypi.org/project/langdetect/"""
 
     # returns ISO 639-1 codes
@@ -67,7 +66,7 @@ class L18N:
     VERSE_PARSING_PATTERN = _(r"(.*?) ?(\d+):(\d+)(-((\d+):)?(\d+))?")
     BOOK_CHAPTER_FORMAT = _("{book} {chapter}")
 
-    BOOK_NAME = [
+    BOOK_NAME: ClassVar[list[tuple[str, str]]] = [
         # old testament
         (_("Genesis"), _("Gen")),
         (_("Exodus"), _("Ex")),
@@ -138,11 +137,11 @@ class L18N:
         (_("Revelation of John"), _("Rev")),
     ]
 
-    LOCALE_DIR = None
-    TRANSLATIONS = {}
+    LOCALE_DIR: ClassVar[str | None] = None
+    TRANSLATIONS: ClassVar[dict[str, gettext.NullTranslations]] = {}
 
     @staticmethod
-    def get_translation(lang):
+    def get_translation(lang: str) -> gettext.NullTranslations:
         if lang in L18N.TRANSLATIONS:
             return L18N.TRANSLATIONS[lang]
 
@@ -156,13 +155,14 @@ class L18N:
         try:
             trans = gettext.translation("bible", localedir=dirname, languages=[lang], fallback=True)
         except OSError:
+            # Translation file not found, fallback to default language
             pass
 
         L18N.TRANSLATIONS[lang] = trans
         return L18N.TRANSLATIONS[lang]
 
     @staticmethod
-    def get_testament_name(new_testament, lang=None):
+    def get_testament_name(new_testament: bool, lang: str | None = None) -> str:
         name = L18N.OLD_NEW_TESTAMENT[1 if new_testament else 0]
         if lang is not None:
             trans = L18N.get_translation(lang)
@@ -171,15 +171,15 @@ class L18N:
         return name
 
     @staticmethod
-    def get_english_book_name(book_no):
+    def get_english_book_name(book_no: int) -> tuple[str, str]:
         return L18N.BOOK_NAME[book_no]
 
     @staticmethod
-    def get_short_english_book_name(book_no):
+    def get_short_english_book_name(book_no: int) -> str:
         return L18N.BOOK_NAME[book_no][1]
 
     @staticmethod
-    def get_book_names(book_no, lang=None):
+    def get_book_names(book_no: int, lang: str | None = None) -> tuple[str, str]:
         """get_book_names() returns localized bible book's long and short names.
 
         @param: book_no is a zero based index.
@@ -196,7 +196,7 @@ class L18N:
         return (name, short_name)
 
     @staticmethod
-    def get_short_book_name(book_no, lang=None):
+    def get_short_book_name(book_no: int, lang: str | None = None) -> str:
         """get_short_book_name() returns localized bible book's short name.
 
         @param: book_no is a zero based index.
@@ -211,14 +211,13 @@ class L18N:
         return short_name
 
     @staticmethod
-    def get_book_chapter_name(lang, book, chapter):
+    def get_book_chapter_name(lang: str, book: str, chapter: int) -> str:
         trans = L18N.get_translation(lang)
         name = trans.gettext(L18N.BOOK_CHAPTER_FORMAT)
-        name = name.format(book=book, chapter=chapter)
-        return name
+        return name.format(book=book, chapter=chapter)
 
     @staticmethod
-    def parse_verse_range(lang, text_range):
+    def parse_verse_range(lang: str, text_range: str) -> tuple[str, int, int, int | None, int | None]:
         """parse_verse_range() returns (book, chapter1, verse1, chapter2, verse2}) tuple based on text_range.
 
         The text_range should be formatted as <Book> <Chapter1>:<Verse1>[[<Chapter2>:]-<Verse2>],
@@ -264,8 +263,7 @@ class L18N:
         if vs2 is not None:
             vs2 = int(vs2)
 
-        if ct2 is not None:
-            if ct1 > ct2 or (ct1 == ct2 and vs1 > vs2):
-                raise ValueError("Invalid text range: %s")
+        if ct2 is not None and (ct1 > ct2 or (ct1 == ct2 and vs1 > vs2)):
+            raise ValueError("Invalid text range: %s")
 
         return bt, ct1, vs1, ct2, vs2

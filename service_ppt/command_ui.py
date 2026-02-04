@@ -6,34 +6,23 @@ property grids.
 """
 
 import copy
+from io import StringIO
 import json
 import re
-from io import StringIO
 
 import wx
 import wx.propgrid as wxpg
 
-from service_ppt.utilities.atomicfile import AtomicFileWriter
-from service_ppt.bible import fileformat as bibfileformat
 import service_ppt.command as cmd
-
-
-def _(s):
-    return s
-
+from service_ppt.bible import bibleformat
+from service_ppt.utils.i18n import _
+from service_ppt.utils.atomicfile import AtomicFileWriter
 
 DEFAULT_SPAN = (1, 1)
 BORDER_STYLE_EXCEPT_TOP = wx.LEFT | wx.RIGHT | wx.BOTTOM
 DEFAULT_BORDER = 5
 
 POWERPOINT_FILES_WILDCARD = _("Powerpoint files (*.ppt;*.pptx)|*.ppt;*.pptx")
-
-
-def set_translation(trans):
-    global _
-    _ = trans.gettext
-
-    cmd.set_translation(trans)
 
 
 class StringBuilder:
@@ -75,7 +64,6 @@ def unescape_backslash(s):
 def escape_backslash(s):
     r"""escape_backslash() escapes x into \ x for wxpg.LongStringProperty."""
     sb = StringBuilder()
-    escape = False
     for i in range(len(s)):
         ch = s[i]
         if ch == "\\":
@@ -461,7 +449,6 @@ class SetVariablesUI(PropertyGridUI):
     def get_dynamic_label(self, index):
         if (index % 2) == 0:
             return self.VARNAME_D % (index / 2 + 1)
-        else:
             return self.VARVALUE_D % (index / 2 + 1)
 
     def get_dynamic_property(self, index):
@@ -524,7 +511,8 @@ class SetVariablesUI(PropertyGridUI):
             try:
                 dt_value = self.ui.GetPropertyValueAsDateTime(self.DATETIME_VALUE)
                 dt_str = dt_value.FormatISODate()
-            except:
+            except (AttributeError, ValueError, TypeError):
+                # Property may not be a datetime type, use default empty string
                 pass
 
             # format comes from find_string
@@ -803,7 +791,7 @@ class DuplicateWithTextUI(PropertyGridUI):
         text = self.ui.GetPropertyValueAsString(self.REPLACE_TEXT)
         text = unescape_backslash(text)
         lines = re.split(r"(\n){2}", text)
-        lines = [l.strip() for l in lines if l.strip()]
+        lines = [line.strip() for line in lines if line.strip()]
         self.command.replace_texts = self.set_modified(self.command.replace_texts, lines)
 
         text = self.ui.GetPropertyValueAsString(self.PREPROCESS_SCRIPT)
@@ -867,7 +855,7 @@ class DuplicateWithTextUI(PropertyGridUI):
 
 class GenerateBibleVerseUI(PropertyGridUI):
     proc_class = cmd.GenerateBibleVerse
-    current_bible_format = bibfileformat.FORMAT_MYBIBLE
+    current_bible_format = bibleformat.BibleFormat.MYBIBLE.value
 
     BIBLE_VERSION1 = _("Bible Version 1")
     MAIN_VERSE_NAME1 = _("Main Bible verse name 1")
@@ -887,7 +875,7 @@ class GenerateBibleVerseUI(PropertyGridUI):
 
     def initialize_fixed_properties(self, pg):
         pg.Append(wxpg.PropertyCategory(_("1 - Bible #1")))
-        versions = bibfileformat.enum_versions(GenerateBibleVerseUI.current_bible_format)
+        versions = bibleformat.enum_versions(GenerateBibleVerseUI.current_bible_format)
         pg.Append(wxpg.EnumProperty(self.BIBLE_VERSION1, labels=versions, value=0))
         pg.Append(wxpg.StringProperty(self.MAIN_VERSE_NAME1))
         pg.Append(wxpg.StringProperty(self.EACH_VERSE_NAME1))
@@ -989,9 +977,9 @@ class ExportSlidesUI(PropertyGridUI):
         transparent_image = self.ui.GetPropertyValueAsBool(self.TRANSPARENT_IMAGE)
         flags = 0
         if cleanup_output_dir:
-            flags = flags | cmd.Export_CleanupFiles
+            flags = flags | cmd.ExportFlag.CLEANUP_FILES
         if transparent_image:
-            flags = flags | cmd.Export_Transparent
+            flags = flags | cmd.ExportFlag.TRANSPARENT
         self.command.flags = self.set_modified(self.command.flags, flags)
         color = self.ui.GetPropertyValue(self.TRANSPARENT_COLOR)
         str_color = color.GetAsString(wx.C2S_HTML_SYNTAX)
@@ -1004,9 +992,9 @@ class ExportSlidesUI(PropertyGridUI):
         self.SetPropertyValueString(self.IMAGE_TYPE, self.command.image_type)
         self.SetPropertyValueString(self.OUTPUT_DIR, self.command.out_dirname)
 
-        value = (self.command.flags | cmd.Export_CleanupFiles) != 0
+        value = (self.command.flags | cmd.ExportFlag.CLEANUP_FILES) != 0
         self.ui.SetPropertyValue(self.CLEANUP_OUTPUT_DIR, value)
-        value = (self.command.flags | cmd.Export_Transparent) != 0
+        value = (self.command.flags | cmd.ExportFlag.TRANSPARENT) != 0
         self.ui.SetPropertyValue(self.TRANSPARENT_IMAGE, value)
         self.SetPropertyValueString(self.TRANSPARENT_COLOR, self.command.color)
 
@@ -1042,7 +1030,7 @@ class ExportShapesUI(PropertyGridUI):
         cleanup_output_dir = self.ui.GetPropertyValueAsBool(self.CLEANUP_OUTPUT_DIR)
         flags = 0
         if cleanup_output_dir:
-            flags = flags | cmd.Export_CleanupFiles
+            flags = flags | cmd.ExportFlag.CLEANUP_FILES
         self.command.flags = self.set_modified(self.command.flags, flags)
 
         return True
@@ -1052,7 +1040,7 @@ class ExportShapesUI(PropertyGridUI):
         self.SetPropertyValueString(self.IMAGE_TYPE, self.command.image_type)
         self.SetPropertyValueString(self.OUTPUT_DIR, self.command.out_dirname)
 
-        value = (self.command.flags | cmd.Export_CleanupFiles) != 0
+        value = (self.command.flags | cmd.ExportFlag.CLEANUP_FILES) != 0
         self.ui.SetPropertyValue(self.CLEANUP_OUTPUT_DIR, value)
 
         return True
@@ -1112,7 +1100,6 @@ class CommandEncoder(json.JSONEncoder):
     def default(self, o):
         if (func := getattr(o, "get_flattened_dict", None)) and callable(func):
             return o.get_flattened_dict()
-        else:
             return o.__dict__
 
         return o
@@ -1134,10 +1121,9 @@ class CommandEncoder(json.JSONEncoder):
                 ui.command.enabled = enabled
 
                 return ui
-            else:
                 # unsupported type
                 return None
-        elif "format_type" in o:
+        if "format_type" in o:
             format_type = o["format_type"]
             del o["format_type"]
             if format_type in CommandEncoder.format_map:

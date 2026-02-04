@@ -453,7 +453,8 @@ class Presentation(PresentationBase):
             # Get the layout from source slide or use blank layout
             try:
                 layout = source_slide.slide_layout
-            except:
+            except (AttributeError, ValueError, TypeError):
+                # Layout not found or invalid, use blank layout as fallback
                 layout = _get_blank_slide_layout(self.prs)
 
             # Create new slide (will be added at the end initially)

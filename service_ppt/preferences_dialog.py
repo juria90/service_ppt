@@ -8,21 +8,15 @@ import wx
 import wx.adv
 import wx.propgrid as wxpg
 
-from service_ppt.bible import fileformat as bibfileformat
+from service_ppt.bible import bibleformat
+from service_ppt.utils.i18n import _
 from service_ppt.wx_utils.dir_symbol_pg import DirSymbolPG
-
-_ = lambda s: s
 
 DEFAULT_SPAN = (1, 1)
 BORDER_STYLE_EXCEPT_LEFT = wx.TOP | wx.RIGHT | wx.BOTTOM
 BORDER_STYLE_EXCEPT_TOP = wx.LEFT | wx.RIGHT | wx.BOTTOM
 BORDER_STYLE_RIGHT_BOTTOM = wx.LEFT | wx.RIGHT | wx.BOTTOM
 DEFAULT_BORDER = 5
-
-
-def set_translation(trans):
-    global _
-    _ = trans.gettext
 
 
 class PreferencesDialog(wx.adv.PropertySheetDialog):
@@ -136,10 +130,10 @@ class PreferencesDialog(wx.adv.PropertySheetDialog):
         return panel
 
     def _fill_bible_format(self):
-        formats = bibfileformat.get_format_list()
+        formats = bibleformat.get_format_list()
         self._bible_format_combo.Clear()
         self._bible_format_combo.AppendItems(formats)
-        if self.current_bible_format == None and len(formats) > 0:
+        if self.current_bible_format is None and len(formats) > 0:
             self.current_bible_format = formats[0]
         self._bible_format_combo.SetStringSelection(self.current_bible_format)
 
@@ -147,7 +141,11 @@ class PreferencesDialog(wx.adv.PropertySheetDialog):
         self.current_bible_format = self._bible_format_combo.GetStringSelection()
 
         enable_dir = False
-        if self.current_bible_format in [bibfileformat.FORMAT_MYBIBLE, bibfileformat.FORMAT_MYSWORD, bibfileformat.FORMAT_ZEFANIA]:
+        if self.current_bible_format in [
+            bibleformat.BibleFormat.MYBIBLE.value,
+            bibleformat.BibleFormat.MYSWORD.value,
+            bibleformat.BibleFormat.ZEFANIA.value,
+        ]:
             enable_dir = True
 
         self._bible_rootdir_stext.Enable(enable_dir)
@@ -162,14 +160,14 @@ class PreferencesDialog(wx.adv.PropertySheetDialog):
 
     def on_bible_dir_changed(self, _):
         self.bible_rootdir = self._bible_rootdir_ctrl.GetPath()
-        bibfileformat.set_format_option(self.current_bible_format, "ROOT_DIR", self.bible_rootdir)
+        bibleformat.set_format_option(self.current_bible_format, "ROOT_DIR", self.bible_rootdir)
         self._fill_bible_version()
         self.is_modified = True
 
     def _fill_bible_version(self):
         versions = []
         if self.current_bible_format:
-            versions = bibfileformat.enum_versions(self.current_bible_format)
+            versions = bibleformat.enum_versions(self.current_bible_format)
         self._bible_version_combo.Clear()
         self._bible_version_combo.AppendItems(versions)
         self._bible_version_combo.SetStringSelection(self.current_bible_version)

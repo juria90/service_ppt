@@ -38,6 +38,7 @@ class PreferencesConfig:
         try:
             value = config.ReadBool(label, default_value)
         except ValueError:
+            # Invalid boolean value in config, use default
             pass
 
         return value
@@ -48,6 +49,7 @@ class PreferencesConfig:
         try:
             value = config.Read(label, default_value)
         except ValueError:
+            # Invalid string value in config, use default
             pass
 
         return value

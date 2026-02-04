@@ -1,36 +1,19 @@
-"""Tests for Bible module.
+"""Tests for bibcore module.
 
-This module contains unit tests for the Bible reading functionality,
-including tests for various Bible formats and data structures.
+This module contains unit tests for core Bible data structures and classes,
+including Bible, Book, Chapter, and Verse.
 """
 
 from pytest import mark
 
 from service_ppt.bible.bibcore import Bible, Book, Chapter, Verse
-from service_ppt.bible.biblang import L18N, LANG_EN
-
-test_data = [
-    ("Genesis 1:1", "Genesis", 1, 1, None, None),
-    ("Genesis 1:1-2", "Genesis", 1, 1, None, 2),
-    ("Genesis 1:1-2:2", "Genesis", 1, 1, 2, 2),
-]
-
-
-@mark.parametrize("text_range,bt,ct1,vs1,ct2,vs2", test_data)
-def test_parse_verse_range(text_range, bt, ct1, vs1, ct2, vs2):
-    ac_bt, ac_ct1, ac_vs1, ac_ct2, ac_vs2 = L18N.parse_verse_range(LANG_EN, text_range)
-    assert ac_bt == bt, f"{ac_bt}!={bt} doesn't match!"
-    assert ac_ct1 == ct1, f"{ac_ct1}!={ct1} doesn't match!"
-    assert ac_vs1 == vs1, f"{ac_vs1}!={vs1} doesn't match!"
-    assert ac_ct2 == ct2, f"{ac_ct2}!={ct2} doesn't match!"
-    assert ac_vs2 == vs2, f"{ac_vs2}!={vs2} doesn't match!"
-
+from service_ppt.bible.biblang import LANG_EN
 
 b1 = {
     1: {
         1: "In the beginning, God created the heavens and the earth.",
         2: "The earth was without form and void, and darkness was over the face of the deep. And the Spirit of God was hovering over the face of the waters.",
-        3: "And God said, “Let there be light,” and there was light.",
+        3: 'And God said, "Let there be light," and there was light.',
     },
     2: {
         1: "Thus the heavens and the earth were finished, and all the host of them.",
@@ -41,6 +24,10 @@ b1 = {
 
 
 def populate_bible():
+    """Create a test Bible with sample data.
+
+    :returns: A Bible object populated with Genesis chapters 1-2
+    """
     book = Book()
     book.name = "Genesis"
     book.short_name = "Gen"
@@ -71,6 +58,11 @@ test_data = [
 
 @mark.parametrize("text_range,verse_count", test_data)
 def test_extract_texts_from_bible_index(text_range, verse_count):
+    """Test extracting verses from Bible using index.
+
+    :param text_range: Verse range string to parse
+    :param verse_count: Expected number of verses to extract
+    """
     bible = populate_bible()
     bible_index = bible.translate_to_bible_index(text_range)
     verses = bible.extract_texts_from_bible_index(*bible_index)

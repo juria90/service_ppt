@@ -6,6 +6,7 @@ replacing text, duplicating slides, and exporting slides as images.
 """
 
 import datetime
+from enum import IntEnum
 import errno
 import locale
 import math
@@ -20,11 +21,14 @@ import zipfile
 
 from PIL import ImageColor
 
-from service_ppt.bible import bibcore, biblang
-from service_ppt.bible import fileformat as bibfileformat
+from service_ppt.bible import bibcore, biblang, bibleformat
 from service_ppt.hymn import hymncore
 from service_ppt.hymn.openlpservice import OpenLPServiceWriter
 from service_ppt.hymn.openlyrics import OpenLyricsReader, OpenLyricsWriter
+from service_ppt.utils.eval_functions import (
+    evaluate_to_multiple_slide,
+    evaluate_to_single_slide,
+)
 from service_ppt.wx_utils.wordwrap import WordWrap
 
 # Use platform-specific implementations only when needed (Windows for COM interface)
@@ -39,26 +43,16 @@ else:
         # Fallback to OSX AppleScript implementation if python-pptx is not available
         import service_ppt.powerpoint_osx as PowerPoint
 
-from service_ppt.make_transparent import color_to_transparent
+from service_ppt.utils.i18n import _, ngettext
+from service_ppt.utils.make_transparent import color_to_transparent
 
 
-def _(s):
-    return s
+class ExportFlag(IntEnum):
+    """Export flags for controlling export behavior."""
 
-
-def ngettext(s1, s2, c):
-    return s1 if c == 1 else s2
-
-
-Export_None = 0
-Export_CleanupFiles = 1
-Export_Transparent = 2
-
-
-def set_translation(trans):
-    global _, ngettext
-    _ = trans.gettext
-    ngettext = trans.ngettext
+    NONE = 0
+    CLEANUP_FILES = 0b1
+    TRANSPARENT = 0b10
 
 
 def get_contiguous_range(r):
@@ -113,93 +107,6 @@ def replace_all_notes_text(notes, text_dict):
             count = count + 1
 
     return count, notes
-
-
-class EvalShape:
-    """class EvalShape is to support slide matching logic that supports
-    slide and note with contains_text method accepting string that returns True.
-    """
-
-    def __init__(self, prs, slide_index, note_shapes):
-        self.prs = prs
-        self.slide_index = slide_index
-        self.note_shapes = note_shapes
-
-    def contains_text(self, text, ignore_case=False, whole_words=False):
-        return self.prs.find_text_in_slide(self.slide_index, self.note_shapes, text, ignore_case, whole_words)
-
-
-def populate_slide_dict(prs, slide_index):
-    """populate_slide_dict() construct dict that will be used in eval() function
-    which matches to a slide.
-    """
-
-    sdict = {
-        "slide": EvalShape(prs, slide_index, False),
-        "note": EvalShape(prs, slide_index, True),
-    }
-
-    return sdict
-
-
-def evaluate_to_single_slide(prs, expr):
-    if not expr:
-        return None
-
-    # if the expr works with empty dict meaning it doesn't have dependency to slide dict,
-    # return it.
-    try:
-        gdict = {}
-        result = eval(expr, gdict, None)
-        return result
-    except NameError:
-        # print("Error: %s" % e)
-        pass
-
-    # Use each slide's dict to evaluate the expr.
-    for index in range(prs.slide_count()):
-        gdict = populate_slide_dict(prs, index)
-
-        try:
-            eval_result = eval(expr, gdict, None)
-            if eval_result:
-                return index
-        except NameError:
-            # print("Error: %s" % e)
-            pass
-
-
-def evaluate_to_multiple_slide(prs, expr):
-    if expr is None:
-        return None
-
-    # if the expr works with empty dict meaning it doesn't have dependency to slide dict,
-    # return it.
-    try:
-        gdict = {}
-        result = eval(expr, gdict, None)
-        return result
-    except NameError:
-        # print("Error: %s" % e)
-        pass
-
-    # Use each slide's dict to evaluate the expr.
-    result = []
-    for index in range(prs.slide_count()):
-        gdict = populate_slide_dict(prs, index)
-
-        try:
-            eval_result = eval(expr, gdict, None)
-            if eval_result:
-                result.append(index)
-        except NameError:
-            # print("Error: %s" % e)
-            pass
-
-    if len(result) == 0:
-        return None
-
-    return result
 
 
 class DirSymbols(dict):
@@ -530,8 +437,8 @@ class InsertLyrics(Command):
             cm.progress_message(percent, _("Inserting lyric from '{filename}'.").format(filename=filelist[i]))
 
             lines = list(song.get_lines_by_order())
-            for j, l in enumerate(lines):
-                text_dict = {self.lyric_pattern: l.text}
+            for j, line in enumerate(lines):
+                text_dict = {self.lyric_pattern: line.text}
                 prs.replace_one_slide_texts(lyric_insert_location + j, text_dict)
 
             added_count = len(lines)
@@ -657,7 +564,7 @@ class DateTimeFormat(FormatObj):
         try:
             saved = locale.setlocale(locale.LC_ALL, "C")
             dt_value = datetime.datetime.strptime(str_value, format)
-        except:
+        except (locale.Error, ValueError, TypeError):
             if saved:
                 locale.setlocale(locale.LC_ALL, saved)
 
@@ -688,11 +595,16 @@ class DateTimeFormat(FormatObj):
 
 
 class SetVariables(Command):
-    def __init__(self, format_dict: dict = {}, str_dict: dict = {}):
+    def __init__(self, format_dict: dict | None = None, str_dict: dict | None = None):
         """SetVariables finds all occurrence of find_text and replace it with replace_text,
         which are (k, v) pair in dictionary str_dict.
         """
         super().__init__()
+
+        if format_dict is None:
+            format_dict = {}
+        if str_dict is None:
+            str_dict = {}
 
         self.format_dict = format_dict
         self.str_dict = str_dict
@@ -804,13 +716,12 @@ class DuplicateWithText(Command):
             v.no = "v" + str(vno + 1)
             sl = text.splitlines()
             len_sl_1 = len(sl) - 1
-            for i, l in enumerate(sl):
+            for i, line in enumerate(sl):
                 if self.optional_line_break != 0:
                     optional_break = i != len_sl_1 and (i % self.optional_line_break == 0)
                 else:
                     optional_break = i != len_sl_1
-                line = hymncore.Line(l, optional_break)
-                v.lines.append(line)
+                v.lines.append(hymncore.Line(line, optional_break))
 
             song.verses.append(v)
 
@@ -847,7 +758,7 @@ class GenerateBibleVerse(Command):
         Then, the repeat_range slides will be duplicated to match with len(verses_text) == repeated len(repeat_range)
         and replace each_verse_name1 to pair (no, text) in verses_text with bible verse variable substitution.
 
-        bible_format is one of supported bible file format: See also bible.fileformat.
+        bible_format is one of supported bible file format: See also bible.bibleformat.
         bible_version1 and bible_version2 can be a valid Bible Version.
         main_verse_name1 is the variable name of the main bible verses.
         each_verse_name1 is the variable name of each verse in the slides.
@@ -884,7 +795,7 @@ class GenerateBibleVerse(Command):
             if not version or not each_verse_name:
                 continue
 
-            bible = bibfileformat.read_version(self.bible_format, version)
+            bible = bibleformat.read_version(self.bible_format, version)
             if bible is None:
                 cm.error_message(
                     _("Cannot find the Bible format={bible_format} and version={version}.").format(
@@ -957,9 +868,10 @@ class GenerateBibleVerse(Command):
                         else:
                             cm.error_message(_("Cannot find the Bible verse={verse} in {verses}.").format(verse=verse, verses=verses))
 
-                    bi, ct1, vs1, ct2, vs2 = result
+                    # bi, ct1, vs1, ct2, vs2 = result
                     bible_index.append(result)
                 except ValueError:
+                    # Invalid verse format, skip this verse
                     pass
 
                 if verses_text is None:
@@ -1014,13 +926,13 @@ class GenerateBibleVerse(Command):
             # check whether we need to duplicate the line by checking self.each_verse_name1 exists.
             if self.each_verse_name1 and self.each_verse_name1 in notes:
                 lines = notes.split("\n")
-                repeat_range = [i for i, l in enumerate(lines) if self.each_verse_name1 in l]
+                repeat_range = [i for i, line in enumerate(lines) if self.each_verse_name1 in line]
                 for index in reversed(repeat_range):
                     for _ in range(len(self._verses_text) - 1):
                         lines.insert(index, lines[index])
 
-                    for i, v in enumerate(self._verses_text):
-                        text_dict = self.get_verse_dict(lines[index + i], v)
+                    for i, verse in enumerate(self._verses_text):
+                        text_dict = self.get_verse_dict(lines[index + i], verse)
                         _, lines[index + i] = replace_all_notes_text(lines[index + i], text_dict)
 
                 notes = "\n".join(lines)
@@ -1141,7 +1053,7 @@ class ExportSlides(Command):
     def execute(self, cm, prs):
         cm.progress_message(0, _("Exporting slide shapes as images to '{dirname}'.").format(dirname=self.out_dirname))
 
-        if self.flags & Export_CleanupFiles:
+        if self.flags & ExportFlag.CLEANUP_FILES:
             rmtree_except_self(self.out_dirname)
             mkdir_if_not_exists(self.out_dirname)
 
@@ -1156,7 +1068,7 @@ class ExportSlides(Command):
         image_type = cm.normalize_image_type(self.image_type)
         prs.export_slides_as(slide_range, self.out_dirname, image_type)
 
-        if (self.flags & Export_Transparent) and self.image_type == "png" and self.color:
+        if (self.flags & ExportFlag.TRANSPARENT) and self.image_type == "png" and self.color:
             cm.progress_message(50, _("Converting to transparent images."))
 
             color = ImageColor.getrgb(self.color)
@@ -1173,7 +1085,7 @@ class ExportSlides(Command):
         if slide_range is None:
             return
 
-        if (self.flags & Export_Transparent) and self.image_type == "png" and self.color:
+        if (self.flags & ExportFlag.TRANSPARENT) and self.image_type == "png" and self.color:
             cm.progress_message(50, _("Converting to transparent images."))
 
             color = ImageColor.getrgb(self.color)
@@ -1199,7 +1111,7 @@ class ExportShapes(Command):
     def execute(self, cm, prs):
         cm.progress_message(0, _("Exporting slide shapes as images to '{dirname}'.").format(dirname=self.out_dirname))
 
-        if self.flags & Export_CleanupFiles:
+        if self.flags & ExportFlag.CLEANUP_FILES:
             rmtree_except_self(self.out_dirname)
             mkdir_if_not_exists(self.out_dirname)
 
@@ -1271,7 +1183,7 @@ class LyricManager:
         elif isinstance(filelist, dict):
             self.all_lyric_files.append(filelist)
         else:
-            song = self.read_song(filelist)
+            _song = self.read_song(filelist)
             self.all_lyric_files.append(filelist)
 
 

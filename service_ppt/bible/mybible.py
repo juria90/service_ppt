@@ -26,12 +26,13 @@ CHAPTERS=[<OFFSET OF FILE FOR EACH CAPTER START>] *
 
 import os
 import re
+from typing import TextIO
 
-from . import biblang
-from .bibcore import Bible, BibleInfo, Book, Chapter, FileFormat, Verse
+from service_ppt.bible import biblang
+from service_ppt.bible.bibcore import Bible, BibleInfo, Book, Chapter, FileFormat, Verse
 
 
-def expect_string(buf, expect):
+def expect_string(buf: str, expect: str) -> str | None:
     if buf.startswith(expect):
         return buf[len(expect) :].strip()
 
@@ -39,14 +40,14 @@ def expect_string(buf, expect):
 
 
 class MyBibleReader:
-    def __init__(self):
-        self.dirname = None
-        self.remove_chars = None
+    def __init__(self) -> None:
+        self.dirname: str | None = None
+        self.remove_chars: str | None = None
 
-    def _get_extension(self):
+    def _get_extension(self) -> str:
         return ".txt"
 
-    def read_bible(self, dirname, load_all=False, remove_chars=None) -> Bible:
+    def read_bible(self, dirname: str, load_all: bool = False, remove_chars: str | None = None) -> Bible | None:
         bible = None
 
         self.dirname = dirname
@@ -126,7 +127,7 @@ class MyBibleReader:
 
         return bible
 
-    def read_book(self, book, book_no):
+    def read_book(self, book: Book, book_no: int) -> None:
         extension = self._get_extension()
         bookname = f"book{book_no + 1}{extension}"
         book_filename = os.path.join(self.dirname, bookname)
@@ -134,7 +135,7 @@ class MyBibleReader:
         with open(book_filename, encoding=encoding) as bf:
             self._read_book_file(bf, book)
 
-    def _read_book_file(self, file, book):
+    def _read_book_file(self, file: TextIO, book: Book) -> None:
         re_numbers = re.compile(r"^(\d+)(\-\d+)?(.*)")
 
         chapter = None
@@ -180,13 +181,13 @@ class MyBibleReader:
 
 
 class MyBibleWriter:
-    def __init__(self):
+    def __init__(self) -> None:
         pass
 
-    def _get_extension(self):
+    def _get_extension(self) -> str:
         return ".txt"
 
-    def write_bible(self, dirname, bible, encoding="utf-8"):
+    def write_bible(self, dirname: str, bible: Bible, encoding: str = "utf-8") -> None:
         extension = self._get_extension()
 
         indices = []
@@ -194,15 +195,15 @@ class MyBibleWriter:
             bible.ensure_loaded(b)
 
             filename = f"book{i + 1}{extension}"
-            with open(os.path.join(dirname, filename), "w", encoding=encoding) as file:
+            with open(os.path.join(dirname, filename), "wt", encoding=encoding) as file:
                 chapter_indices = self._write_book(file, b)
                 indices.append(chapter_indices)
 
         filename = f"index{extension}"
-        with open(os.path.join(dirname, filename), "w", encoding=encoding) as file:
+        with open(os.path.join(dirname, filename), "wt", encoding=encoding) as file:
             self._write_index(file, bible, indices)
 
-    def _write_index(self, file, bible, indices):
+    def _write_index(self, file: object, bible: Bible, indices: list[list[int]]) -> None:
         print(biblang.UNICODE_BOM, file=file, end="")
         print("INDEX FILE", file=file)
 
@@ -228,7 +229,7 @@ class MyBibleWriter:
 
             print(f"CHAPTERS={string}", file=file)
 
-    def _write_book(self, file, book):
+    def _write_book(self, file: object, book: Book) -> list[int]:
         chapter_indices = []
 
         # BOM
@@ -251,12 +252,12 @@ class MyBibleWriter:
 
 
 class MyBibleFormat(FileFormat):
-    def __init__(self):
+    def __init__(self) -> None:
         super().__init__()
 
-        self.options = {"ROOT_DIR": "", "remove_special_chars": True}
+        self.options: dict[str, str | bool] = {"ROOT_DIR": "", "remove_special_chars": True}
 
-    def _get_root_dir(self):
+    def _get_root_dir(self) -> str:
         dirname = self.get_option("ROOT_DIR")
         if not dirname:
             dirname = os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "..", "Bible.text")
@@ -265,7 +266,7 @@ class MyBibleFormat(FileFormat):
 
         return dirname
 
-    def enum_versions(self):
+    def enum_versions(self) -> list[str]:
         dirname = self._get_root_dir()
 
         versions = []
@@ -275,11 +276,12 @@ class MyBibleFormat(FileFormat):
                     if os.path.exists(os.path.join(dirname, d, "index.txt")):
                         versions.append(d)
         except FileNotFoundError:
+            # Directory doesn't exist, skip it
             pass
 
         return versions
 
-    def read_version(self, version):
+    def read_version(self, version: str) -> Bible | None:
         dirname = os.path.join(self._get_root_dir(), version)
 
         reader = MyBibleReader()

@@ -167,7 +167,7 @@ class PresentationBase:
         if isinstance(var, int):
             slide_index = self.id_to_index[var]
             return slide_index
-        elif isinstance(var, list):
+        if isinstance(var, list):
             result = []
             for sid in var:
                 slide_index = self.id_to_index[sid]

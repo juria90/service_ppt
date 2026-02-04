@@ -15,7 +15,7 @@ import win32api
 import win32com.client
 
 from service_ppt.powerpoint_base import PPTAppBase, PresentationBase, SlideCache
-from service_ppt.utilities.process_exists import process_exists
+from service_ppt.utils.process_exists import process_exists
 
 
 class PpSlideLayout(IntEnum):
@@ -429,6 +429,7 @@ class Presentation(PresentationBase):
         try:
             self.prs.Close()
         except AttributeError:
+            # Presentation already closed or not initialized
             pass
         self.prs = None
 
@@ -658,4 +659,5 @@ class App(PPTAppBase):
         try:
             self.powerpoint.Quit()
         except AttributeError:
+            # PowerPoint already closed or not initialized
             pass

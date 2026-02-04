@@ -40,6 +40,9 @@ To install with development tools (ruff, pytest):
 pip install -e ".[dev]"
 ```
 
+### Code Style (PEP 8)
+The project follows PEP 8 style guidelines. Code is automatically checked and formatted using `ruff`. Run `ruff check --fix service_ppt/` to check for violations and auto-fix issues, or `ruff format service_ppt/` to format code.
+
 ### What gets installed
 The `pyproject.toml` file automatically handles all dependencies:
 - **Core dependencies**: wxPython, iso639-lang, langdetect, numpy, Pillow, pysword, python-pptx, six
@@ -148,7 +151,7 @@ service_ppt/
   │   └── [format readers] - Support for MyBible, MySword, Sword, Zefania, etc.
   ├── hymn/           - Hymn and lyric data structure and readers
   │   └── [OpenLyrics support]
-  ├── utilities/      - General utility modules
+  ├── utils/          - General utility modules
   ├── wx_utils/       - wxPython-specific utility modules
   ├── image24/        - 24x24 pixel icons for toolbar and commands
   ├── image32/        - 32x32 pixel icons for toolbar and commands

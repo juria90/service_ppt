@@ -5,22 +5,20 @@ user interface for the service_ppt application, including menus, toolbars,
 and command management.
 """
 
-import gettext
+from enum import IntEnum
 import json
 import os
 import shutil
-from enum import IntEnum
 
 import wx
 
-from service_ppt.wx_utils.autoresize_listctrl import AutoresizeListCtrl
-from service_ppt.wx_utils.background_worker import BkgndProgressDialog
-from service_ppt.bible import fileformat as bibfileformat
 import service_ppt.command_ui as cmdui
 import service_ppt.preferences_config as pc
 import service_ppt.preferences_dialog as pd
-
-_ = lambda s: s
+from service_ppt.bible import bibleformat
+from service_ppt.utils.i18n import _, initialize_translation
+from service_ppt.wx_utils.autoresize_listctrl import AutoresizeListCtrl
+from service_ppt.wx_utils.background_worker import BkgndProgressDialog
 
 DEFAULT_SPAN = (1, 1)
 DEFAULT_BORDER = 5
@@ -71,14 +69,8 @@ class Frame(wx.Frame):
         # os.environ['LANGUAGE'] = 'ko'
         from service_ppt import get_image24_dir, get_image32_dir, get_locale_dir
 
-        locale_dir = str(get_locale_dir())
-        trans = gettext.translation("service_ppt", localedir=locale_dir, fallback=True)
-        trans.install()
-        global _
-        _ = trans.gettext
-
-        cmdui.set_translation(trans)
-        pd.set_translation(trans)
+        locale_dir = get_locale_dir()
+        initialize_translation(locale_dir, domain="service_ppt")
 
         self.image_path24 = str(get_image24_dir())
         self.image_path32 = str(get_image32_dir())
@@ -96,7 +88,7 @@ class Frame(wx.Frame):
         self.pconfig = pc.PreferencesConfig()
         self.pconfig.read_config(self.config)
         cmdui.GenerateBibleVerseUI.current_bible_format = self.pconfig.current_bible_format
-        bibfileformat.set_format_option(self.pconfig.current_bible_format, "ROOT_DIR", self.pconfig.bible_rootdir)
+        bibleformat.set_format_option(self.pconfig.current_bible_format, "ROOT_DIR", self.pconfig.bible_rootdir)
 
         self.filehistory = wx.FileHistory(8)
         self.filehistory.Load(self.config)
@@ -208,28 +200,27 @@ class Frame(wx.Frame):
         """Creates default Statusbar."""
         self.statusbar = super(Frame, self).CreateStatusBar()
 
+    def _add_toolbar_tool(self, image_filename: str, tool_id: int, label: str, handler):
+        """Helper method to add a tool to a toolbar with bitmap and event binding.
+
+        :param image_filename: Name of the image file (e.g., "Add.png")
+        :param tool_id: The tool ID (e.g., CommandEnum.ADD)
+        :param label: The tooltip label
+        :param handler: The event handler function
+        """
+        bitmap = wx.Bitmap(os.path.join(self.image_path24, image_filename))
+        self.command_toolbar.AddTool(tool_id, label, bitmap)
+        self.Bind(wx.EVT_TOOL, handler, id=tool_id)
+
     def create_command_toolbar(self, parent: wx.Window):
-        toolbar = wx.ToolBar(parent, size=(200, -1), style=wx.TB_HORIZONTAL | wx.TB_BOTTOM)
+        self.command_toolbar = wx.ToolBar(parent, size=(200, -1), style=wx.TB_HORIZONTAL | wx.TB_BOTTOM)
 
-        bitmap = wx.Bitmap(os.path.join(self.image_path24, "Add.png"))
-        toolbar.AddTool(CommandEnum.ADD, _("Add Command"), bitmap)
-        self.Bind(wx.EVT_TOOL, self.on_add_command, id=CommandEnum.ADD)
+        self._add_toolbar_tool("Add.png", CommandEnum.ADD, _("Add Command"), self.on_add_command)
+        self._add_toolbar_tool("Delete.png", CommandEnum.DELETE, _("Delete Command"), self.on_delete_command)
+        self._add_toolbar_tool("Down.png", CommandEnum.DOWN, _("Move Down"), self.on_move_down_command)
+        self._add_toolbar_tool("Up.png", CommandEnum.UP, _("Move Up"), self.on_move_up_command)
 
-        bitmap = wx.Bitmap(os.path.join(self.image_path24, "Delete.png"))
-        toolbar.AddTool(CommandEnum.DELETE, _("Delete Command"), bitmap)
-        self.Bind(wx.EVT_TOOL, self.on_delete_command, id=CommandEnum.DELETE)
-
-        bitmap = wx.Bitmap(os.path.join(self.image_path24, "Down.png"))
-        toolbar.AddTool(CommandEnum.DOWN, _("Move Down"), bitmap)
-        self.Bind(wx.EVT_TOOL, self.on_move_down_command, id=CommandEnum.DOWN)
-
-        bitmap = wx.Bitmap(os.path.join(self.image_path24, "Up.png"))
-        toolbar.AddTool(CommandEnum.UP, _("Move Up"), bitmap)
-        self.Bind(wx.EVT_TOOL, self.on_move_up_command, id=CommandEnum.UP)
-
-        toolbar.Realize()
-
-        return toolbar
+        self.command_toolbar.Realize()
 
     def create_command_type_imagelist(self):
         il = None
@@ -250,7 +241,7 @@ class Frame(wx.Frame):
         sizer.SetNonFlexibleGrowMode(wx.FLEX_GROWMODE_SPECIFIED)
 
         # command panel
-        self.command_toolbar = self.create_command_toolbar(parent)
+        self.create_command_toolbar(parent)
         sizer.Add(self.command_toolbar, pos=(0, 0), span=DEFAULT_SPAN, flag=wx.ALL, border=DEFAULT_BORDER)
 
         command_style = wx.LC_REPORT | wx.LC_EDIT_LABELS | wx.LC_NO_HEADER | wx.LC_SINGLE_SEL
@@ -319,8 +310,8 @@ class Frame(wx.Frame):
         self.open_file("", True)
 
     def on_file_history(self, event: wx.Event):
-        fileNum = event.GetId() - wx.ID_FILE1
-        path = self.filehistory.GetHistoryFile(fileNum)
+        file_num = event.GetId() - wx.ID_FILE1
+        path = self.filehistory.GetHistoryFile(file_num)
 
         self.open_file(path, True)
 
@@ -335,9 +326,9 @@ class Frame(wx.Frame):
                 return
 
         if not filename:
-            defDir, defFile = "", ""
+            def_dir, def_file = "", ""
             dlg = wx.FileDialog(
-                self, _("Open File"), defDir, defFile, _("Service definition files (*.sdf)|*.sdf"), wx.FD_OPEN | wx.FD_FILE_MUST_EXIST
+                self, _("Open File"), def_dir, def_file, _("Service definition files (*.sdf)|*.sdf"), wx.FD_OPEN | wx.FD_FILE_MUST_EXIST
             )
             result = dlg.ShowModal()
             filename = dlg.GetPath()
@@ -346,7 +337,17 @@ class Frame(wx.Frame):
                 return
         try:
             self.uimgr.open(filename, self.pconfig.dir_dict)
-        except (json.JSONDecodeError, Exception):
+        except json.JSONDecodeError:
+            title = wx.App.Get().GetAppDisplayName()
+            wx.MessageBox(_(f"Failed to open file '{filename}': Invalid JSON format."), caption=title, style=wx.OK | wx.ICON_STOP)
+            return
+        except OSError:
+            title = wx.App.Get().GetAppDisplayName()
+            wx.MessageBox(
+                _(f"Failed to open file '{filename}': File not found or cannot be read."), caption=title, style=wx.OK | wx.ICON_STOP
+            )
+            return
+        except Exception:
             title = wx.App.Get().GetAppDisplayName()
             wx.MessageBox(_(f"Failed to open file '{filename}'."), caption=title, style=wx.OK | wx.ICON_STOP)
             return
@@ -382,12 +383,12 @@ class Frame(wx.Frame):
     def save_file(self, prompt: bool, title: str):
         filename = self._filename
         if prompt or not self._filename:
-            defDir, defFile = "", ""
-            if not self._filename:
-                defDir, defFile = os.path.split(self._filename)
+            def_dir, def_file = "", ""
+            if self._filename:
+                def_dir, def_file = os.path.split(self._filename)
 
             dlg = wx.FileDialog(
-                self, title, defDir, defFile, _("Service definition files (*.sdf)|*.sdf"), wx.FD_SAVE | wx.FD_OVERWRITE_PROMPT
+                self, title, def_dir, def_file, _("Service definition files (*.sdf)|*.sdf"), wx.FD_SAVE | wx.FD_OVERWRITE_PROMPT
             )
             result = dlg.ShowModal()
             filename = dlg.GetPath()

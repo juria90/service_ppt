@@ -5,13 +5,10 @@ which are used to define variable names that map to directory paths for use
 in service definition files.
 """
 
-
 import wx
 import wx.propgrid as wxpg
 
-
-def _(s):
-    return s
+from service_ppt.utils.i18n import _
 
 
 class DirSymbolPG(wxpg.PropertyGrid):
@@ -70,14 +67,12 @@ class DirSymbolPG(wxpg.PropertyGrid):
         prop_name = self.get_dynamic_label(index)
         if (index % 2) == 0:
             return wxpg.StringProperty(prop_name)
-        else:
-            return wxpg.DirProperty(prop_name)
+        return wxpg.DirProperty(prop_name)
 
     def get_dynamic_label(self, index):
         if (index % 2) == 0:
             return DirSymbolPG.VARNAME_D % (index / 2 + 1)
-        else:
-            return DirSymbolPG.VARVALUE_D % (index / 2 + 1)
+        return DirSymbolPG.VARVALUE_D % (index / 2 + 1)
 
     def on_property_changed(self, event):
         name = event.GetPropertyName()

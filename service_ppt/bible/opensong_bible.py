@@ -7,13 +7,15 @@ OpenSong is a free software application for managing chords and lyrics.
 import os
 import xml.sax.saxutils
 
+from service_ppt.bible.bibcore import Bible
+
 
 class OpenSongXMLWriter:
-    def _get_extension(self):
+    def _get_extension(self) -> str:
         return ".xml"
 
-    def write_bible(self, dirname, bible, encoding="utf-8"):
-        if encoding == None:
+    def write_bible(self, dirname: str, bible: Bible, encoding: str = "utf-8") -> None:
+        if encoding is None:
             encoding = "utf-8"
 
         filename = os.path.join(dirname, "bible.xml")
@@ -41,7 +43,7 @@ class OpenSongXMLWriter:
 
             self._write_xml_footer(file)
 
-    def _write_xml_header(self, file, encoding):
+    def _write_xml_header(self, file: object, encoding: str) -> None:
         print(
             f"""<?xml version="1.0" encoding="{encoding}"?>
 <bible>
@@ -50,7 +52,7 @@ class OpenSongXMLWriter:
             end="",
         )
 
-    def _write_xml_footer(self, file):
+    def _write_xml_footer(self, file: object) -> None:
         print(
             """</bible>
 """,

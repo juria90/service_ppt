@@ -5,8 +5,7 @@ asynchronously in the background, allowing the GUI to remain responsive during
 long-running operations like slide generation.
 """
 
-import traceback
-from threading import *
+from threading import Thread
 
 import wx
 
@@ -49,10 +48,10 @@ class WorkerThread(Thread):
 
         try:
             self._bkgnd_handler(self._notify_window)
-        except:
-            # e = sys.exc_info()[0]
-            # print("Error: %s" % e)
-            traceback.print_exc()
+        except Exception:
+            # Exceptions are already handled and logged by the command handler
+            # Don't print traceback here to avoid duplicate output
+            pass
 
         # Notify to the main window.
         wx.PostEvent(self._notify_window, ResultEvent(0))

@@ -12,17 +12,17 @@ import os
 import re
 import sqlite3
 
-from . import biblang
-from .bibcore import Bible, BibleInfo, Book, Chapter, FileFormat, Verse
+from service_ppt.bible import biblang
+from service_ppt.bible.bibcore import Bible, BibleInfo, Book, Chapter, FileFormat, Verse
 
 
 class MySwordReader:
-    def __init__(self):
-        self.conn = None
-        self.cursor = None
-        self.remove_tags = False
+    def __init__(self) -> None:
+        self.conn: sqlite3.Connection | None = None
+        self.cursor: sqlite3.Cursor | None = None
+        self.remove_tags: bool = False
 
-    def read_bible(self, conn, version, remove_tags, load_all=False) -> Bible:
+    def read_bible(self, conn: sqlite3.Connection, version: str, remove_tags: bool, load_all: bool = False) -> Bible:
         self.remove_tags = remove_tags
 
         bible = Bible()
@@ -50,10 +50,10 @@ class MySwordReader:
 
         return bible
 
-    def read_book(self, book, book_no):
+    def read_book(self, book: Book, book_no: int) -> None:
         self._parse_chapters(book, self.cursor, book_no)
 
-    def _parse_chapters(self, book, cursor, book_no):
+    def _parse_chapters(self, book: Book, cursor: sqlite3.Cursor, book_no: int) -> None:
         for chapter_no in range(self._get_chapter_count(cursor, book_no)):
             chapter = Chapter()
             chapter.no = chapter_no + 1
@@ -78,7 +78,7 @@ class MySwordReader:
                 verse.text = self._cleanup_text(v_text)
                 chapter.verses.append(verse)
 
-    def _cleanup_text(self, text):
+    def _cleanup_text(self, text: str) -> str:
         if self.remove_tags:
             text = re.sub("<CI>", " ", text)
             text = re.sub("<(CM|FI|Fi|FO|Fo|FR|Fr|FU|Fu|PF[0-7]|PI[0-7])>", "", text)
@@ -88,16 +88,14 @@ class MySwordReader:
             # Ignore 'Title Start' in the middle.
             text = re.sub("<TS>.*?<Ts>", "", text)
 
-        text = text.strip()
+        return text.strip()
 
-        return text
-
-    def _has_book(self, cursor, book):
+    def _has_book(self, cursor: sqlite3.Cursor, book: int) -> bool:
         cursor.execute(f"SELECT Book FROM Bible WHERE Book='{book}' and Chapter='1' and Verse='1';")
         rows = cursor.fetchall()
         return len(rows) > 0
 
-    def _get_book_count(self, cursor):
+    def _get_book_count(self, cursor: sqlite3.Cursor) -> int:
         book_count = BibleInfo.get_book_count()
         if self._has_book(cursor, book_count):
             while True:
@@ -110,12 +108,12 @@ class MySwordReader:
                     return book_count - 1
                 book_count -= 1
 
-    def _has_chapter(self, cursor, book, chapter):
+    def _has_chapter(self, cursor: sqlite3.Cursor, book: int, chapter: int) -> bool:
         cursor.execute(f"SELECT Chapter FROM Bible WHERE Book='{book + 1}' and Chapter='{chapter}' and Verse='1';")
         rows = cursor.fetchall()
         return len(rows) > 0
 
-    def _get_chapter_count(self, cursor, book):
+    def _get_chapter_count(self, cursor: sqlite3.Cursor, book: int) -> int:
         chapter_count = BibleInfo.get_chapter_count(book)
         if self._has_chapter(cursor, book, chapter_count):
             while True:
@@ -130,28 +128,25 @@ class MySwordReader:
 
 
 class MySwordFormat(FileFormat):
-    def __init__(self):
+    def __init__(self) -> None:
         super().__init__()
 
-        self.versions = None
-        self.options = {"ROOT_DIR": "", "remove_bible_tags": None}
+        self.versions: dict[str, str] | None = None
+        self.options: dict[str, str | None] = {"ROOT_DIR": "", "remove_bible_tags": None}
 
-    def _get_root_dir(self):
+    def _get_root_dir(self) -> str:
         dirname = self.get_option("ROOT_DIR")
         if not dirname:
             dirname = os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "..", "bgmysword")
 
-        dirname = os.path.normpath(dirname)
-
-        return dirname
+        return os.path.normpath(dirname)
 
     @staticmethod
-    def _get_bible_name(filename):
+    def _get_bible_name(filename) -> str | None:
         """Check whether it is a sqlite3 file with "Details" and "Bible" tables.
 
         return biblename if it is a valid bible.
         """
-        desc = None
         with sqlite3.connect(filename) as conn:
             cursor = conn.cursor()
             cursor.execute("SELECT name FROM sqlite_master WHERE type='table';")
@@ -168,20 +163,20 @@ class MySwordFormat(FileFormat):
             rows = cursor.fetchall()
 
             if len(rows) == 1 and len(rows[0]):
-                desc = rows[0][0]
+                return rows[0][0]
 
-        return desc
+        return None
 
-        @staticmethod
-        def _get_column_names(cursor, tablename):
-            """Return list of columns from "tablename".
-            0|column_name|varchar|0||0
-            """
-            cursor.execute(f"pragma table_info({tablename});")
-            columns = cursor.fetchall()
-            return [c[1] for c in columns]
+    @staticmethod
+    def _get_column_names(cursor: sqlite3.Cursor, tablename: str) -> list[str]:
+        """Return list of columns from "tablename".
+        0|column_name|varchar|0||0
+        """
+        cursor.execute(f"pragma table_info({tablename});")
+        columns = cursor.fetchall()
+        return [c[1] for c in columns]
 
-    def enum_versions(self):
+    def enum_versions(self) -> list[str]:
         dirname = self._get_root_dir()
 
         versions = {}
@@ -196,7 +191,7 @@ class MySwordFormat(FileFormat):
 
         return list(self.versions.keys())
 
-    def read_version(self, version):
+    def read_version(self, version: str) -> Bible | None:
         if self.versions is None:
             self.enum_versions()
 

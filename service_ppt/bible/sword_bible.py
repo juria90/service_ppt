@@ -7,15 +7,20 @@ software framework.
 Library: https://pypi.org/project/pysword/
 """
 
-from . import biblang
-from .bibcore import Bible, Book, Chapter, FileFormat, Verse
+from typing import TYPE_CHECKING, Any
+
+from service_ppt.bible import biblang
+from service_ppt.bible.bibcore import Bible, Book, Chapter, FileFormat, Verse
+
+if TYPE_CHECKING:
+    pass
 
 
 class SwordReader:
-    def __init__(self):
-        self.sw_bible = None
+    def __init__(self) -> None:
+        self.sw_bible: "Any | None" = None
 
-    def read_bible(self, sw_bible, version, load_all=False) -> Bible:
+    def read_bible(self, sw_bible: "Any", version: str, load_all: bool = False) -> Bible:
         bible = Bible()
         bible.name = version
         book_no = 0
@@ -41,7 +46,7 @@ class SwordReader:
 
         return bible
 
-    def read_book(self, book, book_no):
+    def read_book(self, book: Book, book_no: int) -> None:
         ot_nt = "nt" if book.new_testament else "ot"
         sw_books = self.sw_bible.get_structure().get_books()[ot_nt]
         if book.new_testament:
@@ -49,7 +54,7 @@ class SwordReader:
             book_no = book_no - ot_len
         self._parse_chapters(book, self.sw_bible, sw_books[book_no])
 
-    def _parse_chapters(self, book, sw_bible, sw_book):
+    def _parse_chapters(self, book: Book, sw_bible: "Any", sw_book: "Any") -> None:
         for chapter_no in range(sw_book.num_chapters):
             chapter = Chapter()
             chapter.no = chapter_no + 1
@@ -64,14 +69,14 @@ class SwordReader:
 
 
 class SwordFormat(FileFormat):
-    def __init__(self, modules, found_modules):
+    def __init__(self, modules: "Any", found_modules: "dict[str, Any]") -> None:
         super().__init__()
 
-        self.modules = modules
-        self.found_modules = found_modules
-        self.versions = None
+        self.modules: "Any" = modules
+        self.found_modules: "dict[str, Any]" = found_modules
+        self.versions: list[str] | None = None
 
-    def enum_versions(self):
+    def enum_versions(self) -> list[str]:
         if self.versions is None:
             versions = []
             for m in self.found_modules:
@@ -83,7 +88,7 @@ class SwordFormat(FileFormat):
 
         return self.versions
 
-    def read_version(self, version):
+    def read_version(self, version: str) -> Bible | None:
         if self.versions is None:
             self.enum_versions()
 
