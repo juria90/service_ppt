@@ -1218,7 +1218,7 @@ class DuplicateWithTextUI(PropertyGridUI):
 
         font_property = self.ui.GetPropertyByLabel(self.WORDWRAP_FONT)
         font_obj = font_property.GetValue()
-        wordwrap_font = font_obj.GetNativeFontInfoDesc()
+        wordwrap_font = font_obj.GetNativeFontInfoDesc() if font_obj else ""
         self.command.wordwrap_font = self.set_modified(
             self.command.wordwrap_font,
             wordwrap_font,
@@ -1250,8 +1250,11 @@ class DuplicateWithTextUI(PropertyGridUI):
         self.ui.SetPropertyValue(self.ENABLE_WORDWRAP, self.command.enable_wordwrap)
 
         font_property = self.ui.GetPropertyByLabel(self.WORDWRAP_FONT)
-        font_obj = wx.Font(str(self.command.wordwrap_font))
-        font_property.SetValue(font_obj)
+        if self.command.wordwrap_font:
+            font_obj = wx.Font(self.command.wordwrap_font)
+            font_property.SetValue(font_obj)
+        else:
+            font_property.SetValue(None)
 
         self.ui.SetPropertyValue(self.PAGE_WITDH, self.command.wordwrap_pagewidth)
 

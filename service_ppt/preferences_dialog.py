@@ -29,6 +29,17 @@ class PreferencesDialog(wx.adv.PropertySheetDialog):
     """PreferencesDialog class displays preferences settings, so that user can view and update the settings."""
 
     def __init__(self, parent: wx.Window, config: "PreferencesConfig", *args: object, **kwargs: object) -> None:
+        """Initialize PreferencesDialog.
+
+        UI creation flow:
+        1. Initialize instance variables with config values
+        2. Call parent __init__ to create the dialog window
+        3. initialize_controls() creates all UI controls and binds event handlers
+        4. All controls are guaranteed to exist when event handlers are called
+
+        :param parent: Parent window
+        :param config: Preferences configuration object
+        """
         self.is_modified: bool = False
 
         self.config: "PreferencesConfig" = config
@@ -45,18 +56,19 @@ class PreferencesDialog(wx.adv.PropertySheetDialog):
         self.lyric_application_pathname: str = config.lyric_application_pathname
         self.lyric_template_filename: str = config.lyric_template_filename
 
-        self._dir_symbols_ctrl: DirSymbolPG | None = None
-
-        self._bible_format_combo: wx.ComboBox | None = None
-        self._bible_rootdir_stext: wx.StaticText | None = None
-        self._bible_rootdir_ctrl: wx.DirPickerCtrl | None = None
-        self._bible_version_combo: wx.ComboBox | None = None
-
-        self._lyric_search_path_stext: wx.StaticText | None = None
-        self._lyric_search_path_picker: wx.DirPickerCtrl | None = None
-        self._lyric_open_check: wx.CheckBox | None = None
-        self._lyric_copy_check: wx.CheckBox | None = None
-        self._lyric_template_picker: wx.FilePickerCtrl | None = None
+        # UI controls are created in initialize_controls() and guaranteed to exist
+        # when event handlers are called
+        self._dir_symbols_ctrl: DirSymbolPG
+        self._bible_format_combo: wx.ComboBox
+        self._bible_rootdir_stext: wx.StaticText
+        self._bible_rootdir_ctrl: wx.DirPickerCtrl
+        self._bible_version_combo: wx.ComboBox
+        self._lyric_search_path_stext: wx.StaticText
+        self._lyric_search_path_picker: wx.DirPickerCtrl
+        self._lyric_open_check: wx.CheckBox
+        self._lyric_copy_check: wx.CheckBox
+        self._lyric_template_picker: wx.FilePickerCtrl
+        self._lyric_application_picker: wx.FilePickerCtrl
 
         resize_border = wx.RESIZE_BORDER
         wx.adv.PropertySheetDialog.__init__(
@@ -70,7 +82,15 @@ class PreferencesDialog(wx.adv.PropertySheetDialog):
         self.Centre()
 
     def initialize_controls(self) -> None:
-        """initialize_controls creates all child controls and initialize positions."""
+        """Create all child controls and bind event handlers.
+
+        UI creation flow:
+        1. Create dialog buttons (OK, Cancel, Help)
+        2. Create notebook with all settings pages (Directory, Bible, Lyric)
+        3. All UI controls are created and assigned to instance variables
+        4. Event handlers are bound to controls
+        5. After this method completes, all controls are guaranteed to exist
+        """
         self.CreateButtons(wx.OK | wx.CANCEL | wx.HELP)
 
         notebook = self.GetBookCtrl()
@@ -94,20 +114,22 @@ class PreferencesDialog(wx.adv.PropertySheetDialog):
         cancel_button.Bind(wx.EVT_BUTTON, self.on_cancel)
 
     def on_ok(self, _: wx.CommandEvent) -> None:
-        """Event handler for OK."""
-        if self._dir_symbols_ctrl is None:
-            return
+        """Event handler for OK button.
+
+        All UI controls are guaranteed to exist at this point since they are
+        created in initialize_controls() before event handlers are bound.
+        """
         dir_dict = self._dir_symbols_ctrl.get_dir_symbols()
         if self.dir_dict != dir_dict:
             self.is_modified = True
             self.dir_dict = dir_dict
 
-        self.Destroy()
+        self.EndModal(wx.ID_OK)
 
     def on_cancel(self, _: wx.CommandEvent) -> None:
         """Event handler for Cancel."""
         self.is_modified = False
-        self.Destroy()
+        self.EndModal(wx.ID_CANCEL)
 
     def create_bible_settings_page(self, parent: wx.Window) -> wx.Panel:
         """Create bible settings page."""
@@ -138,8 +160,10 @@ class PreferencesDialog(wx.adv.PropertySheetDialog):
         return panel
 
     def _fill_bible_format(self) -> None:
-        if self._bible_format_combo is None:
-            return
+        """Fill the Bible format combo box with available formats.
+
+        All UI controls are guaranteed to exist when this method is called.
+        """
         formats = bibleformat.get_format_list()
         self._bible_format_combo.Clear()
         self._bible_format_combo.AppendItems(formats)
@@ -148,8 +172,10 @@ class PreferencesDialog(wx.adv.PropertySheetDialog):
         self._bible_format_combo.SetStringSelection(self.current_bible_format)
 
     def on_bible_format_changed(self, _: wx.CommandEvent) -> None:
-        if self._bible_format_combo is None or self._bible_rootdir_stext is None or self._bible_rootdir_ctrl is None:
-            return
+        """Event handler for Bible format combo box change.
+
+        All UI controls are guaranteed to exist when this method is called.
+        """
         self.current_bible_format = self._bible_format_combo.GetStringSelection()
 
         enable_dir = False
@@ -171,16 +197,20 @@ class PreferencesDialog(wx.adv.PropertySheetDialog):
         self.is_modified = True
 
     def on_bible_dir_changed(self, _: wx.FileDirPickerEvent | None) -> None:
-        if self._bible_rootdir_ctrl is None:
-            return
+        """Event handler for Bible root directory picker change.
+
+        All UI controls are guaranteed to exist when this method is called.
+        """
         self.bible_rootdir = self._bible_rootdir_ctrl.GetPath()
         bibleformat.set_format_option(self.current_bible_format, "ROOT_DIR", self.bible_rootdir)
         self._fill_bible_version()
         self.is_modified = True
 
     def _fill_bible_version(self) -> None:
-        if self._bible_version_combo is None:
-            return
+        """Fill the Bible version combo box with available versions.
+
+        All UI controls are guaranteed to exist when this method is called.
+        """
         versions: list[str] = []
         if self.current_bible_format:
             versions = bibleformat.enum_versions(self.current_bible_format)
@@ -193,8 +223,10 @@ class PreferencesDialog(wx.adv.PropertySheetDialog):
             self._bible_version_combo.SetSelection(0)
 
     def on_bible_version_changed(self, _: wx.CommandEvent) -> None:
-        if self._bible_version_combo is None:
-            return
+        """Event handler for Bible version combo box change.
+
+        All UI controls are guaranteed to exist when this method is called.
+        """
         self.current_bible_version = self._bible_version_combo.GetStringSelection()
         self.is_modified = True
 
@@ -335,31 +367,41 @@ class PreferencesDialog(wx.adv.PropertySheetDialog):
         return stext, picker
 
     def on_lyric_open_check_changed(self, _: wx.CommandEvent) -> None:
-        if self._lyric_open_check is None:
-            return
+        """Event handler for lyric open checkbox change.
+
+        All UI controls are guaranteed to exist when this method is called.
+        """
         self.lyric_open_textfile = self._lyric_open_check.GetValue()
         self.is_modified = True
 
     def on_lyric_search_path_changed(self, _: wx.FileDirPickerEvent) -> None:
-        if self._lyric_search_path_picker is None:
-            return
+        """Event handler for lyric search path picker change.
+
+        All UI controls are guaranteed to exist when this method is called.
+        """
         self.lyric_search_path = self._lyric_search_path_picker.GetPath()
         self.is_modified = True
 
     def on_lyric_copy_check_changed(self, _: wx.CommandEvent) -> None:
-        if self._lyric_copy_check is None:
-            return
+        """Event handler for lyric copy checkbox change.
+
+        All UI controls are guaranteed to exist when this method is called.
+        """
         self.lyric_copy_from_template = self._lyric_copy_check.GetValue()
         self.is_modified = True
 
     def on_application_pathname_changed(self, _: wx.FileDirPickerEvent) -> None:
-        if not hasattr(self, "_lyric_application_picker") or self._lyric_application_picker is None:
-            return
+        """Event handler for application pathname picker change.
+
+        All UI controls are guaranteed to exist when this method is called.
+        """
         self.lyric_application_pathname = self._lyric_application_picker.GetPath()
         self.is_modified = True
 
     def on_template_filename_changed(self, _: wx.FileDirPickerEvent) -> None:
-        if self._lyric_template_picker is None:
-            return
+        """Event handler for template filename picker change.
+
+        All UI controls are guaranteed to exist when this method is called.
+        """
         self.lyric_template_filename = self._lyric_template_picker.GetPath()
         self.is_modified = True
