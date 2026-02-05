@@ -136,7 +136,6 @@ class TestEvaluateToSingleSlide:
         """Test that note.contains_text() works."""
         prs = presentation_with_text_slides
         # Add notes to a slide - use placeholders instead
-        slide = prs.prs.slides[0]
         notes_slide = prs.prs.slides[0].notes_slide
         # Use placeholders which are available
         if notes_slide.placeholders:
