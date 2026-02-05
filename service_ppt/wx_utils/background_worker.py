@@ -5,11 +5,16 @@ asynchronously in the background, allowing the GUI to remain responsive during
 long-running operations like slide generation.
 """
 
+from collections.abc import Callable
 from threading import Thread
+from typing import TYPE_CHECKING, Any
 
 import wx
 
 from service_ppt.wx_utils.autoresize_listctrl import AutoresizeListCtrl
+
+if TYPE_CHECKING:
+    pass
 
 DEFAULT_BORDER = 5
 
@@ -23,8 +28,11 @@ EVT_RESULT = wx.PyEventBinder(EVT_RESULT_ID, 1)
 class ResultEvent(wx.PyEvent):
     """Simple event to carry arbitrary result data."""
 
-    def __init__(self, data):
-        """Init Result Event."""
+    def __init__(self, data: Any) -> None:
+        """Init Result Event.
+
+        :param data: Data to carry with the event
+        """
         wx.PyEvent.__init__(self)
         self.SetEventType(EVT_RESULT_ID)
         self.data = data
@@ -34,8 +42,12 @@ class ResultEvent(wx.PyEvent):
 class WorkerThread(Thread):
     """Worker Thread Class."""
 
-    def __init__(self, notify_window, bkgnd_handler):
-        """Init Worker Thread Class."""
+    def __init__(self, notify_window: wx.Window, bkgnd_handler: Callable[[wx.Window], None]) -> None:
+        """Init Worker Thread Class.
+
+        :param notify_window: Window to notify when thread completes
+        :param bkgnd_handler: Function to execute in background thread
+        """
         Thread.__init__(self)
         self._notify_window = notify_window
         self._bkgnd_handler = bkgnd_handler
@@ -43,7 +55,7 @@ class WorkerThread(Thread):
         # also make the GUI thread responsible for calling this
         self.start()
 
-    def run(self):
+    def run(self) -> None:
         """Run Worker Thread."""
 
         try:
@@ -64,7 +76,14 @@ LABEL_LESS = "Less"
 class BkgndProgressDialog(wx.Dialog):
     """BkgndProgressDialog class displays the current progress status."""
 
-    def __init__(self, parent, title, message, bkgnd_handler):
+    def __init__(self, parent: wx.Window | None, title: str, message: str, bkgnd_handler: Callable[[wx.Window], None]) -> None:
+        """Initialize background progress dialog.
+
+        :param parent: Parent window
+        :param title: Dialog title
+        :param message: Initial message to display
+        :param bkgnd_handler: Function to execute in background thread
+        """
         self.maximum = 100
         self.value = 0
         self.cancelled = False
@@ -75,9 +94,9 @@ class BkgndProgressDialog(wx.Dialog):
 
         self.message = message
 
-        self.message_ctrl = None
-        self.guage_ctrl = None
-        self.message_listctrl = None
+        self.message_ctrl: wx.StaticText | None = None
+        self.guage_ctrl: wx.Gauge | None = None
+        self.message_listctrl: AutoresizeListCtrl | None = None
 
         style = wx.CAPTION
         wx.Dialog.__init__(self, parent, title=title, style=style)
@@ -90,7 +109,11 @@ class BkgndProgressDialog(wx.Dialog):
 
         self.worker = WorkerThread(self, bkgnd_handler)
 
-    def init_controls(self, message):
+    def init_controls(self, message: str) -> None:
+        """Initialize dialog controls.
+
+        :param message: Initial message to display
+        """
         sizer = wx.BoxSizer(wx.VERTICAL)
 
         text_for_size = (("W" * 40) + "\n") * 3
@@ -117,7 +140,11 @@ class BkgndProgressDialog(wx.Dialog):
         close_btn = self.FindWindowById(wx.ID_OK)
         close_btn.Show(False)
 
-    def create_pane_content(self, pane):
+    def create_pane_content(self, pane: wx.Window) -> None:
+        """Create content for collapsible pane.
+
+        :param pane: Pane window to add content to
+        """
         style = wx.LC_REPORT | wx.LC_NO_HEADER | wx.LC_SINGLE_SEL
         self.message_listctrl = AutoresizeListCtrl(pane, style=style, name="messages")
         self.message_listctrl.InsertColumn(0, "Messages", width=wx.LIST_AUTOSIZE)
@@ -125,7 +152,11 @@ class BkgndProgressDialog(wx.Dialog):
         border.Add(self.message_listctrl, 1, wx.EXPAND | wx.ALL, 5)
         pane.SetSizer(border)
 
-    def on_pane_changed(self, _):
+    def on_pane_changed(self, _: wx.CommandEvent) -> None:
+        """Handle collapsible pane state change.
+
+        :param _: Event object (unused)
+        """
         # redo the layout
         self.Layout()
 
@@ -136,22 +167,34 @@ class BkgndProgressDialog(wx.Dialog):
         else:
             self.cp.SetLabel(LABEL_MORE)
 
-    def on_close(self, _):
-        """Event handler for Close."""
+    def on_close(self, _: wx.CloseEvent) -> None:
+        """Event handler for Close.
+
+        :param _: Event object (unused)
+        """
         result = wx.ID_CANCEL if self.cancelled else wx.ID_OK
         self.EndModal(result)
 
-    def on_btn_close(self, _):
-        """Event handler for Close."""
+    def on_btn_close(self, _: wx.CommandEvent) -> None:
+        """Event handler for Close.
+
+        :param _: Event object (unused)
+        """
         self.EndModal(wx.ID_OK)
 
-    def on_cancel(self, _):
-        """Event handler for Cancel."""
+    def on_cancel(self, _: wx.CommandEvent) -> None:
+        """Event handler for Cancel.
+
+        :param _: Event object (unused)
+        """
         self.cancelled = True
 
     # functions that will be called by worker thread.
-    def on_result(self, _event):
-        """Worker thread is done and notified."""
+    def on_result(self, _event: ResultEvent) -> None:
+        """Worker thread is done and notified.
+
+        :param _event: Result event from worker thread (unused)
+        """
 
         # the worker is done: hide cancel
         # result = wx.ID_CANCEL if self.cancelled else wx.ID_OK
@@ -164,7 +207,13 @@ class BkgndProgressDialog(wx.Dialog):
 
         self.GetSizer().Layout()
 
-    def progress_message(self, subrange_value, message):
+    def progress_message(self, subrange_value: float, message: str) -> bool:
+        """Update progress message and gauge.
+
+        :param subrange_value: Progress value (0-100)
+        :param message: Progress message to display
+        :returns: True if not cancelled, False if cancelled
+        """
         changed = False
 
         if subrange_value < 0:
@@ -189,10 +238,13 @@ class BkgndProgressDialog(wx.Dialog):
             self.message_ctrl.SetLabelText(message)
             self.guage_ctrl.SetValue(int(value))
 
-        result = not self.cancelled
-        return result
+        return not self.cancelled
 
-    def error_message(self, message):
+    def error_message(self, message: str) -> None:
+        """Add error message to the message list.
+
+        :param message: Error message to display
+        """
         count = self.message_listctrl.GetItemCount()
         self.message_listctrl.InsertItem(count, message)
         if not self.cp.IsExpanded():
@@ -200,11 +252,21 @@ class BkgndProgressDialog(wx.Dialog):
             evt = wx.CollapsiblePaneEvent(self, self.cp.GetId(), False)
             wx.PostEvent(self.cp, evt)
 
-    def get_subrange(self):
+    def get_subrange(self) -> tuple[float, float]:
+        """Get current subrange values.
+
+        :returns: Tuple of (min, max) subrange values
+        """
         return (self.subrange_min, self.subrange_max)
 
-    def set_subrange(self, sub_min, sub_max):
-        """Convert 0 to 100 to min & max"""
+    def set_subrange(self, sub_min: float, sub_max: float) -> None:
+        """Set subrange for progress calculation.
+
+        Convert 0 to 100 to min & max.
+
+        :param sub_min: Minimum subrange value
+        :param sub_max: Maximum subrange value
+        """
         self.subrange_min = sub_min
         self.subrange_max = sub_max
 

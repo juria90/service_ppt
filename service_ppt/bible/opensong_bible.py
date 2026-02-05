@@ -2,6 +2,8 @@
 
 This module provides support for reading Bible text from OpenSong format files.
 OpenSong is a free software application for managing chords and lyrics.
+
+OpenSong project: http://www.opensong.org/
 """
 
 import os
@@ -11,10 +13,29 @@ from service_ppt.bible.bibcore import Bible
 
 
 class OpenSongXMLWriter:
+    """Writer for OpenSong XML Bible format.
+
+    This class provides functionality to write Bible data to OpenSong XML format,
+    which is used by the OpenSong application for managing Bible references.
+
+    The format uses a simple XML structure with <bible>, <b>, <c>, and <v> tags
+    for books, chapters, and verses respectively.
+    """
+
     def _get_extension(self) -> str:
+        """Get the file extension for XML format.
+
+        :returns: File extension string (".xml")
+        """
         return ".xml"
 
     def write_bible(self, dirname: str, bible: Bible, encoding: str = "utf-8") -> None:
+        """Write Bible data to OpenSong XML format file.
+
+        :param dirname: Directory where XML file will be written
+        :param bible: Bible object to write
+        :param encoding: Character encoding (defaults to UTF-8)
+        """
         if encoding is None:
             encoding = "utf-8"
 
@@ -44,6 +65,11 @@ class OpenSongXMLWriter:
             self._write_xml_footer(file)
 
     def _write_xml_header(self, file: object, encoding: str) -> None:
+        """Write XML header to file.
+
+        :param file: File object to write to
+        :param encoding: Character encoding for the XML declaration
+        """
         print(
             f"""<?xml version="1.0" encoding="{encoding}"?>
 <bible>
@@ -53,6 +79,10 @@ class OpenSongXMLWriter:
         )
 
     def _write_xml_footer(self, file: object) -> None:
+        """Write XML footer to file.
+
+        :param file: File object to write to
+        """
         print(
             """</bible>
 """,

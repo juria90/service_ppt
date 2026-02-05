@@ -33,18 +33,37 @@ class BibleInfo:
 
     @staticmethod
     def get_book_count() -> int:
+        """Get the total number of books in the Bible.
+
+        :returns: Total book count (66 for standard Bible)
+        """
         return BibleInfo.BOOK_COUNT
 
     @staticmethod
     def get_chapter_count(book_no: int) -> int:
+        """Get the number of chapters for a specific book.
+
+        :param book_no: Zero-based book number
+        :returns: Number of chapters in the book
+        """
         return BibleInfo.CHAPTER_COUNT[book_no]
 
     @staticmethod
     def is_old_testament(book_no: int) -> bool:
+        """Check if a book belongs to the Old Testament.
+
+        :param book_no: Zero-based book number
+        :returns: True if book is in Old Testament, False otherwise
+        """
         return book_no < BibleInfo.OLD_TESTAMENT_COUNT
 
     @staticmethod
     def is_new_testament(book_no: int) -> bool:
+        """Check if a book belongs to the New Testament.
+
+        :param book_no: Zero-based book number
+        :returns: True if book is in New Testament, False otherwise
+        """
         return book_no >= BibleInfo.OLD_TESTAMENT_COUNT
 
 
@@ -64,6 +83,10 @@ class Verse:
         self.book: Book | None = None  # link to parent book for extract_texts()
 
     def set_no(self, no: str | int | None) -> None:
+        """Set verse number and parse it into internal number fields.
+
+        :param no: Verse number as string (e.g., "1", "2-3"), integer, or None
+        """
         self.no = no
         if self.no is not None:
             if isinstance(self.no, int):
@@ -84,6 +107,12 @@ class Verse:
                     self._number1 = int(self.no)
 
     def in_range(self, v1: int, v2: int | None) -> bool:
+        """Check if this verse is within the specified verse range.
+
+        :param v1: Start verse number
+        :param v2: End verse number (None for single verse)
+        :returns: True if verse is in range, False otherwise
+        """
         if self.no is None:
             return False
 
@@ -96,6 +125,10 @@ class Verse:
         return v1 == self._number1
 
     def get_max_no(self) -> int | None:
+        """Get the maximum verse number (for range verses, returns the end number).
+
+        :returns: Maximum verse number or None if verse number is not set
+        """
         if self.no is None:
             return None
 
@@ -105,10 +138,25 @@ class Verse:
 
     @staticmethod
     def _intersect(v: int, v1: int, v2: int) -> bool:
+        """Check if verse v is within range [v1, v2].
+
+        :param v: Verse number to check
+        :param v1: Start of range
+        :param v2: End of range
+        :returns: True if v is in range [v1, v2]
+        """
         return v1 <= v and v <= v2
 
     @staticmethod
     def _intersect_two(u1: int, u2: int, v1: int, v2: int) -> bool:
+        """Check if two verse ranges [u1, u2] and [v1, v2] intersect.
+
+        :param u1: Start of first range
+        :param u2: End of first range
+        :param v1: Start of second range
+        :param v2: End of second range
+        :returns: True if ranges intersect
+        """
         if v1 < u1:
             return v2 >= u1
         return v1 <= u2
@@ -132,6 +180,10 @@ class Book:
         self.chapters: list[Chapter] = []
 
     def is_loaded(self) -> bool:
+        """Check if book has been loaded (has chapters).
+
+        :returns: True if book has chapters loaded, False otherwise
+        """
         return len(self.chapters) > 0
 
 
@@ -147,8 +199,12 @@ class Bible:
         self.book_to_index_map: dict[str, int] | None = None
 
     def ensure_loaded(self, book: Book) -> None:
-        """The ensure_loaded() loads book text, if it is not loaded yet.
-        By providing this, each book can be delay loaded.
+        """Ensure book text is loaded, loading it if necessary.
+
+        This method enables lazy loading of books. Books are only loaded
+        when their text is actually needed.
+
+        :param book: Book object to ensure is loaded
         """
 
         if not book.is_loaded():
@@ -157,6 +213,10 @@ class Bible:
                 self.reader.read_book(book, book_no)
 
     def get_book_to_index_map(self) -> dict[str, int]:
+        """Get mapping from book names (long and short) to book indices.
+
+        :returns: Dictionary mapping book names to zero-based indices
+        """
         if self.book_to_index_map is None:
             self.book_to_index_map = {}
             for i, b in enumerate(self.books):

@@ -17,10 +17,24 @@ if TYPE_CHECKING:
 
 
 class SwordReader:
+    """Reader for Sword Bible format modules.
+
+    This class provides functionality to read Bible text from Sword format
+    using the pysword Python library.
+    """
+
     def __init__(self) -> None:
+        """Initialize Sword reader."""
         self.sw_bible: "Any | None" = None
 
     def read_bible(self, sw_bible: "Any", version: str, load_all: bool = False) -> Bible:
+        """Read Bible data from Sword format module.
+
+        :param sw_bible: Sword Bible module object
+        :param version: Bible version name
+        :param load_all: Whether to load all books immediately (defaults to lazy loading)
+        :returns: Bible object
+        """
         bible = Bible()
         bible.name = version
         book_no = 0
@@ -47,6 +61,11 @@ class SwordReader:
         return bible
 
     def read_book(self, book: Book, book_no: int) -> None:
+        """Read a single book from Sword format module.
+
+        :param book: Book object to populate with data
+        :param book_no: Zero-based book number
+        """
         ot_nt = "nt" if book.new_testament else "ot"
         sw_books = self.sw_bible.get_structure().get_books()[ot_nt]
         if book.new_testament:
@@ -69,7 +88,18 @@ class SwordReader:
 
 
 class SwordFormat(FileFormat):
+    """File format handler for Sword format modules.
+
+    This class implements the FileFormat interface for reading Sword format
+    Bible modules using the pysword library.
+    """
+
     def __init__(self, modules: "Any", found_modules: "dict[str, Any]") -> None:
+        """Initialize Sword format handler.
+
+        :param modules: Sword modules object
+        :param found_modules: Dictionary of found Sword modules
+        """
         super().__init__()
 
         self.modules: "Any" = modules
@@ -80,15 +110,19 @@ class SwordFormat(FileFormat):
         if self.versions is None:
             versions = []
             for m in self.found_modules:
-                if "blocktype" in self.found_modules[m]:
-                    if self.found_modules[m]["blocktype"] == "BOOK":
-                        versions.append(m)
+                if self.found_modules[m].get("blocktype") == "BOOK":
+                    versions.append(m)
 
             self.versions = versions
 
         return self.versions
 
     def read_version(self, version: str) -> Bible | None:
+        """Read a specific Bible version from Sword format.
+
+        :param version: Version name to read
+        :returns: Bible object or None if version not found
+        """
         if self.versions is None:
             self.enum_versions()
 

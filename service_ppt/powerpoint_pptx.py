@@ -6,11 +6,11 @@ requiring PowerPoint to be installed. Note that image export features are not
 available with this implementation.
 """
 
-import copy
-import re
 from collections.abc import Callable
+import copy
 from enum import IntEnum
 from io import BytesIO
+import re
 from typing import Any
 
 from pptx import Presentation as PptxPres
@@ -33,7 +33,7 @@ class SlideLayout(IntEnum):
     SLD_LAYOUT_PICTURE_WITH_CAPTION = 8
 
 
-def iterate_text_objects_in_shapes(shapes, fn: Callable | None = None):
+def iterate_text_objects_in_shapes(shapes: Any, fn: Callable[[Any], bool] | None = None) -> Any:
     for shape in shapes:
         if shape.has_text_frame:
             text_frame = shape.text_frame
@@ -81,12 +81,12 @@ def iterate_text_objects_in_shapes(shapes, fn: Callable | None = None):
                                 yield run
 
 
-def get_texts_in_shapes(shapes):
+def get_texts_in_shapes(shapes: Any) -> list[str]:
     texts = [obj.text for obj in iterate_text_objects_in_shapes(shapes)]
     return texts
 
 
-def find_text_in_shapes(shapes, text, match_case=True, whole_words=True):
+def find_text_in_shapes(shapes: Any, text: str, match_case: bool = True, whole_words: bool = True) -> bool | str | None:
     # https://stackoverflow.com/questions/25483114/regex-to-find-whole-word-in-text-but-case-insensitive
     pattern = ""
     if match_case is False:
@@ -112,15 +112,16 @@ def find_text_in_shapes(shapes, text, match_case=True, whole_words=True):
     return texts[0] if len(texts) > 0 else None
 
 
-def replace_texts_in_shapes(shapes, text_dict):
+def replace_texts_in_shapes(shapes: Any, text_dict: dict[str, str]) -> int:
     count = 0
 
-    def replace_texts_in_run(obj):
+    def replace_texts_in_run(obj: Any) -> bool:
         nonlocal count, text_dict
         for from_text, to_text in text_dict.items():
             if (obj.text.find(from_text)) != -1:
                 obj.text = obj.text.replace(from_text, to_text)
                 count = count + 1
+        return True
 
     for _ in iterate_text_objects_in_shapes(shapes, replace_texts_in_run):
         pass
@@ -128,7 +129,7 @@ def replace_texts_in_shapes(shapes, text_dict):
     return count
 
 
-def dump_shapes(shapes):
+def dump_shapes(shapes: Any) -> None:
     for i, shape in enumerate(shapes):
         if shape.has_text_frame:
             print("shape %d: %d" % (i, shape.shape_type))
@@ -142,7 +143,7 @@ def dump_shapes(shapes):
                 print("%s" % found_text)
 
 
-def is_text_placeholder(phType):
+def is_text_placeholder(ph_type: int) -> bool:
     """
     BODY = 2 # Body
     CENTER_TITLE = 3 # Center Title
@@ -153,20 +154,17 @@ def is_text_placeholder(phType):
     VERTICAL_BODY = 6 # Vertical Body
     VERTICAL_TITLE = 5 # Vertical Title
     """
-    if phType >= PP_PLACEHOLDER_TYPE.TITLE and phType <= PP_PLACEHOLDER_TYPE.VERTICAL_BODY:
-        return True
-
-    return False
+    return ph_type >= PP_PLACEHOLDER_TYPE.TITLE and ph_type <= PP_PLACEHOLDER_TYPE.VERTICAL_BODY
 
 
-def get_placeholder_text(shapes):
-    text_dict = {}
+def get_placeholder_text(shapes: Any) -> dict[int, str]:
+    text_dict: dict[int, str] = {}
     for shape in shapes:
         if shape.shape_type == MSO_SHAPE_TYPE.PLACEHOLDER and shape.has_text_frame:
-            phType = shape.placeholder_format.type
-            if is_text_placeholder(phType):
+            ph_type = shape.placeholder_format.type
+            if is_text_placeholder(ph_type):
                 text = shape.text_frame.text
-                text_dict[phType] = text
+                text_dict[ph_type] = text
 
     return text_dict
 
@@ -179,7 +177,7 @@ def find_slide_by_id(slides, slide_id: int) -> tuple[int, Any]:
     return -1, None
 
 
-def _get_blank_slide_layout(prs):
+def _get_blank_slide_layout(prs: Any) -> Any:
     layout_items_count = [len(layout.placeholders) for layout in prs.slide_layouts]
     min_items = min(layout_items_count)
     blank_layout_id = layout_items_count.index(min_items)
@@ -187,7 +185,7 @@ def _get_blank_slide_layout(prs):
 
 
 # https://github.com/scanny/python-pptx/issues/132
-def duplicate_slide(prs, index):
+def duplicate_slide(prs: Any, index: int) -> Any:
     """Duplicate the slide with the given index in prs.
 
     Adds slide to the end of the presentation"""
@@ -195,9 +193,9 @@ def duplicate_slide(prs, index):
     dest = prs.slides.add_slide(source.slide_layout)
     # blank_slide_layout = _get_blank_slide_layout(prs)
     # dest = prs.slides.add_slide(blank_slide_layout)
-    sldIdLst = prs._element.get_or_add_sldIdLst()
-    rIds = [sldId.rId for sldId in sldIdLst]
-    prs.part.rename_slide_parts(rIds)
+    sld_id_list = prs._element.get_or_add_sldIdLst()
+    rids = [sldId.rId for sldId in sld_id_list]
+    prs.part.rename_slide_parts(rids)
 
     for shape in source.shapes:
         newel = copy.deepcopy(shape.element)
@@ -231,20 +229,20 @@ def duplicate_slide(prs, index):
     if source.background and source.background._cSld.bg is not None:
         el = source.background._cSld.bg.bgPr
         newel = copy.deepcopy(el)
-        cSld = dest.background._cSld
-        cSld.get_or_add_bgPr()
-        cSld.bg._remove_bgPr()
-        cSld.bg._insert_bgPr(newel)
+        csld = dest.background._cSld
+        csld.get_or_add_bgPr()
+        csld.bg._remove_bgPr()
+        csld.bg._insert_bgPr(newel)
 
     return dest
 
 
 # https://github.com/scanny/python-pptx/issues/68#issuecomment-575736354
-def move_slide(slides, slide, new_idx):
+def move_slide(slides: Any, slide: Any, new_idx: int) -> None:
     slides._sldIdLst.insert(new_idx, slides._sldIdLst[slides.index(slide)])
 
 
-def copy_notes(source_slide, dest_slide):
+def copy_notes(source_slide: Any, dest_slide: Any) -> None:
     """copy_notes() fixes where duplicate_slide() may not properly copy NotesSlide placeholders.
 
     Note: This function is not currently used in powerpoint_pptx as duplicate_slide()
@@ -271,17 +269,17 @@ class Presentation(PresentationBase):
     All the index used in the function is 0-based and converted to 1-based while calling COM functions.
     """
 
-    def __init__(self, app, prs):
+    def __init__(self, app: Any, prs: Any) -> None:
         super().__init__(app, prs)
 
-    def _close(self):
+    def _close(self) -> None:
         # for python-pptx, no explicit close is required.
         self.reset()
 
-    def slide_count(self):
+    def slide_count(self) -> int:
         return len(self.prs.slides)
 
-    def _fetch_slide_cache(self, slide_index):
+    def _fetch_slide_cache(self, slide_index: int) -> SlideCache:
         sc = SlideCache()
 
         slide = self.prs.slides[slide_index]
@@ -294,36 +292,38 @@ class Presentation(PresentationBase):
 
         return sc
 
-    def slide_index_to_ID(self, var):
+    def slide_index_to_ID(self, var: int | list[int]) -> int | list[int]:
         if isinstance(var, int):
             slide = self.prs.slides[var]
             return slide.slide_id
         elif isinstance(var, list):
-            result = []
+            result: list[int] = []
             for index in var:
                 slide = self.prs.slides[index]
                 result.append(slide.slide_id)
 
             return result
+        return var
 
-    def slide_ID_to_index(self, var):
+    def slide_ID_to_index(self, var: int | list[int]) -> int | list[int]:
         if isinstance(var, int):
             index, _slide = find_slide_by_id(self.prs.slides, var)
             return index
         elif isinstance(var, list):
-            result = []
+            result: list[int] = []
             for sid in var:
                 index, _slide = find_slide_by_id(self.prs.slides, sid)
                 result.append(index)
 
             return result
+        return var
 
-    def _replace_texts_in_slide_shapes(self, slide_index, find_replace_dict):
+    def _replace_texts_in_slide_shapes(self, slide_index: int, find_replace_dict: dict[str, str]) -> None:
         slide = self.prs.slides[slide_index]
         shapes = slide.shapes
         replace_texts_in_shapes(shapes, find_replace_dict)
 
-    def duplicate_slides(self, source_location, insert_location=None, copy=1):
+    def duplicate_slides(self, source_location: int | list[int], insert_location: int | None = None, copy: int = 1) -> int:
         source_slides_count = len(self.prs.slides)
 
         # validate source_location and set source_count
@@ -410,13 +410,13 @@ class Presentation(PresentationBase):
             move_slide(prs.slides, slide, index)
         return slide
 
-    def insert_blank_slide(self, slide_index):
+    def insert_blank_slide(self, slide_index: int) -> None:
         layout = _get_blank_slide_layout(self.prs)
         Presentation.insert_template_slide(self.prs, slide_index, layout)
 
         self._slides_inserted(slide_index, 1)
 
-    def delete_slide(self, slide_index):
+    def delete_slide(self, slide_index: int) -> None:
         # https://github.com/scanny/python-pptx/issues/67
         # Make dictionary with necessary information
         slide = self.prs.slides[slide_index]
@@ -427,13 +427,13 @@ class Presentation(PresentationBase):
 
         self._slides_deleted(slide_index, 1)
 
-    def copy_all_and_close(self):
+    def copy_all_and_close(self) -> None:
         """Store the presentation in the app for later pasting, then close this presentation."""
         # Store the source presentation in the app for later pasting
         self.app._clipboard_presentation = self.prs
         self.close()
 
-    def _paste_keep_source_formatting(self, insert_location):
+    def _paste_keep_source_formatting(self, insert_location: int) -> None:
         """Paste slides from the clipboard presentation (stored in copy_all_and_close) into this presentation."""
         if not hasattr(self.app, "_clipboard_presentation") or self.app._clipboard_presentation is None:
             return
@@ -507,11 +507,11 @@ class Presentation(PresentationBase):
         # Clean up clipboard
         self.app._clipboard_presentation = None
 
-    def saveas(self, filename):
+    def saveas(self, filename: str) -> None:
         """Save .pptx as files using python-pptx."""
         self.prs.save(filename)
 
-    def saveas_format(self, filename, image_type="png"):
+    def saveas_format(self, filename: str, image_type: str = "png") -> None:
         """Save .pptx as image files.
 
         Note: python-pptx does not support exporting presentations as image formats.
@@ -521,7 +521,7 @@ class Presentation(PresentationBase):
             "python-pptx does not support exporting presentations as image formats. Use export_slide_as() to export individual slides."
         )
 
-    def export_slide_as(self, slideno, filename, image_type="png"):
+    def export_slide_as(self, slideno: int, filename: str, image_type: str = "png") -> None:
         """Save all shapes in slide as image files.
 
         Note: python-pptx does not support rendering slides as images.
@@ -536,7 +536,7 @@ class Presentation(PresentationBase):
             "To export slides as images, use powerpoint_win32 or powerpoint_osx modules."
         )
 
-    def export_shapes_as(self, slideno, filename, image_type="png"):
+    def export_shapes_as(self, slideno: int, filename: str, image_type: str = "png") -> None:
         """Save all shapes in slide as image file.
         It only exports the shapes not slide itself and the dimension may not what you expect,
         unless the whole selected shapes cover the slide.
@@ -559,20 +559,20 @@ class Presentation(PresentationBase):
 
 class App(PPTAppBase):
     @staticmethod
-    def is_running():
+    def is_running() -> bool:
         return True
 
-    def __init__(self):
-        self.presentation = PptxPres()
-        self._clipboard_presentation = None  # Used for copy/paste operations
+    def __init__(self) -> None:
+        self.presentation: PptxPres = PptxPres()
+        self._clipboard_presentation: Any | None = None  # Used for copy/paste operations
 
-    def new_presentation(self):
+    def new_presentation(self) -> Presentation:
         layout = _get_blank_slide_layout(self.presentation)
         _slide = Presentation.insert_template_slide(self.presentation, 0, layout)
 
         return Presentation(self, self.presentation)
 
-    def open_presentation(self, filename):
+    def open_presentation(self, filename: str) -> Presentation | None:
         with open(filename, "rb") as f:
             source_stream = BytesIO(f.read())
             prs = PptxPres(source_stream)
@@ -583,7 +583,7 @@ class App(PPTAppBase):
 
         return Presentation(self, prs)
 
-    def quit(self, force=False, only_if_empty=True):
+    def quit(self, force: bool = False, only_if_empty: bool = True) -> None:
         """Quit the application.
 
         Note: For python-pptx, there is no actual application to quit,
@@ -592,7 +592,7 @@ class App(PPTAppBase):
         # for python-pptx, there is no app, so no quitting.
         pass
 
-    def quit_if_empty(self):
+    def quit_if_empty(self) -> None:
         """Quit if no presentations are open.
 
         Note: For python-pptx, there is no actual application to quit,

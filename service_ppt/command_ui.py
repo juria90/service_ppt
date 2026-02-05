@@ -13,10 +13,26 @@ import re
 import wx
 import wx.propgrid as wxpg
 
-import service_ppt.command as cmd
 from service_ppt.bible import bibleformat
-from service_ppt.utils.i18n import _
+from service_ppt.cmd.cmd import (
+    BibleVerseFormat,
+    Command,
+    DateTimeFormat,
+    DirSymbols,
+    DuplicateWithText,
+    ExportFlag,
+    ExportShapes,
+    ExportSlides,
+    GenerateBibleVerse,
+    InsertLyrics,
+    InsertSlides,
+    OpenFile,
+    SaveFiles,
+    SetVariables,
+)
+from service_ppt.cmd.cmdmgr import CommandManager
 from service_ppt.utils.atomicfile import AtomicFileWriter
+from service_ppt.utils.i18n import _
 
 DEFAULT_SPAN = (1, 1)
 BORDER_STYLE_EXCEPT_TOP = wx.LEFT | wx.RIGHT | wx.BOTTOM
@@ -57,8 +73,7 @@ def unescape_backslash(s):
             escape = False
             sb.append(ch)
 
-    result = str(sb)
-    return result
+    return str(sb)
 
 
 def escape_backslash(s):
@@ -71,8 +86,7 @@ def escape_backslash(s):
         else:
             sb.append(ch)
 
-    result = str(sb)
-    return result
+    return str(sb)
 
 
 class MyFileProperty(wxpg.FileProperty):
@@ -197,7 +211,7 @@ class CommandUI(wx.EvtHandler):
         return date_prop
 
 
-class PopupMessage(cmd.Command):
+class PopupMessage(Command):
     def __init__(self, message):
         super().__init__()
 
@@ -337,7 +351,7 @@ class PropertyGridUI(CommandUI):
 
 
 class OpenFileUI(PropertyGridUI):
-    proc_class = cmd.OpenFile
+    proc_class = OpenFile
 
     PRESENTATION_FILE = _("Presentation file")
     NOTES_FILE = _("Notes file")
@@ -346,7 +360,7 @@ class OpenFileUI(PropertyGridUI):
         super().__init__(uimgr, name, proc=proc)
 
         if self.command is None:
-            self.command = cmd.OpenFile("", "")
+            self.command = OpenFile("", "")
         self.wildcard = POWERPOINT_FILES_WILDCARD
 
     def initialize_fixed_properties(self, pg):
@@ -376,7 +390,7 @@ class OpenFileUI(PropertyGridUI):
 
 
 class SaveFilesUI(PropertyGridUI):
-    proc_class = cmd.SaveFiles
+    proc_class = SaveFiles
 
     PRESENTATION_FILE = _("Presentation file")
     LYRICS_ARCHIVE_FILE = _("Lyrics archive file")
@@ -387,7 +401,7 @@ class SaveFilesUI(PropertyGridUI):
         super().__init__(uimgr, name, proc=proc)
 
         if self.command is None:
-            self.command = cmd.SaveFiles("", "", "", "")
+            self.command = SaveFiles("", "", "", "")
         self.wildcard = POWERPOINT_FILES_WILDCARD
 
     def initialize_fixed_properties(self, pg):
@@ -433,7 +447,7 @@ class SaveFilesUI(PropertyGridUI):
 
 
 class SetVariablesUI(PropertyGridUI):
-    proc_class = cmd.SetVariables
+    proc_class = SetVariables
 
     DATETIME_NAME = _("Datetime variable name")
     DATETIME_VALUE = _("Datetime value")
@@ -444,7 +458,7 @@ class SetVariablesUI(PropertyGridUI):
         super().__init__(uimgr, name, proc=proc)
 
         if self.command is None:
-            self.command = cmd.SetVariables()
+            self.command = SetVariables()
 
     def get_dynamic_label(self, index):
         if (index % 2) == 0:
@@ -516,7 +530,7 @@ class SetVariablesUI(PropertyGridUI):
                 pass
 
             # format comes from find_string
-            format_dict[name] = cmd.DateTimeFormat(value=dt_str)
+            format_dict[name] = DateTimeFormat(value=dt_str)
 
         self.command.format_dict = self.set_modified(self.command.format_dict, format_dict)
 
@@ -538,7 +552,7 @@ class SetVariablesUI(PropertyGridUI):
             self.SetPropertyValueString(self.DATETIME_NAME, dt_name)
 
             fobj = self.command.format_dict[dt_name]
-            dt_value = cmd.DateTimeFormat.datetime_from_c_locale(fobj.value)
+            dt_value = DateTimeFormat.datetime_from_c_locale(fobj.value)
             self.ui.SetPropertyValue(self.DATETIME_VALUE, dt_value)
 
         plist = []
@@ -563,7 +577,7 @@ class SetVariablesUI(PropertyGridUI):
 
 
 class InsertSlidesUI(PropertyGridUI):
-    proc_class = cmd.InsertSlides
+    proc_class = InsertSlides
 
     INSERT_LOCATION = _("Insert location")
     SEPARATOR_SLIDES = _("Separator slides")
@@ -573,7 +587,7 @@ class InsertSlidesUI(PropertyGridUI):
         super().__init__(uimgr, name, proc=proc)
 
         if self.command is None:
-            self.command = cmd.InsertSlides(None, None, [])
+            self.command = InsertSlides(None, None, [])
 
     def get_dynamic_label(self, index):
         return self.FILE_D % (index + 1)
@@ -616,7 +630,7 @@ class InsertSlidesUI(PropertyGridUI):
 
 
 class InsertLyricsUI(PropertyGridUI):
-    proc_class = cmd.InsertLyrics
+    proc_class = InsertLyrics
 
     FILE_TYPE = _("Lyric file types")
     FILE_TYPE_LIST = [
@@ -642,7 +656,7 @@ class InsertLyricsUI(PropertyGridUI):
         super().__init__(uimgr, name, proc=proc)
 
         if self.command is None:
-            self.command = cmd.InsertLyrics("", None, "", None, "", False, [], 2)
+            self.command = InsertLyrics("", None, "", None, "", False, [], 2)
 
     @staticmethod
     def create_openfile_property(prop_name, wildcard):
@@ -742,7 +756,7 @@ class InsertLyricsUI(PropertyGridUI):
 
 
 class DuplicateWithTextUI(PropertyGridUI):
-    proc_class = cmd.DuplicateWithText
+    proc_class = DuplicateWithText
 
     SLIDE_RANGE = _("Slide range")
     REPEAT_RANGE = _("Repeat range")
@@ -759,7 +773,7 @@ class DuplicateWithTextUI(PropertyGridUI):
         super().__init__(uimgr, name, proc=proc)
 
         if self.command is None:
-            self.command = cmd.DuplicateWithText("", "", "", [], "", False, 0)
+            self.command = DuplicateWithText("", "", "", [], "", False, 0)
 
     def initialize_fixed_properties(self, pg):
         pg.Append(wxpg.PropertyCategory(_("1 - Range specification")))
@@ -854,7 +868,7 @@ class DuplicateWithTextUI(PropertyGridUI):
 
 
 class GenerateBibleVerseUI(PropertyGridUI):
-    proc_class = cmd.GenerateBibleVerse
+    proc_class = GenerateBibleVerse
     current_bible_format = bibleformat.BibleFormat.MYBIBLE.value
 
     BIBLE_VERSION1 = _("Bible Version 1")
@@ -871,7 +885,7 @@ class GenerateBibleVerseUI(PropertyGridUI):
         super().__init__(uimgr, name, proc=proc)
 
         if self.command is None:
-            self.command = cmd.GenerateBibleVerse(GenerateBibleVerseUI.current_bible_format)
+            self.command = GenerateBibleVerse(GenerateBibleVerseUI.current_bible_format)
 
     def initialize_fixed_properties(self, pg):
         pg.Append(wxpg.PropertyCategory(_("1 - Bible #1")))
@@ -944,7 +958,7 @@ class GenerateBibleVerseUI(PropertyGridUI):
 
 
 class ExportSlidesUI(PropertyGridUI):
-    proc_class = cmd.ExportSlides
+    proc_class = ExportSlides
 
     SLIDE_RANGE = _("Slides to export")
     IMAGE_TYPE = _("Image type")
@@ -957,7 +971,7 @@ class ExportSlidesUI(PropertyGridUI):
         super().__init__(uimgr, name, proc=proc)
 
         if self.command is None:
-            self.command = cmd.ExportSlides("", "", "PNG", 0, "#FFFFFF")
+            self.command = ExportSlides("", "", "PNG", 0, "#FFFFFF")
 
     def initialize_fixed_properties(self, pg):
         pg.Append(wxpg.StringProperty(self.SLIDE_RANGE))
@@ -977,9 +991,9 @@ class ExportSlidesUI(PropertyGridUI):
         transparent_image = self.ui.GetPropertyValueAsBool(self.TRANSPARENT_IMAGE)
         flags = 0
         if cleanup_output_dir:
-            flags = flags | cmd.ExportFlag.CLEANUP_FILES
+            flags = flags | ExportFlag.CLEANUP_FILES
         if transparent_image:
-            flags = flags | cmd.ExportFlag.TRANSPARENT
+            flags = flags | ExportFlag.TRANSPARENT
         self.command.flags = self.set_modified(self.command.flags, flags)
         color = self.ui.GetPropertyValue(self.TRANSPARENT_COLOR)
         str_color = color.GetAsString(wx.C2S_HTML_SYNTAX)
@@ -992,9 +1006,9 @@ class ExportSlidesUI(PropertyGridUI):
         self.SetPropertyValueString(self.IMAGE_TYPE, self.command.image_type)
         self.SetPropertyValueString(self.OUTPUT_DIR, self.command.out_dirname)
 
-        value = (self.command.flags | cmd.ExportFlag.CLEANUP_FILES) != 0
+        value = (self.command.flags | ExportFlag.CLEANUP_FILES) != 0
         self.ui.SetPropertyValue(self.CLEANUP_OUTPUT_DIR, value)
-        value = (self.command.flags | cmd.ExportFlag.TRANSPARENT) != 0
+        value = (self.command.flags | ExportFlag.TRANSPARENT) != 0
         self.ui.SetPropertyValue(self.TRANSPARENT_IMAGE, value)
         self.SetPropertyValueString(self.TRANSPARENT_COLOR, self.command.color)
 
@@ -1002,7 +1016,7 @@ class ExportSlidesUI(PropertyGridUI):
 
 
 class ExportShapesUI(PropertyGridUI):
-    proc_class = cmd.ExportShapes
+    proc_class = ExportShapes
 
     SLIDE_RANGE = _("Slides to export")
     IMAGE_TYPE = _("Image type")
@@ -1013,7 +1027,7 @@ class ExportShapesUI(PropertyGridUI):
         super().__init__(uimgr, name, proc=proc)
 
         if self.command is None:
-            self.command = cmd.ExportShapes("", "", "PNG", 0)
+            self.command = ExportShapes("", "", "PNG", 0)
 
     def initialize_fixed_properties(self, pg):
         pg.Append(wxpg.StringProperty(self.SLIDE_RANGE))
@@ -1030,7 +1044,7 @@ class ExportShapesUI(PropertyGridUI):
         cleanup_output_dir = self.ui.GetPropertyValueAsBool(self.CLEANUP_OUTPUT_DIR)
         flags = 0
         if cleanup_output_dir:
-            flags = flags | cmd.ExportFlag.CLEANUP_FILES
+            flags = flags | ExportFlag.CLEANUP_FILES
         self.command.flags = self.set_modified(self.command.flags, flags)
 
         return True
@@ -1040,13 +1054,13 @@ class ExportShapesUI(PropertyGridUI):
         self.SetPropertyValueString(self.IMAGE_TYPE, self.command.image_type)
         self.SetPropertyValueString(self.OUTPUT_DIR, self.command.out_dirname)
 
-        value = (self.command.flags | cmd.ExportFlag.CLEANUP_FILES) != 0
+        value = (self.command.flags | ExportFlag.CLEANUP_FILES) != 0
         self.ui.SetPropertyValue(self.CLEANUP_OUTPUT_DIR, value)
 
         return True
 
 
-class SymboledDirectory(cmd.Command):
+class SymboledDirectory(Command):
     def __init__(self, dir_dict):
         super().__init__()
 
@@ -1093,7 +1107,7 @@ class CommandEncoder(json.JSONEncoder):
     ]
     proc_map = {ui.proc_class.__name__: ui for ui in proc_ui_list}
 
-    format_list = [cmd.BibleVerseFormat, cmd.DateTimeFormat]
+    format_list = [BibleVerseFormat, DateTimeFormat]
 
     format_map = {fo.__name__: fo for fo in format_list}
 
@@ -1225,7 +1239,7 @@ class UIManager:
             loaded_dss.update(dir_dict)
             dir_dict = loaded_dss
 
-        dss = cmd.DirSymbols(dir_dict)
+        dss = DirSymbols(dir_dict)
         for ui in command_ui_list:
             ui.uimgr = self
 
@@ -1238,7 +1252,7 @@ class UIManager:
     def save(self, filename, dir_dict):
         self.check_modified()
 
-        dss = cmd.DirSymbols(dir_dict)
+        dss = DirSymbols(dir_dict)
         dir_symbol = None
         modified = self.modified
         if len(dir_dict) > 0:
@@ -1267,6 +1281,6 @@ class UIManager:
         self.check_modified()
 
         proc_list = [x.command for x in self.command_ui_list]
-        cm = cmd.CommandManager()
+        cm = CommandManager()
         cm.lyric_manager.lyric_search_path = pconfig.lyric_search_path
         cm.execute_commands(proc_list, monitor=monitor)

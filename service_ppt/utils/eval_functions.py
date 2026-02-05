@@ -6,8 +6,12 @@ with slide context.
 """
 
 import typing
+from typing import TYPE_CHECKING
 
 from service_ppt.utils.evaluator import safe_eval
+
+if TYPE_CHECKING:
+    from service_ppt.powerpoint_base import PresentationBase
 
 
 class EvalShape:
@@ -17,7 +21,7 @@ class EvalShape:
     supporting the slide matching logic used in expression evaluation.
     """
 
-    def __init__(self, prs, slide_index, note_shapes):
+    def __init__(self, prs: "PresentationBase", slide_index: int, note_shapes: bool) -> None:
         """Initialize EvalShape.
 
         :param prs: Presentation object
@@ -28,7 +32,7 @@ class EvalShape:
         self.slide_index = slide_index
         self.note_shapes = note_shapes
 
-    def contains_text(self, text, ignore_case=False, whole_words=False):
+    def contains_text(self, text: str, ignore_case: bool = False, whole_words: bool = False) -> bool:
         """Check if the slide or note contains the specified text.
 
         :param text: Text to search for
@@ -39,7 +43,7 @@ class EvalShape:
         return self.prs.find_text_in_slide(self.slide_index, self.note_shapes, text, ignore_case, whole_words)
 
 
-def populate_slide_dict(prs, slide_index):
+def populate_slide_dict(prs: "PresentationBase", slide_index: int) -> dict[str, EvalShape]:
     """Construct dictionary for slide expression evaluation.
 
     Creates a dictionary with 'slide' and 'note' keys that can be used in
@@ -49,15 +53,13 @@ def populate_slide_dict(prs, slide_index):
     :param slide_index: Index of the slide to create dictionary for
     :returns: Dictionary with 'slide' and 'note' EvalShape instances
     """
-    sdict = {
+    return {
         "slide": EvalShape(prs, slide_index, False),
         "note": EvalShape(prs, slide_index, True),
     }
 
-    return sdict
 
-
-def evaluate_to_single_slide(prs, expr) -> typing.Any | None:
+def evaluate_to_single_slide(prs: "PresentationBase", expr: str | None) -> typing.Any | None:
     """Evaluate expression to find a single matching slide.
 
     Evaluates an expression that should match a single slide. If the expression
@@ -76,8 +78,7 @@ def evaluate_to_single_slide(prs, expr) -> typing.Any | None:
     # return it.
     try:
         gdict = {}
-        result = safe_eval(expr, gdict)
-        return result
+        return safe_eval(expr, gdict)
     except (NameError, ValueError, SyntaxError, AttributeError, TypeError):
         # Expression depends on slide context, continue to slide-by-slide evaluation
         # This is expected when expression requires slide-specific variables
@@ -99,7 +100,7 @@ def evaluate_to_single_slide(prs, expr) -> typing.Any | None:
     return None
 
 
-def evaluate_to_multiple_slide(prs, expr):
+def evaluate_to_multiple_slide(prs: "PresentationBase", expr: str | None) -> list[int] | typing.Any | None:
     """Evaluate expression to find multiple matching slides.
 
     Evaluates an expression that should match multiple slides. If the expression

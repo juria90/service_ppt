@@ -5,8 +5,9 @@ on Windows using the COM (Component Object Model) interface, providing full
 access to PowerPoint features including slide manipulation and image export.
 """
 
-import traceback
 from enum import IntEnum
+import traceback
+from typing import Any
 
 # pip install pywin32
 import pythoncom
@@ -130,11 +131,11 @@ class TriState(IntEnum):
     msoTrue = -1
 
 
-def TriStateToBool(value):
+def TriStateToBool(value: int) -> bool:
     return value != TriState.msoFalse
 
 
-def BoolToTriState(value):
+def BoolToTriState(value: bool) -> int:
     return int(-1 if value else 0)
 
 
@@ -202,34 +203,34 @@ class PpViewType(IntEnum):
 
 
 class Font:
-    def __init__(self, font):
-        self.AutoRotateNumbers = TriStateToBool(font.AutoRotateNumbers)
+    def __init__(self, font: Any) -> None:
+        self.AutoRotateNumbers: bool = TriStateToBool(font.AutoRotateNumbers)
         # a negative value automatically sets the Subscript property to True
         # a positive value automatically sets the Superscript property to True
-        self.BaselineOffset = font.BaselineOffset
-        self.Bold = TriState(font.Bold)
+        self.BaselineOffset: float = font.BaselineOffset
+        self.Bold: TriState = TriState(font.Bold)
         # self.Color = font.Color
-        self.Embeddable = TriStateToBool(font.Embeddable)
-        self.Embedded = TriStateToBool(font.Embedded)
-        self.Emboss = TriState(font.Emboss)
-        self.Italic = TriState(font.Italic)
-        self.Name = font.Name
-        self.NameAscii = font.NameAscii
-        self.NameComplexScript = font.NameComplexScript
-        self.NameFarEast = font.NameFarEast
-        self.NameOther = font.NameOther
-        self.Shadow = TriState(font.Shadow)
-        self.Size = font.Size
+        self.Embeddable: bool = TriStateToBool(font.Embeddable)
+        self.Embedded: bool = TriStateToBool(font.Embedded)
+        self.Emboss: TriState = TriState(font.Emboss)
+        self.Italic: TriState = TriState(font.Italic)
+        self.Name: str = font.Name
+        self.NameAscii: str = font.NameAscii
+        self.NameComplexScript: str = font.NameComplexScript
+        self.NameFarEast: str = font.NameFarEast
+        self.NameOther: str = font.NameOther
+        self.Shadow: TriState = TriState(font.Shadow)
+        self.Size: float = font.Size
         # Setting the Subscript property to True automatically sets the BaselineOffset property to 0.3
-        self.Subscript = TriState(font.Subscript)
+        self.Subscript: TriState = TriState(font.Subscript)
         # Setting the Superscript property to True automatically sets the BaselineOffset property to - 0.25
-        self.Superscript = TriState(font.Superscript)
-        self.Underline = TriState(font.Underline)
+        self.Superscript: TriState = TriState(font.Superscript)
+        self.Underline: TriState = TriState(font.Underline)
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         return self.__str__()
 
-    def __str__(self):
+    def __str__(self) -> str:
         s = ""
         for key, value in self.__dict__.items():
             if s:
@@ -245,25 +246,25 @@ class Font:
 
 
 class ParagraphFormat:
-    def __init__(self, pf):
-        self.Alignment = PpParagraphAlignment(pf.Alignment)
-        self.BaseLineAlignment = PpBaselineAlignment(pf.BaseLineAlignment)
+    def __init__(self, pf: Any) -> None:
+        self.Alignment: PpParagraphAlignment = PpParagraphAlignment(pf.Alignment)
+        self.BaseLineAlignment: PpBaselineAlignment = PpBaselineAlignment(pf.BaseLineAlignment)
         # self.Bullet = pf.Bullet
-        self.FarEastLineBreakControl = TriStateToBool(pf.FarEastLineBreakControl)
-        self.HangingPunctuation = TriStateToBool(pf.HangingPunctuation)
-        self.LineRuleAfter = TriStateToBool(pf.LineRuleAfter)
-        self.LineRuleBefore = TriStateToBool(pf.LineRuleBefore)
-        self.LineRuleWithin = TriStateToBool(pf.LineRuleWithin)
-        self.SpaceAfter = pf.SpaceAfter  # in points or lines
-        self.SpaceBefore = pf.SpaceBefore  # in points or lines
-        self.SpaceWithin = pf.SpaceWithin  # in line multiplier
-        self.TextDirection = PpDirection(pf.TextDirection)
-        self.WordWrap = pf.WordWrap
+        self.FarEastLineBreakControl: bool = TriStateToBool(pf.FarEastLineBreakControl)
+        self.HangingPunctuation: bool = TriStateToBool(pf.HangingPunctuation)
+        self.LineRuleAfter: bool = TriStateToBool(pf.LineRuleAfter)
+        self.LineRuleBefore: bool = TriStateToBool(pf.LineRuleBefore)
+        self.LineRuleWithin: bool = TriStateToBool(pf.LineRuleWithin)
+        self.SpaceAfter: float = pf.SpaceAfter  # in points or lines
+        self.SpaceBefore: float = pf.SpaceBefore  # in points or lines
+        self.SpaceWithin: float = pf.SpaceWithin  # in line multiplier
+        self.TextDirection: PpDirection = PpDirection(pf.TextDirection)
+        self.WordWrap: bool = pf.WordWrap
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         return self.__str__()
 
-    def __str__(self):
+    def __str__(self) -> str:
         s = ""
         for key, value in self.__dict__.items():
             if s:
@@ -277,8 +278,8 @@ class ParagraphFormat:
         return s
 
 
-def get_texts_in_shapes(shapes):
-    texts = []
+def get_texts_in_shapes(shapes: Any) -> list[str]:
+    texts: list[str] = []
     for i in range(shapes.Count):
         shape = shapes.Item(i + 1)
         if not shape.HasTextFrame:
@@ -290,7 +291,7 @@ def get_texts_in_shapes(shapes):
     return texts
 
 
-def find_text_in_shapes(shapes, text, match_case=True, whole_words=True):
+def find_text_in_shapes(shapes: Any, text: str, match_case: bool = True, whole_words: bool = True) -> Any | None:
     for i in range(shapes.Count):
         shape = shapes.Item(i + 1)
         if not shape.HasTextFrame:
@@ -304,7 +305,9 @@ def find_text_in_shapes(shapes, text, match_case=True, whole_words=True):
     return None
 
 
-def get_matching_textframe_info_in_shapes(shapes, text_dict):
+def get_matching_textframe_info_in_shapes(
+    shapes: Any, text_dict: dict[str, str]
+) -> tuple[str, tuple[float, float, float, float], tuple[float, float, float, float], ParagraphFormat, Font] | None:
     for i in range(shapes.Count):
         shape = shapes.Item(i + 1)
         if not shape.HasTextFrame:
@@ -326,7 +329,7 @@ def get_matching_textframe_info_in_shapes(shapes, text_dict):
 
 
 # https://docs.microsoft.com/en-us/office/vba/api/powerpoint.textrange.replace
-def replace_texts_in_shapes(shapes, text_dict):
+def replace_texts_in_shapes(shapes: Any, text_dict: dict[str, str]) -> int:
     count = 0
     for i in range(shapes.Count):
         shape = shapes.Item(i + 1)
@@ -362,7 +365,7 @@ def dump_shapes(shapes):
 """
 
 
-def is_text_placeholder(phType):
+def is_text_placeholder(phType: int) -> bool:
     """
     ppPlaceholderBody = 2 # Body
     ppPlaceholderCenterTitle = 3 # Center Title
@@ -379,8 +382,8 @@ def is_text_placeholder(phType):
     return False
 
 
-def get_placeholder_text(shapes):
-    text_dict = {}
+def get_placeholder_text(shapes: Any) -> dict[int, str]:
+    text_dict: dict[int, str] = {}
     for i in range(shapes.Count):
         shape = shapes.Item(i + 1)
 
@@ -394,7 +397,7 @@ def get_placeholder_text(shapes):
     return text_dict
 
 
-def copy_notes(source_range, dst_range):
+def copy_notes(source_range: Any, dst_range: Any) -> None:
     """copy_notes() fixes where SlideRange.Duplicate() does not copy NotesSlide."""
     # print('source_range')
     src_shapes = source_range.NotesPage.Shapes
@@ -422,10 +425,10 @@ class Presentation(PresentationBase):
     All the index used in the function is 0-based and converted to 1-based while calling COM functions.
     """
 
-    def __init__(self, app, prs):
+    def __init__(self, app: Any, prs: Any) -> None:
         super().__init__(app, prs)
 
-    def _close(self):
+    def _close(self) -> None:
         try:
             self.prs.Close()
         except AttributeError:
@@ -433,10 +436,10 @@ class Presentation(PresentationBase):
             pass
         self.prs = None
 
-    def slide_count(self):
+    def slide_count(self) -> int:
         return self.prs.Slides.Count
 
-    def _fetch_slide_cache(self, slide_index):
+    def _fetch_slide_cache(self, slide_index: int) -> SlideCache:
         sc = SlideCache()
 
         slide = self.prs.Slides.Range(slide_index + 1)
@@ -449,31 +452,33 @@ class Presentation(PresentationBase):
 
         return sc
 
-    def slide_index_to_ID(self, var):
+    def slide_index_to_ID(self, var: int | list[int]) -> int | list[int]:
         if isinstance(var, int):
             slide = self.prs.Slides.Range(var + 1)
             return slide.SlideID
         elif isinstance(var, list):
-            result = []
+            result: list[int] = []
             for index in var:
                 slide = self.prs.Slides.Range(index + 1)
                 result.append(slide.SlideID)
 
             return result
+        return var
 
-    def slide_ID_to_index(self, var):
+    def slide_ID_to_index(self, var: int | list[int]) -> int | list[int]:
         if isinstance(var, int):
             slide = self.prs.Slides.FindBySlideID(var)
             return slide.SlideIndex - 1
         elif isinstance(var, list):
-            result = []
+            result: list[int] = []
             for sid in var:
                 slide = self.prs.Slides.FindBySlideID(sid)
                 result.append(slide.SlideIndex - 1)
 
             return result
+        return var
 
-    def _replace_texts_in_slide_shapes(self, slide_index, find_replace_dict):
+    def _replace_texts_in_slide_shapes(self, slide_index: int, find_replace_dict: dict[str, str]) -> None:
         slide = self.prs.Slides.Range(slide_index + 1)
         shapes = slide.Shapes
 
@@ -486,7 +491,7 @@ class Presentation(PresentationBase):
 
         replace_texts_in_shapes(shapes, find_replace_dict)
 
-    def duplicate_slides(self, source_location, insert_location=None, copy=1):
+    def duplicate_slides(self, source_location: int | list[int], insert_location: int | None = None, copy: int = 1) -> int:
         source_count = 1
         if isinstance(source_location, int):
             source_location = source_location + 1
@@ -533,22 +538,22 @@ class Presentation(PresentationBase):
 
         return added_count
 
-    def insert_blank_slide(self, slide_index):
+    def insert_blank_slide(self, slide_index: int) -> None:
         self.prs.Slides.Add(slide_index + 1, PpSlideLayout.ppLayoutCustom)
 
         self._slides_inserted(slide_index, 1)
 
-    def delete_slide(self, slide_index):
+    def delete_slide(self, slide_index: int) -> None:
         self.prs.Slides.Range(slide_index + 1).Delete()
 
         self._slides_deleted(slide_index, 1)
 
-    def copy_all_and_close(self):
+    def copy_all_and_close(self) -> None:
         all_range = self.prs.Slides.Range()
         all_range.Copy()
         self.close()
 
-    def _paste_keep_source_formatting(self, insert_location):
+    def _paste_keep_source_formatting(self, insert_location: int) -> None:
         # Activate any window associated with prs
         # w = self.prs.Windows.Item(1)
         # w.Activate()
@@ -560,7 +565,7 @@ class Presentation(PresentationBase):
         powerpoint = self.prs.Application
         powerpoint.CommandBars.ExecuteMso("PasteSourceFormatting")
 
-    def saveas(self, filename):
+    def saveas(self, filename: str) -> None:
         """Save .pptx as files using Powerpoint.Application COM service."""
         try:
             self.prs.SaveAs(filename)
@@ -568,7 +573,7 @@ class Presentation(PresentationBase):
             print("Error: %s\n%s" % (e, win32api.FormatMessage(e.args[2][5])))
             traceback.print_exc()
 
-    def saveas_format(self, filename, image_type="png"):
+    def saveas_format(self, filename: str, image_type: str = "png") -> None:
         """Save .pptx as files using Powerpoint.Application COM service."""
         format_type = PpSaveAsFileType.ppSaveAsPNG
         if image_type == "gif":
@@ -582,13 +587,13 @@ class Presentation(PresentationBase):
 
         self.prs.SaveAs(filename, format_type)
 
-    def export_slide_as(self, slideno, filename, image_type="png"):
+    def export_slide_as(self, slideno: int, filename: str, image_type: str = "png") -> None:
         """Save all shapes in slide as image files."""
         scale_width = 0
         scale_height = 0
         self.prs.Slides(slideno + 1).Export(filename, image_type, scale_width, scale_height)
 
-    def export_shapes_as(self, slideno, filename, image_type="png"):
+    def export_shapes_as(self, slideno: int, filename: str, image_type: str = "png") -> None:
         """Save all shapes in slide as image file.
         It only exports the shapes not slide itself and the dimension may not what you expect,
         unless the whole selected shapes cover the slide.
@@ -622,29 +627,29 @@ class Presentation(PresentationBase):
 
 class App(PPTAppBase):
     @staticmethod
-    def is_running():
+    def is_running() -> bool:
         return process_exists("powerpnt.exe")
 
-    def __init__(self):
+    def __init__(self) -> None:
         pythoncom.CoInitialize()
-        self.powerpoint = win32com.client.Dispatch("Powerpoint.Application")
+        self.powerpoint: Any = win32com.client.Dispatch("Powerpoint.Application")
         self.powerpoint.Visible = 1
 
-    def new_presentation(self):
+    def new_presentation(self) -> Presentation:
         prs = self.powerpoint.Presentations.Add()
         if prs.Windows.Count == 0:
             prs.NewWindow()
 
         return Presentation(self, prs)
 
-    def open_presentation(self, filename):
+    def open_presentation(self, filename: str) -> Presentation | None:
         prs = self.powerpoint.Presentations.Open(filename)
         if prs is None:
             return None
 
         return Presentation(self, prs)
 
-    def quit(self, force=False, only_if_empty=True):
+    def quit(self, force: bool = False, only_if_empty: bool = True) -> None:
         call_quit = force
         if call_quit is False:
             if only_if_empty and self.powerpoint.Presentations.Count == 0:
@@ -655,7 +660,7 @@ class App(PPTAppBase):
 
         self._quit()
 
-    def _quit(self):
+    def _quit(self) -> None:
         try:
             self.powerpoint.Quit()
         except AttributeError:

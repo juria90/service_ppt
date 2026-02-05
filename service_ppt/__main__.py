@@ -13,7 +13,7 @@ import wx
 from service_ppt.mainframe import Frame
 
 
-def activate_macos_app():
+def activate_macos_app() -> None:
     """Activate macOS application using native APIs to bring window to front."""
     try:
         # Try using pyobjc if available (comes with py-applescript dependency)
@@ -36,9 +36,9 @@ def activate_macos_app():
             objc.objc_msgSend.restype = c_void_p
             objc.objc_msgSend.argtypes = [c_void_p, c_void_p]
 
-            NSApplication = objc.objc_getClass(b"NSApplication")
-            sharedApplication = objc.sel_registerName(b"sharedApplication")
-            app_obj = objc.objc_msgSend(NSApplication, sharedApplication)
+            ns_app = objc.objc_getClass(b"NSApplication")
+            shared_app = objc.sel_registerName(b"sharedApplication")
+            app_obj = objc.objc_msgSend(ns_app, shared_app)
             activate = objc.sel_registerName(b"activateIgnoringOtherApps:")
             objc.objc_msgSend(app_obj, activate, c_bool(True))
         except Exception:
@@ -47,7 +47,7 @@ def activate_macos_app():
             pass
 
 
-def main():
+def main() -> None:
     """Main entrance function."""
     redirect = False
     app = wx.App(redirect=redirect)  # Error messages go to popup window

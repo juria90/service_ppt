@@ -19,12 +19,19 @@ from service_ppt.bible.bibcore import Bible, BibleInfo, Book, Chapter, FileForma
 
 
 class ZefaniaReader:
-    @staticmethod
-    def _get_bible_name(filename, hint_line=10) -> str | None:
-        """Check whether it is a XML file with following xml tag and attributes.
-        <XMLBIBLE biblename="King James 2000" type="x-bible">
+    """Reader for Zefania Bible format files.
 
-        return biblename if it is a valid bible.
+    This class provides functionality to read Bible text from Zefania format,
+    which stores Bible content as XML.
+    """
+
+    @staticmethod
+    def _get_bible_name(filename: str, hint_line: int = 10) -> str | None:
+        """Check whether file is a valid Zefania XML Bible file.
+
+        :param filename: Path to XML file to check
+        :param hint_line: Number of lines to read for checking (defaults to 10)
+        :returns: Bible name if valid, None otherwise
         """
         lines = ""
         with open(filename, encoding="utf-8") as f:
@@ -40,6 +47,11 @@ class ZefaniaReader:
         return None
 
     def read_bible(self, filename: str) -> Bible:
+        """Read Bible data from Zefania XML file.
+
+        :param filename: Path to Zefania XML file
+        :returns: Bible object
+        """
         tree = ET.parse(filename)
         root = tree.getroot()
 
@@ -77,6 +89,11 @@ class ZefaniaReader:
         return bible
 
     def _parse_chapters(self, book: Book, book_node: ET.Element) -> None:
+        """Parse chapters from book XML node.
+
+        :param book: Book object to populate
+        :param book_node: XML element containing book data
+        """
         for node in book_node:
             if node.tag == "CHAPTER":
                 chapter = Chapter()
@@ -86,6 +103,11 @@ class ZefaniaReader:
                 self._parse_verses(chapter, node)
 
     def _parse_verses(self, chapter: Chapter, chapter_node: ET.Element) -> None:
+        """Parse verses from chapter XML node.
+
+        :param chapter: Chapter object to populate
+        :param chapter_node: XML element containing chapter data
+        """
         for node in chapter_node:
             if node.tag == "VERS":
                 verse = Verse()
@@ -94,6 +116,11 @@ class ZefaniaReader:
                 chapter.verses.append(verse)
 
     def _concat_children_text(self, node: ET.Element) -> str:
+        """Concatenate text from all child elements of an XML node.
+
+        :param node: XML element to extract text from
+        :returns: Concatenated text string
+        """
         text = ""
         for it in node.itertext():
             t = it.strip()
@@ -107,13 +134,29 @@ class ZefaniaReader:
 
 
 class ZefaniaWriter:
+    """Writer for Zefania Bible format files.
+
+    This class provides functionality to write Bible data to Zefania XML format.
+    """
+
     def __init__(self) -> None:
+        """Initialize Zefania writer."""
         pass
 
     def _get_extension(self) -> str:
+        """Get the file extension for Zefania format.
+
+        :returns: File extension string (".xml")
+        """
         return ".xml"
 
     def write_bible(self, dirname: str, bible: Bible, encoding: str = "utf-8") -> None:
+        """Write Bible data to Zefania XML format file.
+
+        :param dirname: Directory where XML file will be written
+        :param bible: Bible object to write
+        :param encoding: Character encoding (defaults to UTF-8)
+        """
         extension = self._get_extension()
 
         if encoding is None:
@@ -133,6 +176,11 @@ class ZefaniaWriter:
             self._write_footer(file)
 
     def _write_header(self, file: object, bible: Bible) -> None:
+        """Write XML header with Bible metadata.
+
+        :param file: File object to write to
+        :param bible: Bible object containing metadata
+        """
         print(
             f"""<?xml version="1.0" encoding="utf-8"?>
 <!--Visit the online documentation for Zefania XML Markup-->
@@ -146,6 +194,11 @@ class ZefaniaWriter:
         )
 
     def _write_info(self, file: object, bible: Bible) -> None:
+        """Write INFORMATION section with Bible details.
+
+        :param file: File object to write to
+        :param bible: Bible object containing information
+        """
         from service_ppt.bible.bibleformat import get_bible_info
 
         dt_str = datetime.today().strftime("%Y-%m-%d")
@@ -186,9 +239,19 @@ class ZefaniaWriter:
         )
 
     def _write_footer(self, file: object) -> None:
+        """Write XML footer closing tag.
+
+        :param file: File object to write to
+        """
         print("</XMLBIBLE>", file=file)
 
     def _write_book(self, file: object, nth: int, book: Book) -> None:
+        """Write book XML element with chapters and verses.
+
+        :param file: File object to write to
+        :param nth: Zero-based book number
+        :param book: Book object to write
+        """
         long_name = xml.sax.saxutils.escape(book.name)
         short_name = xml.sax.saxutils.escape(book.short_name)
         print(f""" <BIBLEBOOK bnumber="{nth + 1}" bname="{long_name}" bsname="{short_name}">""", file=file)
@@ -216,13 +279,24 @@ class ZefaniaWriter:
 
 
 class ZefaniaFormat(FileFormat):
+    """File format handler for Zefania format files.
+
+    This class implements the FileFormat interface for reading Zefania format
+    Bible files from XML.
+    """
+
     def __init__(self) -> None:
+        """Initialize Zefania format handler."""
         super().__init__()
 
         self.versions: dict[str, str] | None = None
         self.options: dict[str, str] = {"ROOT_DIR": ""}
 
     def _get_root_dir(self) -> str:
+        """Get the root directory for Zefania format files.
+
+        :returns: Path to the root directory containing Zefania format files
+        """
         dirname = self.get_option("ROOT_DIR")
         if not dirname:
             dirname = os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "..", "Zefania-Bible-xml")
@@ -232,6 +306,10 @@ class ZefaniaFormat(FileFormat):
         return dirname
 
     def enum_versions(self) -> list[str]:
+        """Enumerate available Bible versions in Zefania format.
+
+        :returns: List of available version names
+        """
         dirname = self._get_root_dir()
 
         versions = {}
@@ -247,6 +325,11 @@ class ZefaniaFormat(FileFormat):
         return list(self.versions.keys())
 
     def read_version(self, version: str) -> Bible | None:
+        """Read a specific Bible version from Zefania format.
+
+        :param version: Version name to read
+        :returns: Bible object or None if version not found
+        """
         if self.versions is None:
             self.enum_versions()
 

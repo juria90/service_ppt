@@ -4,6 +4,9 @@ This module provides the PreferencesDialog class, a wxPython dialog for
 displaying and editing application preferences and settings.
 """
 
+from collections.abc import Callable
+from typing import TYPE_CHECKING
+
 import wx
 import wx.adv
 import wx.propgrid as wxpg
@@ -11,6 +14,9 @@ import wx.propgrid as wxpg
 from service_ppt.bible import bibleformat
 from service_ppt.utils.i18n import _
 from service_ppt.wx_utils.dir_symbol_pg import DirSymbolPG
+
+if TYPE_CHECKING:
+    from service_ppt.preferences_config import PreferencesConfig
 
 DEFAULT_SPAN = (1, 1)
 BORDER_STYLE_EXCEPT_LEFT = wx.TOP | wx.RIGHT | wx.BOTTOM
@@ -22,35 +28,35 @@ DEFAULT_BORDER = 5
 class PreferencesDialog(wx.adv.PropertySheetDialog):
     """PreferencesDialog class displays preferences settings, so that user can view and update the settings."""
 
-    def __init__(self, parent, config, *args, **kwargs):
-        self.is_modified = False
+    def __init__(self, parent: wx.Window, config: "PreferencesConfig", *args: object, **kwargs: object) -> None:
+        self.is_modified: bool = False
 
-        self.config = config
+        self.config: "PreferencesConfig" = config
 
-        self.dir_dict = config.dir_dict
+        self.dir_dict: dict[str, str] = config.dir_dict
 
-        self.current_bible_format = config.current_bible_format
-        self.bible_rootdir = config.bible_rootdir
-        self.current_bible_version = config.current_bible_version
+        self.current_bible_format: str = config.current_bible_format
+        self.bible_rootdir: str = config.bible_rootdir
+        self.current_bible_version: str = config.current_bible_version
 
-        self.lyric_open_textfile = config.lyric_open_textfile
-        self.lyric_search_path = config.lyric_search_path
-        self.lyric_copy_from_template = config.lyric_copy_from_template
-        self.lyric_application_pathname = config.lyric_application_pathname
-        self.lyric_template_filename = config.lyric_template_filename
+        self.lyric_open_textfile: bool = config.lyric_open_textfile
+        self.lyric_search_path: str = config.lyric_search_path
+        self.lyric_copy_from_template: bool = config.lyric_copy_from_template
+        self.lyric_application_pathname: str = config.lyric_application_pathname
+        self.lyric_template_filename: str = config.lyric_template_filename
 
-        self._dir_symbols_ctrl = None
+        self._dir_symbols_ctrl: DirSymbolPG | None = None
 
-        self._bible_format_combo = None
-        self._bible_rootdir_stext = None
-        self._bible_rootdir_ctrl = None
-        self._bible_version_combo = None
+        self._bible_format_combo: wx.ComboBox | None = None
+        self._bible_rootdir_stext: wx.StaticText | None = None
+        self._bible_rootdir_ctrl: wx.DirPickerCtrl | None = None
+        self._bible_version_combo: wx.ComboBox | None = None
 
-        self._lyric_search_path_stext = None
-        self._lyric_search_path_picker = None
-        self._lyric_open_check = None
-        self._lyric_copy_check = None
-        self._lyric_template_picker = None
+        self._lyric_search_path_stext: wx.StaticText | None = None
+        self._lyric_search_path_picker: wx.DirPickerCtrl | None = None
+        self._lyric_open_check: wx.CheckBox | None = None
+        self._lyric_copy_check: wx.CheckBox | None = None
+        self._lyric_template_picker: wx.FilePickerCtrl | None = None
 
         resize_border = wx.RESIZE_BORDER
         wx.adv.PropertySheetDialog.__init__(
@@ -63,7 +69,7 @@ class PreferencesDialog(wx.adv.PropertySheetDialog):
 
         self.Centre()
 
-    def initialize_controls(self):
+    def initialize_controls(self) -> None:
         """initialize_controls creates all child controls and initialize positions."""
         self.CreateButtons(wx.OK | wx.CANCEL | wx.HELP)
 
@@ -87,8 +93,10 @@ class PreferencesDialog(wx.adv.PropertySheetDialog):
         cancel_button = self.FindWindow(wx.ID_CANCEL)
         cancel_button.Bind(wx.EVT_BUTTON, self.on_cancel)
 
-    def on_ok(self, _):
+    def on_ok(self, _: wx.CommandEvent) -> None:
         """Event handler for OK."""
+        if self._dir_symbols_ctrl is None:
+            return
         dir_dict = self._dir_symbols_ctrl.get_dir_symbols()
         if self.dir_dict != dir_dict:
             self.is_modified = True
@@ -96,12 +104,12 @@ class PreferencesDialog(wx.adv.PropertySheetDialog):
 
         self.Destroy()
 
-    def on_cancel(self, _):
+    def on_cancel(self, _: wx.CommandEvent) -> None:
         """Event handler for Cancel."""
         self.is_modified = False
         self.Destroy()
 
-    def create_bible_settings_page(self, parent):
+    def create_bible_settings_page(self, parent: wx.Window) -> wx.Panel:
         """Create bible settings page."""
         panel = wx.Panel(parent)
         sizer = wx.GridBagSizer()
@@ -129,7 +137,9 @@ class PreferencesDialog(wx.adv.PropertySheetDialog):
 
         return panel
 
-    def _fill_bible_format(self):
+    def _fill_bible_format(self) -> None:
+        if self._bible_format_combo is None:
+            return
         formats = bibleformat.get_format_list()
         self._bible_format_combo.Clear()
         self._bible_format_combo.AppendItems(formats)
@@ -137,7 +147,9 @@ class PreferencesDialog(wx.adv.PropertySheetDialog):
             self.current_bible_format = formats[0]
         self._bible_format_combo.SetStringSelection(self.current_bible_format)
 
-    def on_bible_format_changed(self, _):
+    def on_bible_format_changed(self, _: wx.CommandEvent) -> None:
+        if self._bible_format_combo is None or self._bible_rootdir_stext is None or self._bible_rootdir_ctrl is None:
+            return
         self.current_bible_format = self._bible_format_combo.GetStringSelection()
 
         enable_dir = False
@@ -158,14 +170,18 @@ class PreferencesDialog(wx.adv.PropertySheetDialog):
 
         self.is_modified = True
 
-    def on_bible_dir_changed(self, _):
+    def on_bible_dir_changed(self, _: wx.FileDirPickerEvent | None) -> None:
+        if self._bible_rootdir_ctrl is None:
+            return
         self.bible_rootdir = self._bible_rootdir_ctrl.GetPath()
         bibleformat.set_format_option(self.current_bible_format, "ROOT_DIR", self.bible_rootdir)
         self._fill_bible_version()
         self.is_modified = True
 
-    def _fill_bible_version(self):
-        versions = []
+    def _fill_bible_version(self) -> None:
+        if self._bible_version_combo is None:
+            return
+        versions: list[str] = []
         if self.current_bible_format:
             versions = bibleformat.enum_versions(self.current_bible_format)
         self._bible_version_combo.Clear()
@@ -176,11 +192,13 @@ class PreferencesDialog(wx.adv.PropertySheetDialog):
         if self._bible_version_combo.GetSelection() == wx.NOT_FOUND and self._bible_version_combo.GetCount():
             self._bible_version_combo.SetSelection(0)
 
-    def on_bible_version_changed(self, _):
+    def on_bible_version_changed(self, _: wx.CommandEvent) -> None:
+        if self._bible_version_combo is None:
+            return
         self.current_bible_version = self._bible_version_combo.GetStringSelection()
         self.is_modified = True
 
-    def create_directory_settings_page(self, parent):
+    def create_directory_settings_page(self, parent: wx.Window) -> wx.Panel:
         """Create directory settings page."""
         panel = wx.Panel(parent)
         sizer = wx.BoxSizer(wx.VERTICAL)
@@ -198,7 +216,7 @@ class PreferencesDialog(wx.adv.PropertySheetDialog):
 
         return panel
 
-    def create_lyric_settings_page(self, parent):
+    def create_lyric_settings_page(self, parent: wx.Window) -> wx.Panel:
         """Create lyric settings page."""
         panel = wx.Panel(parent)
         sizer = wx.GridBagSizer()
@@ -220,7 +238,7 @@ class PreferencesDialog(wx.adv.PropertySheetDialog):
         _stext, _picker = self._create_file_picker(
             panel, sizer, row, label, self.lyric_application_pathname, self.on_application_pathname_changed
         )
-        self._lyric_application_picker = _picker
+        self._lyric_application_picker: wx.FilePickerCtrl = _picker
         row += 1
 
         # Use template file if the lyric file doesn't exist yet.
@@ -241,7 +259,15 @@ class PreferencesDialog(wx.adv.PropertySheetDialog):
 
         return panel
 
-    def _create_checkbox(self, panel, sizer, row, label: str, initial_value: str, handler):
+    def _create_checkbox(
+        self,
+        panel: wx.Panel,
+        sizer: wx.GridBagSizer,
+        row: int,
+        label: str,
+        initial_value: bool,
+        handler: "Callable[[wx.CommandEvent], None]",
+    ) -> wx.CheckBox:
         checkbox = wx.CheckBox(panel, label=label)
         checkbox.SetValue(initial_value)
         checkbox.Bind(wx.EVT_CHECKBOX, handler, checkbox)
@@ -249,7 +275,9 @@ class PreferencesDialog(wx.adv.PropertySheetDialog):
 
         return checkbox
 
-    def _create_combobox(self, panel, sizer, row, label: str, handler):
+    def _create_combobox(
+        self, panel: wx.Panel, sizer: wx.GridBagSizer, row: int, label: str, handler: "Callable[[wx.CommandEvent], None]"
+    ) -> tuple[wx.StaticText, wx.ComboBox]:
         stext = wx.StaticText(panel, label=label)
         sizer.Add(stext, pos=(row, 0), span=DEFAULT_SPAN, flag=wx.ALIGN_LEFT | wx.ALIGN_CENTER_VERTICAL | wx.ALL, border=DEFAULT_BORDER)
 
@@ -260,7 +288,15 @@ class PreferencesDialog(wx.adv.PropertySheetDialog):
 
         return stext, cbox
 
-    def _create_directory_picker(self, panel, sizer, row: int, label: str, initial_value: str, handler):
+    def _create_directory_picker(
+        self,
+        panel: wx.Panel,
+        sizer: wx.GridBagSizer,
+        row: int,
+        label: str,
+        initial_value: str,
+        handler: "Callable[[wx.FileDirPickerEvent], None]",
+    ) -> tuple[wx.StaticText, wx.DirPickerCtrl]:
         stext = wx.StaticText(panel, label=label)
         flag = wx.ALIGN_LEFT | wx.ALIGN_CENTER_VERTICAL | BORDER_STYLE_EXCEPT_TOP
         sizer.Add(stext, pos=(row, 0), span=DEFAULT_SPAN, flag=flag, border=DEFAULT_BORDER)
@@ -275,7 +311,15 @@ class PreferencesDialog(wx.adv.PropertySheetDialog):
 
         return stext, picker
 
-    def _create_file_picker(self, panel, sizer, row, label: str, initial_value: str, handler):
+    def _create_file_picker(
+        self,
+        panel: wx.Panel,
+        sizer: wx.GridBagSizer,
+        row: int,
+        label: str,
+        initial_value: str,
+        handler: "Callable[[wx.FileDirPickerEvent], None]",
+    ) -> tuple[wx.StaticText, wx.FilePickerCtrl]:
         stext = wx.StaticText(panel, label=label)
         flag = wx.ALIGN_LEFT | wx.ALIGN_CENTER_VERTICAL | BORDER_STYLE_EXCEPT_TOP
         sizer.Add(stext, pos=(row, 0), span=DEFAULT_SPAN, flag=flag, border=DEFAULT_BORDER)
@@ -290,22 +334,32 @@ class PreferencesDialog(wx.adv.PropertySheetDialog):
 
         return stext, picker
 
-    def on_lyric_open_check_changed(self, _):
+    def on_lyric_open_check_changed(self, _: wx.CommandEvent) -> None:
+        if self._lyric_open_check is None:
+            return
         self.lyric_open_textfile = self._lyric_open_check.GetValue()
         self.is_modified = True
 
-    def on_lyric_search_path_changed(self, _):
+    def on_lyric_search_path_changed(self, _: wx.FileDirPickerEvent) -> None:
+        if self._lyric_search_path_picker is None:
+            return
         self.lyric_search_path = self._lyric_search_path_picker.GetPath()
         self.is_modified = True
 
-    def on_lyric_copy_check_changed(self, _):
+    def on_lyric_copy_check_changed(self, _: wx.CommandEvent) -> None:
+        if self._lyric_copy_check is None:
+            return
         self.lyric_copy_from_template = self._lyric_copy_check.GetValue()
         self.is_modified = True
 
-    def on_application_pathname_changed(self, _):
+    def on_application_pathname_changed(self, _: wx.FileDirPickerEvent) -> None:
+        if not hasattr(self, "_lyric_application_picker") or self._lyric_application_picker is None:
+            return
         self.lyric_application_pathname = self._lyric_application_picker.GetPath()
         self.is_modified = True
 
-    def on_template_filename_changed(self, _):
+    def on_template_filename_changed(self, _: wx.FileDirPickerEvent) -> None:
+        if self._lyric_template_picker is None:
+            return
         self.lyric_template_filename = self._lyric_template_picker.GetPath()
         self.is_modified = True

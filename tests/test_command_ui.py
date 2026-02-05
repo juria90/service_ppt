@@ -15,25 +15,6 @@ if TYPE_CHECKING:
     from service_ppt.command_ui import UIManager
 
 
-@pytest.fixture(scope="module")
-def wx_app() -> "wx.App":
-    """Initialize wx application for the test module.
-
-    This fixture ensures wx is initialized before any command_ui imports,
-    as command_ui.py uses wx at module level (e.g., wx.LEFT | wx.RIGHT).
-
-    :returns: wx.App instance
-    """
-    # Delayed import of wx - only load when needed for tests
-    # Without delayed import, code formatter pops up Python icon on Mac.
-    import wx
-
-    # Ensure wx is initialized (required for CommandUI which inherits from wx.EvtHandler)
-    if not wx.GetApp():
-        return wx.App(False)
-    return wx.GetApp()
-
-
 @pytest.fixture
 def sample_sdf_path():
     """Return the path to the sample service.sdf file."""

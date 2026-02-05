@@ -8,9 +8,10 @@ It includes text caching, slide management, and find/replace functionality.
 import errno
 import os
 import re
+from typing import Any
 
 
-def find_text_in_text_list(text, text_list, match_case=True, whole_words=True):
+def find_text_in_text_list(text: str, text_list: list[str], match_case: bool = True, whole_words: bool = True) -> bool:
     if whole_words or not match_case:
         esc_text = re.escape(text)
         pattern = ""
@@ -33,7 +34,7 @@ def find_text_in_text_list(text, text_list, match_case=True, whole_words=True):
 
 
 class FindAnyText:
-    def __init__(self, find_text_list, match_case=True, whole_words=True):
+    def __init__(self, find_text_list: list[str], match_case: bool = True, whole_words: bool = True) -> None:
         esc_text = ""
         for text in find_text_list:
             if esc_text:
@@ -50,9 +51,9 @@ class FindAnyText:
         else:
             pattern = pattern + esc_text
 
-        self.pattern = pattern
+        self.pattern: str = pattern
 
-    def find(self, text_list):
+    def find(self, text_list: list[str]) -> bool:
         for t in text_list:
             if re.search(self.pattern, t):
                 return True
@@ -61,11 +62,11 @@ class FindAnyText:
 
 
 class SlideCache:
-    def __init__(self):
-        self.valid_cache = False
-        self.id = 0
-        self.slide_text = []
-        self.notes_text = []
+    def __init__(self) -> None:
+        self.valid_cache: bool = False
+        self.id: int = 0
+        self.slide_text: list[str] = []
+        self.notes_text: list[str] = []
 
 
 class PresentationBase:
@@ -73,17 +74,17 @@ class PresentationBase:
     It also supports caching text for find and replace.
     """
 
-    def __init__(self, app, prs):
-        self.app = app
-        self.prs = prs
+    def __init__(self, app: Any, prs: Any) -> None:
+        self.app: Any = app
+        self.prs: Any = prs
 
-        self._slide_count = self.slide_count()
+        self._slide_count: int = self.slide_count()
 
-        self.valid_cache = False
-        self.slide_caches = []
-        self.id_to_index = {}
+        self.valid_cache: bool = False
+        self.slide_caches: list[SlideCache | None] = []
+        self.id_to_index: dict[int, int] = {}
 
-    def reset(self):
+    def reset(self) -> None:
         self.app = None
         self.prs = None
 
@@ -93,27 +94,27 @@ class PresentationBase:
         self.slide_caches = []
         self.id_to_index = {}
 
-    def close(self):
+    def close(self) -> None:
         if self.prs:
             self._close()
             self.prs = None
 
-    def _close(self):
+    def _close(self) -> None:
         pass
 
     def __enter__(self) -> "PresentationBase":
         return self
 
-    def __exit__(self, exc_type, exc_value, traceback) -> None:
+    def __exit__(self, exc_type: type[BaseException] | None, exc_value: BaseException | None, traceback: Any) -> None:
         self.close()
 
-    def slide_count(self):
+    def slide_count(self) -> int:
         return 0
 
     # slide_index_to_ID is platform dependent.
     # But, slide_ID_to_index is implemented using SlideCache
 
-    def _slides_inserted(self, index, count):
+    def _slides_inserted(self, index: int, count: int) -> None:
         if index < len(self.slide_caches):
             for _ in range(count):
                 self.slide_caches.insert(index, None)
@@ -121,7 +122,7 @@ class PresentationBase:
         self._slide_count = self._slide_count + count
         self.valid_cache = False
 
-    def _slides_deleted(self, index, count):
+    def _slides_deleted(self, index: int, count: int) -> None:
         if index < len(self.slide_caches):
             del self.slide_caches[index : index + count]
 
@@ -129,7 +130,7 @@ class PresentationBase:
         self.id_to_index = {}
         self.valid_cache = False
 
-    def refresh_page_cache(self, force: bool = False):
+    def refresh_page_cache(self, force: bool = False) -> None:
         slide_count = self.slide_count()
         if force or self._slide_count != slide_count or len(self.slide_caches) != slide_count:
             self._slide_count = slide_count
@@ -139,9 +140,9 @@ class PresentationBase:
 
         self._update_slide_ID_cache()
 
-    def _update_slide_ID_cache(self):
+    def _update_slide_ID_cache(self) -> None:
         if not self.valid_cache:
-            id_to_index = {}
+            id_to_index: dict[int, int] = {}
             for index, sc in enumerate(self.slide_caches):
                 if sc is None or not sc.valid_cache:
                     sc = self._fetch_slide_cache(index)
@@ -158,10 +159,10 @@ class PresentationBase:
             self.id_to_index = id_to_index
             self.valid_cache = True
 
-    def _fetch_slide_cache(self, _i):
+    def _fetch_slide_cache(self, _i: int) -> SlideCache:
         return SlideCache()
 
-    def slide_ID_to_index(self, var):
+    def slide_ID_to_index(self, var: int | list[int]) -> int | list[int]:
         self._update_slide_ID_cache()
 
         if isinstance(var, int):
@@ -175,7 +176,7 @@ class PresentationBase:
 
             return result
 
-    def get_text_in_slide(self, slide_index, is_note_shape):
+    def get_text_in_slide(self, slide_index: int, is_note_shape: bool) -> list[str]:
         self._update_slide_ID_cache()
 
         sc = self.slide_caches[slide_index]
@@ -186,14 +187,16 @@ class PresentationBase:
 
         return text_list
 
-    def get_text_in_all_slides(self, is_note_shape):
-        text_list = []
+    def get_text_in_all_slides(self, is_note_shape: bool) -> list[list[str]]:
+        text_list: list[list[str]] = []
         for slide_index in range(self.slide_count()):
             text_list.append(self.get_text_in_slide(slide_index, is_note_shape))
 
         return text_list
 
-    def find_text_in_slide(self, slide_index, is_note_shape, text, ignore_case=False, whole_words=False):
+    def find_text_in_slide(
+        self, slide_index: int, is_note_shape: bool, text: str, ignore_case: bool = False, whole_words: bool = False
+    ) -> bool:
         self._update_slide_ID_cache()
 
         sc = self.slide_caches[slide_index]
@@ -205,7 +208,7 @@ class PresentationBase:
         found = find_text_in_text_list(text, text_list, ignore_case, whole_words)
         return found
 
-    def replace_all_slides_texts(self, find_replace_dict):
+    def replace_all_slides_texts(self, find_replace_dict: dict[str, str]) -> None:
         has_replace_all_slides = False
         if callable(getattr(self, "_replace_all_slides_texts", None)):
             has_replace_all_slides = True
@@ -225,7 +228,7 @@ class PresentationBase:
         if has_replace_all_slides:
             self._replace_all_slides_texts(find_replace_dict)
 
-    def replace_one_slide_texts(self, slide_index, find_replace_dict):
+    def replace_one_slide_texts(self, slide_index: int, find_replace_dict: dict[str, str]) -> None:
         self._update_slide_ID_cache()
 
         ft = FindAnyText([t for t in find_replace_dict], True, False)
@@ -236,19 +239,19 @@ class PresentationBase:
             sc.valid_cache = False
             self.valid_cache = False
 
-    def _replace_texts_in_slide_shapes(self, _slide_index, _find_replace_dict):
+    def _replace_texts_in_slide_shapes(self, _slide_index: int, _find_replace_dict: dict[str, str]) -> None:
         pass
 
-    def insert_blank_slide(self, slide_index):
+    def insert_blank_slide(self, slide_index: int) -> None:
         pass
 
-    def _paste_keep_source_formatting(self, insert_location):
+    def _paste_keep_source_formatting(self, insert_location: int) -> None:
         pass
 
-    def delete_slide(self, slide_index):
+    def delete_slide(self, slide_index: int) -> None:
         pass
 
-    def insert_file_slides(self, insert_location, src_ppt_filename):
+    def insert_file_slides(self, insert_location: int | None, src_ppt_filename: str) -> int:
         if insert_location is None:
             insert_location = self.slide_count()
         elif isinstance(insert_location, int):
@@ -281,7 +284,7 @@ class PresentationBase:
 
         return added_count
 
-    def export_slides_as(self, slidenumbers, dirname, image_type="png"):
+    def export_slides_as(self, slidenumbers: range | list[int] | None, dirname: str, image_type: str = "png") -> None:
         slide_count = self._slide_count
         num_digits = len(f"{slide_count + 1}")
         fmt = r"Slide%0" + str(num_digits) + r"d%s"
@@ -295,10 +298,10 @@ class PresentationBase:
             filename = fmt % (slideno + 1, ext)
             self.export_slide_as(slideno, os.path.join(dirname, filename), image_type)
 
-    def export_slide_as(self, slideno, filename, image_type="png"):
+    def export_slide_as(self, slideno: int, filename: str, image_type: str = "png") -> None:
         """Save all shapes in slide as image files."""
 
-    def export_slide_shapes_as(self, slidenumbers, dirname, image_type="png"):
+    def export_slide_shapes_as(self, slidenumbers: range | list[int] | None, dirname: str, image_type: str = "png") -> None:
         slide_count = self._slide_count
         num_digits = len(f"{slide_count + 1}")
         fmt = r"Slide%0" + str(num_digits) + r"d%s"
@@ -312,10 +315,10 @@ class PresentationBase:
             filename = fmt % (slideno + 1, ext)
             self.export_shapes_as(slideno, os.path.join(dirname, filename), image_type)
 
-    def export_shapes_as(self, slideno, filename, image_type="png"):
+    def export_shapes_as(self, slideno: int, filename: str, image_type: str = "png") -> None:
         """Save all shapes in slide as image files."""
 
 
 class PPTAppBase:
-    def __init__(self):
+    def __init__(self) -> None:
         pass

@@ -4,25 +4,51 @@ This module provides functionality for wrapping text to fit within specified wid
 taking into account font metrics and margins. Used for formatting text in PowerPoint slides.
 """
 
+from typing import TYPE_CHECKING
+
 import wx
+
+if TYPE_CHECKING:
+    from types import TracebackType
 
 
 class WordWrap:
-    def __init__(self, fi):
-        self.dc = None
-        self.fi = fi  # wx.FontInfo(54).FaceName("나눔고딕 ExtraBold").Bold()
-        self.font = None
+    def __init__(self, fi: wx.FontInfo) -> None:
+        """Initialize word wrap utility.
 
-    def __del__(self):
+        :param fi: Font information for text rendering
+        """
+        self.dc: wx.MemoryDC | None = None
+        self.fi = fi  # wx.FontInfo(54).FaceName("나눔고딕 ExtraBold").Bold()
+        self.font: wx.Font | None = None
+
+    def __del__(self) -> None:
+        """Cleanup resources on deletion."""
         self.close()
 
-    def __enter__(self):
+    def __enter__(self) -> "WordWrap":
+        """Enter context manager.
+
+        :returns: Self
+        """
         return self
 
-    def __exit__(self, exc_type, exc_value, traceback):
+    def __exit__(
+        self,
+        exc_type: type[BaseException] | None,
+        exc_value: BaseException | None,
+        exc_tb: "TracebackType | None",
+    ) -> None:
+        """Exit context manager.
+
+        :param exc_type: Exception type if exception occurred
+        :param exc_value: Exception value if exception occurred
+        :param exc_tb: Exception traceback if exception occurred
+        """
         self.close()
 
-    def close(self):
+    def close(self) -> None:
+        """Close and cleanup resources."""
         if self.font is not None:
             del self.font
         self.font = None
@@ -31,22 +57,43 @@ class WordWrap:
             del self.dc
         self.dc = None
 
-    def set_font_info(self, fi: wx.FontInfo):
+    def set_font_info(self, fi: wx.FontInfo) -> None:
+        """Set font information for text rendering.
+
+        :param fi: Font information
+        """
         self.fi = fi
         if self.font is not None:
             del self.font
         self.font = None
 
     # https://github.com/wxWidgets/wxPython-Classic/blob/master/wx/lib/wordwrap.py
-    def _wordwrap_dc(self, text, width, dc, breakLongWords=True, margin=0, breakChars=" "):
-        """
+    def _wordwrap_dc(
+        self,
+        text: str,
+        width: int,
+        dc: wx.DC,
+        break_long_words: bool = True,
+        margin: int = 0,
+        break_chars: str = " ",
+    ) -> str:
+        """Wrap text to fit within specified width.
+
         Returns a copy of text with newline characters inserted where long
         lines should be broken such that they will fit within the given
         width, with the given margin left and right, on the given `wx.DC`
         using its current font settings.  By default words that are wider
         than the margin-adjusted width will be broken at the nearest
         character boundary, but this can be disabled by passing ``False``
-        for the ``breakLongWords`` parameter.
+        for the ``break_long_words`` parameter.
+
+        :param text: Text to wrap
+        :param width: Maximum width in pixels
+        :param dc: Device context for text measurement
+        :param break_long_words: If True, break long words at character boundaries
+        :param margin: Margin in characters
+        :param break_chars: Characters that can be used for line breaks
+        :returns: Wrapped text with newlines
         """
 
         wrapped_lines = []
@@ -57,29 +104,35 @@ class WordWrap:
             wid = width - (2 * margin + 1) * space_width - max([0] + [pte[i] - pte[i - 1] for i in range(1, len(pte))])
             idx = 0
             start = 0
-            startIdx = 0
-            spcIdx = -1
+            start_idx = 0
+            spc_idx = -1
             while idx < len(pte):
                 # remember the last seen space
-                if line[idx] in breakChars:
-                    spcIdx = idx
+                if line[idx] in break_chars:
+                    spc_idx = idx
 
                 # have we reached the max width?
-                if pte[idx] - start > wid and (spcIdx != -1 or breakLongWords):
-                    if spcIdx != -1:
-                        idx = min(spcIdx + 1, len(pte) - 1)
-                    wrapped_lines.append(" " * margin + line[startIdx:idx] + " " * margin)
+                if pte[idx] - start > wid and (spc_idx != -1 or break_long_words):
+                    if spc_idx != -1:
+                        idx = min(spc_idx + 1, len(pte) - 1)
+                    wrapped_lines.append(" " * margin + line[start_idx:idx] + " " * margin)
                     start = pte[idx]
-                    startIdx = idx
-                    spcIdx = -1
+                    start_idx = idx
+                    spc_idx = -1
 
                 idx += 1
 
-            wrapped_lines.append(" " * margin + line[startIdx:idx] + " " * margin)
+            wrapped_lines.append(" " * margin + line[start_idx:idx] + " " * margin)
 
         return "\n".join(wrapped_lines)
 
-    def wordwrap(self, text: str, page_width: int):
+    def wordwrap(self, text: str | list[str], page_width: int) -> str | list[str]:
+        """Wrap text to fit within page width.
+
+        :param text: Text string or list of text strings to wrap
+        :param page_width: Page width in pixels
+        :returns: Wrapped text (same type as input)
+        """
         if self.dc is None:
             self.dc = wx.MemoryDC()
         dc = self.dc
@@ -100,33 +153,3 @@ class WordWrap:
         dc.SetFont(wx.NullFont)
 
         return wrapped_text
-
-
-def test_wordwrap():
-    sample_text = """Dynamic programming is both a mathematical optimization method and a computer programming method. \
-    The method was developed by Richard Bellman in the 1950s and has found applications in numerous fields, from aerospace engineering to economics.
-    In both contexts it refers to simplifying a complicated problem by breaking it down into simpler sub-problems in a recursive manner. \
-    While some decision problems cannot be taken apart this way, decisions that span several points in time do often break apart recursively. \
-    Likewise, in computer science, if a problem can be solved optimally by breaking it into sub-problems and then recursively finding the optimal solutions to the sub-problems, \
-    then it is said to have optimal substructure.
-    If sub-problems can be nested recursively inside larger problems, so that dynamic programming methods are applicable, \
-    then there is a relation between the value of the larger problem and the values of the sub-problems. \
-    In the optimization literature this relationship is called the Bellman equation.
-    """
-
-    sample_text1 = """8월 5일(목)~8월 7일(토) 오후 4~7시까지 열리는 2021 VBS (여름성경학교)의 참가신청서가 본당 앞에 비치되어 있습니다.\n작성하셔서 교육부장(심언택 장로)님께 제출해 주시기 바랍니다."""
-
-    _app = wx.App(False)
-    fi = wx.FontInfo(54).FaceName("나눔고딕 ExtraBold").Bold()
-
-    page_width = 1200  # pixel
-    page_height = 300  # pixel
-
-    ww = WordWrap()
-    # ww.set_font_info(fi)
-    wrapped_text = ww.wordwrap(sample_text1, page_width)
-    print(wrapped_text)
-
-
-if __name__ == "__main__":
-    test_wordwrap()

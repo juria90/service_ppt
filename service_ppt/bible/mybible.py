@@ -33,6 +33,12 @@ from service_ppt.bible.bibcore import Bible, BibleInfo, Book, Chapter, FileForma
 
 
 def expect_string(buf: str, expect: str) -> str | None:
+    """Extract value from a string that starts with expected prefix.
+
+    :param buf: String buffer to parse
+    :param expect: Expected prefix string (e.g., "NAME=")
+    :returns: Remaining string after prefix (stripped) or None if prefix not found
+    """
     if buf.startswith(expect):
         return buf[len(expect) :].strip()
 
@@ -40,14 +46,32 @@ def expect_string(buf: str, expect: str) -> str | None:
 
 
 class MyBibleReader:
+    """Reader for MyBible format files.
+
+    This class provides functionality to read Bible text from MyBible format,
+    which consists of an index.txt file and multiple book<DD>.txt files.
+    """
+
     def __init__(self) -> None:
+        """Initialize MyBible reader."""
         self.dirname: str | None = None
         self.remove_chars: str | None = None
 
     def _get_extension(self) -> str:
+        """Get the file extension for MyBible format.
+
+        :returns: File extension string (".txt")
+        """
         return ".txt"
 
     def read_bible(self, dirname: str, load_all: bool = False, remove_chars: str | None = None) -> Bible | None:
+        """Read Bible data from MyBible format directory.
+
+        :param dirname: Directory containing MyBible format files
+        :param load_all: Whether to load all books immediately (defaults to lazy loading)
+        :param remove_chars: Characters to remove from verse text
+        :returns: Bible object or None if format is invalid
+        """
         bible = None
 
         self.dirname = dirname
@@ -128,6 +152,11 @@ class MyBibleReader:
         return bible
 
     def read_book(self, book: Book, book_no: int) -> None:
+        """Read a single book from MyBible format.
+
+        :param book: Book object to populate with data
+        :param book_no: Zero-based book number
+        """
         extension = self._get_extension()
         bookname = f"book{book_no + 1}{extension}"
         book_filename = os.path.join(self.dirname, bookname)
@@ -136,6 +165,11 @@ class MyBibleReader:
             self._read_book_file(bf, book)
 
     def _read_book_file(self, file: TextIO, book: Book) -> None:
+        """Parse book file and populate book with chapters and verses.
+
+        :param file: Text file object containing book data
+        :param book: Book object to populate
+        """
         re_numbers = re.compile(r"^(\d+)(\-\d+)?(.*)")
 
         chapter = None
@@ -181,13 +215,30 @@ class MyBibleReader:
 
 
 class MyBibleWriter:
+    """Writer for MyBible format files.
+
+    This class provides functionality to write Bible data to MyBible format,
+    creating index.txt and book<DD>.txt files.
+    """
+
     def __init__(self) -> None:
+        """Initialize MyBible writer."""
         pass
 
     def _get_extension(self) -> str:
+        """Get the file extension for MyBible format.
+
+        :returns: File extension string (".txt")
+        """
         return ".txt"
 
     def write_bible(self, dirname: str, bible: Bible, encoding: str = "utf-8") -> None:
+        """Write Bible data to MyBible format files.
+
+        :param dirname: Directory where MyBible files will be written
+        :param bible: Bible object to write
+        :param encoding: Character encoding (defaults to UTF-8)
+        """
         extension = self._get_extension()
 
         indices = []
@@ -204,6 +255,12 @@ class MyBibleWriter:
             self._write_index(file, bible, indices)
 
     def _write_index(self, file: object, bible: Bible, indices: list[list[int]]) -> None:
+        """Write index.txt file with Bible metadata and chapter offsets.
+
+        :param file: File object to write to
+        :param bible: Bible object containing metadata
+        :param indices: List of chapter offset indices for each book
+        """
         print(biblang.UNICODE_BOM, file=file, end="")
         print("INDEX FILE", file=file)
 
@@ -230,6 +287,12 @@ class MyBibleWriter:
             print(f"CHAPTERS={string}", file=file)
 
     def _write_book(self, file: object, book: Book) -> list[int]:
+        """Write book file and return chapter offset indices.
+
+        :param file: File object to write to
+        :param book: Book object to write
+        :returns: List of file positions for each chapter start
+        """
         chapter_indices = []
 
         # BOM
@@ -252,21 +315,34 @@ class MyBibleWriter:
 
 
 class MyBibleFormat(FileFormat):
+    """File format handler for MyBible format.
+
+    This class implements the FileFormat interface for reading and writing
+    MyBible format Bible files.
+    """
+
     def __init__(self) -> None:
+        """Initialize MyBible format handler."""
         super().__init__()
 
         self.options: dict[str, str | bool] = {"ROOT_DIR": "", "remove_special_chars": True}
 
     def _get_root_dir(self) -> str:
+        """Get the root directory for MyBible format files.
+
+        :returns: Path to the root directory containing MyBible format files
+        """
         dirname = self.get_option("ROOT_DIR")
         if not dirname:
             dirname = os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "..", "Bible.text")
 
-        dirname = os.path.normpath(dirname)
-
-        return dirname
+        return os.path.normpath(dirname)
 
     def enum_versions(self) -> list[str]:
+        """Enumerate available Bible versions in MyBible format.
+
+        :returns: List of available version names
+        """
         dirname = self._get_root_dir()
 
         versions = []
@@ -282,12 +358,15 @@ class MyBibleFormat(FileFormat):
         return versions
 
     def read_version(self, version: str) -> Bible | None:
+        """Read a specific Bible version from MyBible format.
+
+        :param version: Version name to read
+        :returns: Bible object or None if version not found
+        """
         dirname = os.path.join(self._get_root_dir(), version)
 
         reader = MyBibleReader()
         remove_chars = None
         if "remove_special_chars" in self.options:
             remove_chars = "○"
-        bible = reader.read_bible(dirname, remove_chars=remove_chars)
-
-        return bible
+        return reader.read_bible(dirname, remove_chars=remove_chars)

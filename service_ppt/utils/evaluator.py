@@ -7,14 +7,14 @@ used in the codebase.
 
 import ast
 import operator
-from typing import Any
+from typing import Any, ClassVar
 
 
 class SafeEvaluator:
     """Safe expression evaluator that only allows safe operations."""
 
     # Allowed operations
-    _OPERATORS = {
+    _OPERATORS: ClassVar[dict[type[ast.AST], Any]] = {
         ast.Add: operator.add,
         ast.Sub: operator.sub,
         ast.Mult: operator.mul,
@@ -108,7 +108,7 @@ class SafeEvaluator:
 
         if isinstance(node, ast.Compare):
             left = self._eval_node(node.left)
-            for op, comparator in zip(node.ops, node.comparators):
+            for op, comparator in zip(node.ops, node.comparators, strict=True):
                 right = self._eval_node(comparator)
                 op_func = self._OPERATORS.get(type(op))
                 if op_func is None:
@@ -138,7 +138,7 @@ class SafeEvaluator:
         if isinstance(node, ast.Dict):
             keys = [self._eval_node(k) for k in node.keys]
             values = [self._eval_node(v) for v in node.values]
-            return dict(zip(keys, values))
+            return dict(zip(keys, values, strict=True))
 
         if isinstance(node, ast.Attribute):
             obj = self._eval_node(node.value)

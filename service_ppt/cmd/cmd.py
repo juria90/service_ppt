@@ -13,10 +13,9 @@ import math
 import os
 import re
 import shutil
-import sys
 import tempfile
-import traceback
 import typing
+from typing import TYPE_CHECKING, Any
 import zipfile
 
 from PIL import ImageColor
@@ -24,27 +23,18 @@ from PIL import ImageColor
 from service_ppt.bible import bibcore, biblang, bibleformat
 from service_ppt.hymn import hymncore
 from service_ppt.hymn.openlpservice import OpenLPServiceWriter
-from service_ppt.hymn.openlyrics import OpenLyricsReader, OpenLyricsWriter
+from service_ppt.hymn.openlyrics import OpenLyricsWriter
 from service_ppt.utils.eval_functions import (
     evaluate_to_multiple_slide,
     evaluate_to_single_slide,
 )
-from service_ppt.wx_utils.wordwrap import WordWrap
-
-# Use platform-specific implementations only when needed (Windows for COM interface)
-if sys.platform.startswith("win32"):
-    # On Windows, use win32 COM interface for full PowerPoint integration
-    import service_ppt.powerpoint_win32 as PowerPoint
-else:
-    # On macOS and Linux, use python-pptx (cross-platform, no PowerPoint required)
-    try:
-        import service_ppt.powerpoint_pptx as PowerPoint
-    except ImportError:
-        # Fallback to OSX AppleScript implementation if python-pptx is not available
-        import service_ppt.powerpoint_osx as PowerPoint
-
+from service_ppt.utils.file_utils import mkdir_if_not_exists, rmtree_except_self
 from service_ppt.utils.i18n import _, ngettext
 from service_ppt.utils.make_transparent import color_to_transparent
+from service_ppt.wx_utils.wordwrap import WordWrap
+
+if TYPE_CHECKING:
+    from collections.abc import Generator
 
 
 class ExportFlag(IntEnum):
@@ -55,15 +45,15 @@ class ExportFlag(IntEnum):
     TRANSPARENT = 0b10
 
 
-def get_contiguous_range(r):
+def get_contiguous_range(r: int | list[int]) -> list[int] | None:
     if isinstance(r, int):
         return [r, r]
 
     if not isinstance(r, list) or len(r) == 0:
         return None
 
-    start = None
-    end = None
+    start: int | None = None
+    end: int | None = None
     for i, n in enumerate(r):
         if start is None:
             start = n
@@ -73,18 +63,19 @@ def get_contiguous_range(r):
                 break
             end = n
 
-    return [start, end]
+    return [start, end] if start is not None and end is not None else None
 
 
-def get_contiguous_ranges(r):
+def get_contiguous_ranges(r: int | list[int]) -> "Generator[list[int], None, None] | None":
     if isinstance(r, int):
         yield [r, r]
+        return
 
     if not isinstance(r, list) or len(r) == 0:
         return None
 
-    start = None
-    end = None
+    start: int | None = None
+    end: int | None = None
     for i, n in enumerate(r):
         if start is None:
             start = n
@@ -96,10 +87,11 @@ def get_contiguous_ranges(r):
 
             end = n
 
-    yield [start, end]
+    if start is not None and end is not None:
+        yield [start, end]
 
 
-def replace_all_notes_text(notes, text_dict):
+def replace_all_notes_text(notes: str, text_dict: dict[str, str]) -> tuple[int, str]:
     count = 0
     for from_text, to_text in text_dict.items():
         if from_text in notes:
@@ -109,24 +101,24 @@ def replace_all_notes_text(notes, text_dict):
     return count, notes
 
 
-class DirSymbols(dict):
-    def update_map(self):
+class DirSymbols(dict[str, str]):
+    def update_map(self) -> None:
         pass
 
 
 class Command:
-    def __init__(self):
+    def __init__(self) -> None:
         """Command base class."""
-        self.enabled = True
+        self.enabled: bool = True
 
-    def get_enabled(self):
+    def get_enabled(self) -> bool:
         return self.enabled
 
-    def set_enabled(self, enabled):
+    def set_enabled(self, enabled: bool) -> None:
         self.enabled = enabled
 
     @staticmethod
-    def translate_one_path(value, dir_dict, to_symbol=True):
+    def translate_one_path(value: str, dir_dict: dict[str, str], to_symbol: bool = True) -> str | None:
         new_value = None
         # convert absolute path to symbolized one.
         if to_symbol:
@@ -144,7 +136,7 @@ class Command:
 
         return new_value
 
-    def translate_dir_symbols(self, dir_dict, to_symbol=True):
+    def translate_dir_symbols(self, dir_dict: dict[str, str], to_symbol: bool = True) -> None:
         for attr in self.__dict__:
             if attr.endswith(("filename", "dirname")):
                 value = getattr(self, attr)
@@ -160,14 +152,14 @@ class Command:
 
 
 class OpenFile(Command):
-    def __init__(self, filename, notes_filename=None):
+    def __init__(self, filename: str, notes_filename: str | None = None) -> None:
         """OpenFile opens the template ppt file to operate on."""
         super().__init__()
 
-        self.filename = filename
-        self.notes_filename = notes_filename
+        self.filename: str = filename
+        self.notes_filename: str | None = notes_filename
 
-    def execute(self, cm, prs):
+    def execute(self, cm: Any, prs: Any) -> None:
         if not self.filename:
             cm.progress_message(0, _("Creating a new presentation."))
 
@@ -198,16 +190,22 @@ class OpenFile(Command):
 
 
 class SaveFiles(Command):
-    def __init__(self, filename, lyrics_archive_filename=None, notes_filename=None, verses_filename=None):
+    def __init__(
+        self,
+        filename: str,
+        lyrics_archive_filename: str | None = None,
+        notes_filename: str | None = None,
+        verses_filename: str | None = None,
+    ) -> None:
         """SaveFiles saves the current processed presentation to a given filename."""
         super().__init__()
 
-        self.filename = filename
-        self.lyrics_archive_filename = lyrics_archive_filename
-        self.notes_filename = notes_filename
-        self.verses_filename = verses_filename
+        self.filename: str = filename
+        self.lyrics_archive_filename: str | None = lyrics_archive_filename
+        self.notes_filename: str | None = notes_filename
+        self.verses_filename: str | None = verses_filename
 
-    def execute(self, cm, prs):
+    def execute(self, cm: Any, prs: Any) -> None:
         filename = cm.replace_format_vars(self.filename)
         cm.progress_message(0, _("Saving the presentation to the file '{filename}'.").format(filename=filename))
         prs.saveas(filename)
@@ -254,7 +252,7 @@ class SaveFiles(Command):
             except FileNotFoundError:
                 cm.error_message(_("Cannot save bible verses to the file '{filename}'.").format(filename=verses_filename))
 
-    def create_zip_lyric_files(self, zipfilename, files):
+    def create_zip_lyric_files(self, zipfilename: str, files: list[dict[str, Any] | str]) -> None:
         with zipfile.ZipFile(zipfilename, "w", zipfile.ZIP_DEFLATED) as zipf:
             for file in files:
                 if isinstance(file, dict):
@@ -265,7 +263,7 @@ class SaveFiles(Command):
                 else:
                     zipf.write(file, os.path.basename(file))
 
-    def create_osz_lyric_files(self, cm, zipfilename, filelist):
+    def create_osz_lyric_files(self, cm: Any, zipfilename: str, filelist: list[dict[str, Any] | str]) -> None:
         song_list = []
         xml_list = []
         for filename in filelist:
@@ -287,18 +285,18 @@ class SaveFiles(Command):
 
 
 class InsertSlides(Command):
-    def __init__(self, insert_location, separator_slides, filelist):
+    def __init__(self, insert_location: str | None, separator_slides: str | None, filelist: list[str]) -> None:
         """InsertSlides inserts all slides from each file in filelist after insert_location.
         insert_location is the expression that the inserted slide will located.
         separator_slides is separator slides between each inserted slides, and last one will not be inserted.
         """
         super().__init__()
 
-        self.insert_location = insert_location
-        self.separator_slides = separator_slides
-        self.filelist = filelist
+        self.insert_location: str | None = insert_location
+        self.separator_slides: str | None = separator_slides
+        self.filelist: list[str] = filelist
 
-    def execute(self, cm, prs):
+    def execute(self, cm: Any, prs: Any) -> None:
         file_count = len(self.filelist)
         insert_format = ngettext("Inserting slides from {file_count} file.", "Inserting slides from {file_count} files.", file_count)
         cm.progress_message(0, insert_format.format(file_count=file_count))
@@ -334,15 +332,15 @@ class InsertLyrics(Command):
 
     def __init__(
         self,
-        slide_insert_location,
-        slide_separator_slides,
-        lyric_insert_location,
-        lyric_separator_slides,
-        lyric_pattern,
-        archive_lyric_file,
-        filelist,
-        flags=0,
-    ):
+        slide_insert_location: str | None,
+        slide_separator_slides: str | None,
+        lyric_insert_location: str | None,
+        lyric_separator_slides: str | None,
+        lyric_pattern: str,
+        archive_lyric_file: bool,
+        filelist: list[str],
+        flags: int = 0,
+    ) -> None:
         """InsertLyrics has two operations into one class.
         The reason for having two operations in one class is to manage one filelist that can handle both operations.
 
@@ -361,19 +359,19 @@ class InsertLyrics(Command):
         """
         super().__init__()
 
-        self.slide_insert_location = slide_insert_location
-        self.slide_separator_slides = slide_separator_slides
+        self.slide_insert_location: str | None = slide_insert_location
+        self.slide_separator_slides: str | None = slide_separator_slides
 
-        self.lyric_insert_location = lyric_insert_location
-        self.lyric_separator_slides = lyric_separator_slides
-        self.lyric_pattern = lyric_pattern
-        self.archive_lyric_file = archive_lyric_file
+        self.lyric_insert_location: str | None = lyric_insert_location
+        self.lyric_separator_slides: str | None = lyric_separator_slides
+        self.lyric_pattern: str = lyric_pattern
+        self.archive_lyric_file: bool = archive_lyric_file
 
-        self.filelist = filelist
-        self.flags = flags
+        self.filelist: list[str] = filelist
+        self.flags: int = flags
 
-    def get_filelist(self, cm, filetype):
-        filelist = []
+    def get_filelist(self, cm: Any, filetype: int) -> list[str]:
+        filelist: list[str] = []
         if filetype == self.INSERT_LYRIC_SLIDE:
             for fn in self.filelist:
                 base, ext = os.path.splitext(fn)
@@ -393,7 +391,7 @@ class InsertLyrics(Command):
 
         return filelist
 
-    def execute(self, cm, prs):
+    def execute(self, cm: Any, prs: Any) -> None:
         if self.flags & self.INSERT_LYRIC_SLIDE:
             lyric_filelist = self.get_filelist(cm, self.INSERT_LYRIC_SLIDE)
             slides = InsertSlides(self.slide_insert_location, self.slide_separator_slides, lyric_filelist)
@@ -408,7 +406,7 @@ class InsertLyrics(Command):
             lyric_filelist = self.get_filelist(cm, self.INSERT_LYRIC_TEXT)
             cm.add_lyric_file(lyric_filelist)
 
-    def execute_lyric_files(self, cm, prs, filelist):
+    def execute_lyric_files(self, cm: Any, prs: Any, filelist: list[str]) -> None:
         file_count = len(filelist)
         insert_format = ngettext("Inserting lyrics from {file_count} file.", "Inserting lyrics from {file_count} files.", file_count)
         cm.progress_message(0, insert_format.format(file_count=file_count))
@@ -418,7 +416,7 @@ class InsertLyrics(Command):
             cm.progress_message(0, _("No repeatable slides are found. Aborting the command."))
             return
 
-        lyric_separator_slides = None
+        lyric_separator_slides: int | list[int] | None = None
         separator_slide_count = 0
         if self.lyric_separator_slides:
             lyric_separator_slides = evaluate_to_multiple_slide(prs, self.lyric_separator_slides)
@@ -449,7 +447,9 @@ class InsertLyrics(Command):
                 added_count = separator_slide_count
                 lyric_insert_location = lyric_insert_location + added_count
 
-    def duplicate_slides(self, prs, source_location, lyric_separator_slides, separator_slide_count, songs):
+    def duplicate_slides(
+        self, prs: Any, source_location: int, lyric_separator_slides: int | list[int] | None, separator_slide_count: int, songs: list[Any]
+    ) -> None:
         """Duplicate slide based on count_of_lyric1, separators, count_of_lyric2, separators, ...
         songs is a two dimensional string array.
         """
@@ -473,18 +473,18 @@ class InsertLyrics(Command):
 
 
 class FormatObj:
-    VAR_FORMAT_SEP = ":"  # Change it to semi-colon(';')
+    VAR_FORMAT_SEP: str = ":"  # Change it to semi-colon(';')
 
-    def __init__(self, format="", value: str = ""):
+    def __init__(self, format: str = "", value: str = "") -> None:
         # self.fobj_type = self.__class__.__name__
-        self.format = format  # class specific format string
-        self.value = value  # class specific value object
+        self.format: str = format  # class specific format string
+        self.value: str = value  # class specific value object
 
-    def get_flattened_dict(self):
+    def get_flattened_dict(self) -> dict[str, str]:
         return {"format_type": self.__class__.__name__, "value": self.value}
 
     @staticmethod
-    def build_format_pattern(varnames):
+    def build_format_pattern(varnames: str | list[str]) -> str:
         varname_pattern = ""
         if isinstance(varnames, str) and str:
             varname_pattern = r"\{(" + re.escape(varnames) + r")(" + FormatObj.VAR_FORMAT_SEP + r"[^\}]+)?" + r"\}"
@@ -495,7 +495,7 @@ class FormatObj:
                         varname_pattern = varname_pattern + "|"
                     varname_pattern = varname_pattern + re.escape(var)
             except TypeError:
-                print(varnames + " is not iterable.")
+                print(f"{varnames} is not iterable.")
 
             if varname_pattern:
                 varname_pattern = r"\{(" + varname_pattern + r")(" + FormatObj.VAR_FORMAT_SEP + r"[^\}]+)?" + r"\}"
@@ -503,18 +503,20 @@ class FormatObj:
         return varname_pattern
 
     def __eq__(self, other: object) -> bool:
+        if not isinstance(other, FormatObj):
+            return False
         return self.format == other.format and self.value == other.value
 
 
 class BibleVerseFormat(FormatObj):
-    def __init__(self, format: str = "", value: str = ""):
+    def __init__(self, format: str = "", value: str = "") -> None:
         super().__init__(format, value)
 
         # self.format : '%B' : long book name, '%b': short book name, '%c': chapter.no, '%v': v.no, %t: verse text
         # self.value : bible_core.Verse object
 
     @staticmethod
-    def build_fr_dict(slide_text: typing.Any, verses: dict[str, bibcore.Verse]):
+    def build_fr_dict(slide_text: list[str], verses: dict[str, bibcore.Verse]) -> dict[str, str]:
         fr_dict = {}
         for each_verse_name, verse in verses.items():
             varname_pattern = FormatObj.build_format_pattern(each_verse_name)
@@ -539,7 +541,7 @@ class BibleVerseFormat(FormatObj):
         return fr_dict
 
     @staticmethod
-    def translate_verse(format: str, verse: bibcore.Verse):
+    def translate_verse(format: str, verse: bibcore.Verse) -> str:
         s = format
         s = s.replace("%B", verse.book.name)
         s = s.replace("%b", verse.book.short_name)
@@ -550,7 +552,7 @@ class BibleVerseFormat(FormatObj):
 
 
 class DateTimeFormat(FormatObj):
-    def __init__(self, format: str = "", value: str = ""):
+    def __init__(self, format: str = "", value: str = "") -> None:
         super().__init__(format, value)
 
         # self.format : https://docs.python.org/3/library/datetime.html#strftime-strptime-behavior
@@ -558,9 +560,9 @@ class DateTimeFormat(FormatObj):
         # self.value : https://docs.python.org/3/library/datetime.html#datetime.datetime
 
     @staticmethod
-    def datetime_from_c_locale(str_value: str, format: str = "%Y-%m-%d"):
-        saved = None
-        dt_value = None
+    def datetime_from_c_locale(str_value: str, format: str = "%Y-%m-%d") -> datetime.datetime | None:
+        saved: str | None = None
+        dt_value: datetime.datetime | None = None
         try:
             saved = locale.setlocale(locale.LC_ALL, "C")
             dt_value = datetime.datetime.strptime(str_value, format)
@@ -570,7 +572,7 @@ class DateTimeFormat(FormatObj):
 
         return dt_value
 
-    def build_replace_string(self, format: str):
+    def build_replace_string(self, format: str) -> str:
         # https://docs.python.org/3/library/datetime.html#strftime-and-strptime-format-codes
 
         # If the format contains # btw % and alphabet, it will remove leading zero.
@@ -595,7 +597,7 @@ class DateTimeFormat(FormatObj):
 
 
 class SetVariables(Command):
-    def __init__(self, format_dict: dict | None = None, str_dict: dict | None = None):
+    def __init__(self, format_dict: dict[str, FormatObj] | None = None, str_dict: dict[str, str] | None = None) -> None:
         """SetVariables finds all occurrence of find_text and replace it with replace_text,
         which are (k, v) pair in dictionary str_dict.
         """
@@ -606,10 +608,10 @@ class SetVariables(Command):
         if str_dict is None:
             str_dict = {}
 
-        self.format_dict = format_dict
-        self.str_dict = str_dict
+        self.format_dict: dict[str, FormatObj] = format_dict
+        self.str_dict: dict[str, str] = str_dict
 
-    def execute(self, cm: typing.Any, prs: typing.Any):
+    def execute(self, cm: Any, prs: Any) -> None:
         text_count = len(self.str_dict)
         replace_format = ngettext("Replacing {text_count} text.", "Replacing {text_count} texts.", text_count)
         cm.progress_message(0, replace_format.format(text_count=text_count))
@@ -621,14 +623,14 @@ class SetVariables(Command):
 class DuplicateWithText(Command):
     def __init__(
         self,
-        slide_range,
-        repeat_range,
-        find_text,
-        replace_texts,
-        preprocessing_script,
-        archive_lyric_file,
-        optional_line_break,
-    ):
+        slide_range: str | None,
+        repeat_range: str | None,
+        find_text: str,
+        replace_texts: list[str],
+        preprocessing_script: str,
+        archive_lyric_file: bool,
+        optional_line_break: bool,
+    ) -> None:
         """DuplicateWithText finds all occurrence of find_text and replace it replace_texts,
         which are list of text.
         Because replace_texts are a list, slides in repeat_range will be duplicated
@@ -636,18 +638,18 @@ class DuplicateWithText(Command):
         """
         super().__init__()
 
-        self.slide_range = slide_range
-        self.repeat_range = repeat_range
-        self.find_text = find_text
-        self.replace_texts = replace_texts
-        self.preprocessing_script = preprocessing_script
-        self.archive_lyric_file = archive_lyric_file
-        self.optional_line_break = optional_line_break
-        self.enable_wordwrap = False
-        self.wordwrap_font = ""
-        self.wordwrap_pagewidth = 0
+        self.slide_range: str | None = slide_range
+        self.repeat_range: str | None = repeat_range
+        self.find_text: str = find_text
+        self.replace_texts: list[str] = replace_texts
+        self.preprocessing_script: str = preprocessing_script
+        self.archive_lyric_file: bool = archive_lyric_file
+        self.optional_line_break: bool = optional_line_break
+        self.enable_wordwrap: bool = False
+        self.wordwrap_font: str = ""
+        self.wordwrap_pagewidth: int = 0
 
-    def execute(self, cm, prs):
+    def execute(self, cm: Any, prs: Any) -> None:
         cm.progress_message(0, _("Duplicating slides and replacing texts."))
 
         slide_ranges = evaluate_to_multiple_slide(prs, self.slide_range)
@@ -703,7 +705,7 @@ class DuplicateWithText(Command):
             lyric_filelist = self.produce_as_lyric_file(cm)
             cm.add_lyric_file(lyric_filelist)
 
-    def produce_as_lyric_file(self, cm):
+    def produce_as_lyric_file(self, cm: Any) -> dict[str, Any]:
         song = hymncore.Song()
         song.title = self.find_text.replace("{", "").replace("}", "")
         replace_texts = self.replace_texts
@@ -740,17 +742,18 @@ class DuplicateWithText(Command):
 
         return {"song": song, "xml_content": xml_content}
 
-    def run_script(self, script, text_list):
+    def run_script(self, script: str, text_list: list[str]) -> list[str] | None:
         try:
-            gdict = {"input": text_list}
+            gdict: dict[str, Any] = {"input": text_list}
             exec(script, gdict)
-            return gdict["output"]
+            return gdict.get("output")
         except Exception as e:
-            print("Error: %s" % e)
+            print(f"Error: {e}")
+            return None
 
 
 class GenerateBibleVerse(Command):
-    def __init__(self, bible_format: str):
+    def __init__(self, bible_format: str) -> None:
         """GenerateBibleVerse is two operations combined.
 
         1. It will replace all main_verse_name1 to main_verses in all slides.
@@ -768,20 +771,20 @@ class GenerateBibleVerse(Command):
         """
         super().__init__()
 
-        self.bible_format = bible_format
-        self.bible_version1 = ""
-        self.main_verse_name1 = ""
-        self.each_verse_name1 = ""
-        self.bible_version2 = ""
-        self.main_verse_name2 = ""
-        self.each_verse_name2 = ""
-        self.main_verses = ""
-        self.additional_verses = ""
-        self.repeat_range = ""
+        self.bible_format: str = bible_format
+        self.bible_version1: str = ""
+        self.main_verse_name1: str = ""
+        self.each_verse_name1: str = ""
+        self.bible_version2: str = ""
+        self.main_verse_name2: str = ""
+        self.each_verse_name2: str = ""
+        self.main_verses: str = ""
+        self.additional_verses: str = ""
+        self.repeat_range: str = ""
 
-        self._verses_text = []
+        self._verses_text: list[dict[str, bibcore.Verse]] = []
 
-    def populate_all_verses(self, cm: typing.Any):
+    def populate_all_verses(self, cm: Any) -> None:
         self._verses_text = []
 
         bibles = []
@@ -850,8 +853,8 @@ class GenerateBibleVerse(Command):
 
         return splitted_verses
 
-    def translate_to_bible_index(self, cm: typing.Any, bible: typing.Any, verses: str) -> list[typing.Any]:
-        bible_index = []
+    def translate_to_bible_index(self, cm: Any, bible: Any, verses: str) -> list[tuple[int, int, int, int, int]]:
+        bible_index: list[tuple[int, int, int, int, int]] = []
         if verses is not None:
             splitted_verses = self.split_verses(verses)
             for verse in splitted_verses:
@@ -859,7 +862,6 @@ class GenerateBibleVerse(Command):
                 if not verse:
                     continue
 
-                verses_text = None
                 try:
                     result = bible.translate_to_bible_index(verse)
                     if result is None:
@@ -867,6 +869,7 @@ class GenerateBibleVerse(Command):
                             cm.error_message(_("Cannot find the Bible verse={verse}.").format(verse=verse))
                         else:
                             cm.error_message(_("Cannot find the Bible verse={verse} in {verses}.").format(verse=verse, verses=verses))
+                        continue
 
                     # bi, ct1, vs1, ct2, vs2 = result
                     bible_index.append(result)
@@ -874,16 +877,13 @@ class GenerateBibleVerse(Command):
                     # Invalid verse format, skip this verse
                     pass
 
-                if verses_text is None:
-                    continue
-
         return bible_index
 
-    def execute(self, cm: typing.Any, prs: typing.Any):
+    def execute(self, cm: Any, prs: Any) -> None:
         self.execute_on_slides(cm, prs)
         self.execute_on_notes(cm)
 
-    def execute_on_slides(self, cm: typing.Any, prs: typing.Any):
+    def execute_on_slides(self, cm: Any, prs: Any) -> None:
         cm.progress_message(0, _("Processing Bible Verse."))
 
         self.populate_all_verses(cm)
@@ -917,7 +917,7 @@ class GenerateBibleVerse(Command):
                 text_dict = self.get_verse_dict(slide_text, v)
                 prs.replace_one_slide_texts(index + i, text_dict)
 
-    def execute_on_notes(self, cm: typing.Any):
+    def execute_on_notes(self, cm: Any) -> None:
         if cm.notes:
             notes = cm.notes
             text_dict = {self.main_verse_name1: self.main_verses}
@@ -939,11 +939,11 @@ class GenerateBibleVerse(Command):
 
             cm.notes = notes
 
-    def get_verse_dict(self, slide_text: typing.Any, verses: dict[str, bibcore.Verse]):
+    def get_verse_dict(self, slide_text: list[str], verses: dict[str, bibcore.Verse]) -> dict[str, str]:
         text_dict = BibleVerseFormat.build_fr_dict(slide_text, verses)
         return text_dict
 
-    def get_flattened_dict(self):
+    def get_flattened_dict(self) -> dict[str, str]:
         return {
             "bible_version1": self.bible_version1,
             "main_verse_name1": self.main_verse_name1,
@@ -957,81 +957,13 @@ class GenerateBibleVerse(Command):
         }
 
 
-def rename_filename_to_zeropadded(dirname, num_digits):
-    r"""Rename Slide(\d+).PNG to Slide%03d.png so that the length is same
-    and they can be sorted properly.
-    Powerpoint generates filename as 1-9 and 10, etc. that make sorting difficult.
-    """
-    if num_digits <= 1:
-        return
-
-    def replace_format_3digits(m):
-        if m.group(2).isdigit():
-            num = int(m.group(2))
-            fmt = r"%s%0" + str(num_digits) + r"d%s"
-
-            ext = m.group(3)
-            ext = ext.lower()
-            if len(ext) == 5:
-                if ext == ".jpeg":
-                    ext = ".jpg"
-                elif ext == ".tiff":
-                    ext = ".tif"
-
-            s = fmt % (m.group(1), num, ext)
-        else:
-            s = m.group(0)
-        return s
-
-    matching_fn_pattern = r"(.*?)(\d+)(\.(gif|jpg|jpeg|png|tif|tiff))"
-    repl_func = replace_format_3digits
-
-    fn_re = re.compile(matching_fn_pattern, re.IGNORECASE)
-
-    files = os.listdir(dirname)
-    for fn in files:
-        new_fn = fn_re.sub(repl_func, fn)
-        if new_fn == fn:
-            continue
-
-        old_fullname = os.path.join(dirname, fn)
-        new_fullname = os.path.join(dirname, new_fn)
-        os.rename(old_fullname, new_fullname)
-
-
-def rmtree_except_self(dirname):
-    try:
-        files = os.listdir(dirname)
-        for fn in files:
-            fullname = os.path.join(dirname, fn)
-            if os.path.isdir(fullname):
-                shutil.rmtree(fullname)
-            else:
-                os.remove(fullname)
-    except OSError as err:
-        if err.errno == errno.ENOENT:
-            return
-
-        raise
-
-
-def mkdir_if_not_exists(dirname):
-    try:
-        os.mkdir(dirname)
-    except OSError as err:
-        if err.errno == errno.EEXIST:
-            return
-
-        raise
-
-
 class PromptCommand(Command):
-    def __init__(self, message):
+    def __init__(self, message: str) -> None:
         super().__init__()
 
-        self.message = message
+        self.message: str = message
 
-    def execute(self, cm, prs):
+    def execute(self, cm: Any, prs: Any) -> None:
         cm.progress_message(0, _("Processing PromptCommand."))
 
         print(f"{self.message}")
@@ -1041,16 +973,16 @@ class PromptCommand(Command):
 
 
 class ExportSlides(Command):
-    def __init__(self, slide_range, out_dirname, image_type, flags, color=None):
+    def __init__(self, slide_range: str | None, out_dirname: str, image_type: str, flags: int, color: str | None = None) -> None:
         super().__init__()
 
-        self.slide_range = slide_range
-        self.out_dirname = out_dirname
-        self.image_type = image_type
-        self.flags = flags
-        self.color = color
+        self.slide_range: str | None = slide_range
+        self.out_dirname: str = out_dirname
+        self.image_type: str = image_type
+        self.flags: int = flags
+        self.color: str | None = color
 
-    def execute(self, cm, prs):
+    def execute(self, cm: Any, prs: Any) -> None:
         cm.progress_message(0, _("Exporting slide shapes as images to '{dirname}'.").format(dirname=self.out_dirname))
 
         if self.flags & ExportFlag.CLEANUP_FILES:
@@ -1077,7 +1009,7 @@ class ExportSlides(Command):
                 filename = os.path.join(self.out_dirname, f)
                 color_to_transparent(filename, filename, color)
 
-    def export_all(self, cm, prs):
+    def export_all(self, cm: Any, prs: Any) -> None:
         src_dirname = cm.generate_image_files(self.image_type, self.color)
 
         slide_range = evaluate_to_multiple_slide(prs, self.slide_range)
@@ -1100,15 +1032,15 @@ class ExportSlides(Command):
 
 
 class ExportShapes(Command):
-    def __init__(self, slide_range, out_dirname, image_type, flags):
+    def __init__(self, slide_range: str | None, out_dirname: str, image_type: str, flags: int) -> None:
         super().__init__()
 
-        self.slide_range = slide_range
-        self.out_dirname = out_dirname
-        self.image_type = image_type
-        self.flags = flags
+        self.slide_range: str | None = slide_range
+        self.out_dirname: str = out_dirname
+        self.image_type: str = image_type
+        self.flags: int = flags
 
-    def execute(self, cm, prs):
+    def execute(self, cm: Any, prs: Any) -> None:
         cm.progress_message(0, _("Exporting slide shapes as images to '{dirname}'.").format(dirname=self.out_dirname))
 
         if self.flags & ExportFlag.CLEANUP_FILES:
@@ -1120,291 +1052,3 @@ class ExportShapes(Command):
             return
 
         prs.export_slide_shapes_as(slide_range, self.out_dirname, self.image_type)
-
-
-class LyricManager:
-    def __init__(self, cm):
-        self.cm = cm
-        self.reader = OpenLyricsReader()
-        self.lyric_file_map = {}
-        self.all_lyric_files = []
-        self.lyric_search_path = None
-
-    def reset_exec_vars(self):
-        self.lyric_file_map = {}
-        self.all_lyric_files = []
-
-    def read_song(self, filename):
-        if filename in self.lyric_file_map:
-            return self.lyric_file_map[filename]
-
-        if not os.path.exists(filename):
-            self.cm.error_message(_("Cannot open a lyric file '{filename}'.").format(filename=filename))
-            raise FileNotFoundError(errno.ENOENT, os.strerror(errno.ENOENT), filename)
-
-        try:
-            song = self.reader.read_song(filename)
-        except Exception:
-            self.cm.error_message(_("Cannot open a lyric file '{filename}'.").format(filename=filename))
-            raise
-
-        self.lyric_file_map[filename] = song
-        return song
-
-    def read_songs(self, filelist):
-        songs = []
-        for filename in filelist:
-            song = self.read_song(filename)
-            songs.append(song)
-
-        return songs
-
-    def search_lyric_file(self, filename: str) -> str | None:
-        _dir, fn = os.path.split(filename)
-        xml_pathname = os.path.splitext(filename)[0] + ".xml"
-        file_exist = os.path.exists(xml_pathname)
-        if file_exist:
-            return xml_pathname
-
-        # seach xml file from search path
-        if self.lyric_search_path:
-            xml_filename = os.path.splitext(fn)[0] + ".xml"
-            searched_xml_pathname = os.path.join(self.lyric_search_path, xml_filename)
-            file_exist = os.path.exists(searched_xml_pathname)
-            if file_exist:
-                return searched_xml_pathname
-
-        return xml_pathname
-
-    def add_lyric_file(self, filelist):
-        if isinstance(filelist, list):
-            _songs = self.read_songs(filelist)
-            self.all_lyric_files.extend(filelist)
-        elif isinstance(filelist, dict):
-            self.all_lyric_files.append(filelist)
-        else:
-            _song = self.read_song(filelist)
-            self.all_lyric_files.append(filelist)
-
-
-class CommandManager:
-    def __init__(self):
-        self.running_already = False
-        self.powerpoint = None
-        self.prs = None
-
-        self.string_variables = {}
-        self.format_variables = {}
-        self.var_dict = {}
-        self.varname_re = None
-
-        self.notes = ""
-
-        self.monitor = None
-        self._continue = True
-
-        self.image_dir = {}
-        self.num_digits = 0
-
-        self.bible_verse = None
-
-        self.lyric_manager = LyricManager(self)
-
-    def __del__(self):
-        self.close()
-
-    def close(self):
-        if self.prs:
-            self.prs.close()
-            self.prs = None
-
-        if not self.running_already and self.powerpoint:
-            self.powerpoint.quit()
-
-        self.powerpoint = None
-
-        self.remove_cache()
-
-    def reset_exec_vars(self):
-        self.running_already = False
-        self.powerpoint = None
-        self.prs = None
-
-        self.string_variables = {}
-        self.format_variables = {}
-        self.var_dict = {}
-        self.varname_re = None
-
-        self.notes = ""
-
-        self.monitor = None
-        self._continue = True
-
-        self.lyric_manager.reset_exec_vars()
-
-    def set_presentation(self, prs):
-        self.prs = prs
-
-    def add_global_variables(self, str_dict, format_dict=None):
-        self.string_variables.update(str_dict)
-        if format_dict:
-            self.format_variables.update(format_dict)
-
-        self.var_dict = {}
-        for var in self.string_variables:
-            new_var = var
-            if new_var[0] != "{":
-                new_var = "{" + new_var
-            if new_var[-1] != "}":
-                new_var = new_var + "}"
-
-            self.var_dict[new_var] = self.string_variables[var]
-
-        varname_pattern = ""
-        self.varname_re = None
-        if len(self.format_variables):
-            varnames = self.format_variables.keys()
-            varname_pattern = FormatObj.build_format_pattern(varnames)
-            if varname_pattern:
-                self.varname_re = re.compile(varname_pattern)
-
-    def process_format_var(self, var):
-        if isinstance(var, list):
-            for elem in var:
-                self.process_format_var(elem)
-        elif isinstance(var, str):
-            if var in self.var_dict:
-                return
-
-            for m in self.varname_re.finditer(var):
-                varname = m.group(1)
-                if varname not in self.format_variables:
-                    continue
-
-                format_obj = self.format_variables[varname]
-
-                format = m.group(2)
-                if len(format):
-                    format = format[1:]  # remove FormatObj.VAR_FORMAT_SEP
-                key = "{" + varname + m.group(2) + "}"
-                value = format_obj.build_replace_string(format)
-                self.var_dict[key] = value
-
-    def replace_format_vars(self, custom_str):
-        if self.varname_re:
-            self.process_format_var(custom_str)
-        _, custom_str = replace_all_notes_text(custom_str, self.var_dict)
-        return custom_str
-
-    def process_variable_substitution(self):
-        if self.varname_re:
-            self.process_format_var(self.prs.get_text_in_all_slides(False))
-        self.prs.replace_all_slides_texts(self.var_dict)
-
-        if self.notes:
-            if self.varname_re:
-                self.process_format_var(self.notes)
-            _, self.notes = replace_all_notes_text(self.notes, self.var_dict)
-
-    def get_notes(self):
-        return self.notes
-
-    def set_notes(self, notes):
-        self.notes = notes
-
-    def set_bible_verse(self, bible_verse):
-        self.bible_verse = bible_verse
-
-    def read_songs(self, filelist):
-        songs = self.lyric_manager.read_songs(filelist)
-        return songs
-
-    def search_lyric_files(self, filelist):
-        xml_filelist = [self.lyric_manager.search_lyric_file(file) for file in filelist]
-        return xml_filelist
-
-    def add_lyric_file(self, lyric_file):
-        self.lyric_manager.add_lyric_file(lyric_file)
-
-    def progress_message(self, progress, message):
-        self._continue = self.monitor.progress_message(progress, message)
-
-    def error_message(self, message):
-        self.monitor.error_message(message)
-
-    # slide image file caching functions.
-    def remove_cache(self):
-        for _, dirname in self.image_dir.items():
-            shutil.rmtree(dirname)
-        self.image_dir = {}
-
-    def normalize_image_type(self, image_type):
-        image_type = image_type.lower()
-        if image_type == "jpeg":
-            image_type = "jpg"
-        elif image_type == "tiff":
-            image_type = "tif"
-        return image_type
-
-    def generate_image_files(self, image_type, color=None):
-        if self.prs:
-            slide_count = self.prs.slide_count()
-            self.num_digits = len(f"{slide_count + 1}")
-        else:
-            self.num_digits = 0
-
-        image_type = self.normalize_image_type(image_type)
-
-        if image_type not in self.image_dir:
-            outdir = tempfile.mkdtemp(prefix="slides")
-
-            self.prs.saveas_format(outdir, image_type)
-
-            rename_filename_to_zeropadded(outdir, self.num_digits)
-
-            self.image_dir[image_type] = outdir
-
-        return self.image_dir[image_type]
-
-    def get_filename_from_slideno(self, image_type, slideno):
-        image_type = self.normalize_image_type(image_type)
-
-        num = slideno + 1
-        fmt = r"%0" + str(self.num_digits) + r"d"
-        filename = "Slide" + (fmt % num) + "." + image_type
-
-        return filename
-
-    def execute_commands(self, instructions, monitor):
-        """execute_commands() is the main function calling each command's execute()
-        to achieve the goal specificed in each command.
-        """
-        self.reset_exec_vars()
-
-        self.monitor = monitor
-        self._continue = True
-        self.progress_message(0, _("Start processing commands."))
-
-        self.running_already = PowerPoint.App.is_running()
-        self.powerpoint = PowerPoint.App()
-
-        self.prs = None
-        count = len(instructions)
-        for i, bi in enumerate(instructions):
-            if not self._continue:
-                break
-
-            if not bi.enabled:
-                continue
-
-            monitor.set_subrange(i * 100 / count, (i + 1) * 100 / count)
-            try:
-                bi.execute(self, self.prs)
-            except Exception as e:
-                traceback.print_exc()
-                self.error_message(str(e))
-
-        self.progress_message(100, _("Cleaning up after running all the commands."))
-        self.close()
-
-        self.progress_message(100, _("Processing is done successfully."))
