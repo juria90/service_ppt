@@ -301,9 +301,7 @@ class ZefaniaFormat(FileFormat):
         if not dirname:
             dirname = os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "..", "Zefania-Bible-xml")
 
-        dirname = os.path.normpath(dirname)
-
-        return dirname
+        return os.path.normpath(dirname)
 
     def enum_versions(self) -> list[str]:
         """Enumerate available Bible versions in Zefania format.
@@ -338,6 +336,4 @@ class ZefaniaFormat(FileFormat):
 
         filename = self.versions[version]
         reader = ZefaniaReader()
-        bible = reader.read_bible(filename)
-
-        return bible
+        return reader.read_bible(filename)

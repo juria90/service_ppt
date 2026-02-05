@@ -72,12 +72,12 @@ def set_format_option(fileformat: str, key: str, value: "Any") -> None:
         format_obj.set_option(key, value)
 
 
-def enum_versions(fileformat: str) -> list[str] | None:
+def enum_versions(fileformat: str) -> list[str]:
     if fileformat in FORMAT_LIST:
         format_obj = FORMAT_LIST[fileformat]
         return format_obj.enum_versions()
 
-    return None
+    return []
 
 
 def read_version(fileformat: str, version: str) -> "Bible | None":
