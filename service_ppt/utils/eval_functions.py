@@ -11,7 +11,7 @@ from typing import TYPE_CHECKING
 from service_ppt.utils.evaluator import safe_eval
 
 if TYPE_CHECKING:
-    from service_ppt.powerpoint_base import PresentationBase
+    from service_ppt.ppt_slide.powerpoint_base import PresentationBase
 
 
 class EvalShape:

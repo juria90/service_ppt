@@ -18,7 +18,8 @@ from pptx.enum.shapes import MSO_SHAPE_TYPE, PP_PLACEHOLDER_TYPE
 from pptx.parts.chart import ChartPart
 from pptx.parts.embeddedpackage import EmbeddedXlsxPart
 
-from service_ppt.powerpoint_base import PPTAppBase, PresentationBase, SlideCache
+from service_ppt.ppt_slide.powerpoint_base import PPTAppBase, PresentationBase, SlideCache
+from service_ppt.ppt_slide.pptx_slide_utils import duplicate_slide
 
 
 class SlideLayout(IntEnum):
@@ -182,59 +183,6 @@ def _get_blank_slide_layout(prs: Any) -> Any:
     min_items = min(layout_items_count)
     blank_layout_id = layout_items_count.index(min_items)
     return prs.slide_layouts[blank_layout_id]
-
-
-# https://github.com/scanny/python-pptx/issues/132
-def duplicate_slide(prs: Any, index: int) -> Any:
-    """Duplicate the slide with the given index in prs.
-
-    Adds slide to the end of the presentation"""
-    source = prs.slides[index]
-    dest = prs.slides.add_slide(source.slide_layout)
-    # blank_slide_layout = _get_blank_slide_layout(prs)
-    # dest = prs.slides.add_slide(blank_slide_layout)
-    sld_id_list = prs._element.get_or_add_sldIdLst()
-    rids = [sldId.rId for sldId in sld_id_list]
-    prs.part.rename_slide_parts(rids)
-
-    for shape in source.shapes:
-        newel = copy.deepcopy(shape.element)
-        dest.shapes._spTree.insert_element_before(newel, "p:extLst")
-
-    rels = source.part.rels._rels
-    for key in rels:
-        rel = rels[key]
-        # Make sure we don't copy a notesSlide relation as that won't exist
-        if "notesSlide" not in rel.reltype:
-            target = rel._target
-            # if the relationship was a chart, we need to duplicate the embedded chart part and xlsx
-            if "chart" in rel.reltype:
-                partname = target.package.next_partname(ChartPart.partname_template)
-                xlsx_blob = target.chart_workbook.xlsx_part.blob
-                target = ChartPart(partname, target.content_type, copy.deepcopy(target._element), package=target.package)
-
-                target.chart_workbook.xlsx_part = EmbeddedXlsxPart.new(xlsx_blob, target.package)
-
-            if rel.is_external:
-                dest.part.rels.get_or_add_ext_rel(rel.reltype, rel._target)
-            else:
-                dest.part.rels.get_or_add(rel.reltype, rel._target)
-
-            # dest.part.rels._add_relationship(rel.reltype, target, rel.rId)
-
-    if source.has_notes_slide:
-        txt = source.notes_slide.notes_text_frame.text
-        dest.notes_slide.notes_text_frame.text = txt
-
-    if source.background and source.background._cSld.bg is not None:
-        el = source.background._cSld.bg.bgPr
-        newel = copy.deepcopy(el)
-        csld = dest.background._cSld
-        csld.get_or_add_bgPr()
-        csld.bg._remove_bgPr()
-        csld.bg._insert_bgPr(newel)
-
-    return dest
 
 
 # https://github.com/scanny/python-pptx/issues/68#issuecomment-575736354

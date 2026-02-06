@@ -24,14 +24,14 @@ from service_ppt.cmd.lyricmgr import LyricManager
 # Use platform-specific implementations only when needed (Windows for COM interface)
 if sys.platform.startswith("win32"):
     # On Windows, use win32 COM interface for full PowerPoint integration
-    import service_ppt.powerpoint_win32 as PowerPoint
+    import service_ppt.ppt_slide.powerpoint_win32 as PowerPoint
 else:
     # On macOS and Linux, use python-pptx (cross-platform, no PowerPoint required)
     try:
-        import service_ppt.powerpoint_pptx as PowerPoint
+        import service_ppt.ppt_slide.powerpoint_pptx as PowerPoint
     except ImportError:
         # Fallback to OSX AppleScript implementation if python-pptx is not available
-        import service_ppt.powerpoint_osx as PowerPoint
+        import service_ppt.ppt_slide.powerpoint_osx as PowerPoint
 
 
 class CommandManager:
@@ -118,6 +118,8 @@ class CommandManager:
         self.var_dict = {}
         for var in self.string_variables:
             new_var = var
+            if not new_var:
+                continue
             if new_var[0] != "{":
                 new_var = "{" + new_var
             if new_var[-1] != "}":

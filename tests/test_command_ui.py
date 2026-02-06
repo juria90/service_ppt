@@ -112,16 +112,24 @@ class TestUIManagerOpen:
         # Test OpenFile command data
         open_file_ui = uimgr.command_ui_list[0]
         assert open_file_ui.command.filename == "", "OpenFile filename should be empty"
-        assert open_file_ui.command.notes_filename == "service-notes-template.txt", "OpenFile notes_filename mismatch"
+        # notes_filename has variable substitution applied, so it will be a full path
+        assert open_file_ui.command.notes_filename.endswith("service-notes-template.txt"), (
+            f"OpenFile notes_filename should end with 'service-notes-template.txt', got '{open_file_ui.command.notes_filename}'"
+        )
 
         # Test InsertSlides command data
         insert_slides_ui = uimgr.command_ui_list[1]
         assert insert_slides_ui.command.enabled is True, "InsertSlides should be enabled"
-        assert "Service-Template.pptx" in insert_slides_ui.command.filelist, "InsertSlides filelist should contain Service-Template.pptx"
+        # filelist also has variable substitution applied
+        assert any("Service-Template.pptx" in file for file in insert_slides_ui.command.filelist), (
+            "InsertSlides filelist should contain Service-Template.pptx"
+        )
 
         # Test GenerateBibleVerse command data
         bible_verse_ui = uimgr.command_ui_list[5]
-        assert bible_verse_ui.command.bible_version1 == "ESV", "Bible version should be ESV"
+        # bible_version1 in the file is "개역개정" (Korean), not "ESV"
+        # bible_version2 is "ESV"
+        assert bible_verse_ui.command.bible_version2 == "ESV", "Bible version2 should be ESV"
         assert bible_verse_ui.command.main_verses == "Genesis 1:1", "Main verses should be Genesis 1:1"
         assert bible_verse_ui.command.additional_verses == "Genesis 1:2", "Additional verses should be Genesis 1:2"
 

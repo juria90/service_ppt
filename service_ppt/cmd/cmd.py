@@ -815,7 +815,7 @@ class GenerateBibleVerse(Command):
                 bible_indices = bible_indices + self.translate_to_bible_index(cm, bible, self.additional_verses)
 
         all_verses_text = []
-        for bible_index in bible_indices:
+        for bible_index in bible_indices or []:
             startpos = len(all_verses_text)
             verses_text = {}
             for b in range(len(bibles)):
@@ -895,6 +895,9 @@ class GenerateBibleVerse(Command):
         cm.process_variable_substitution()
 
         repeat_range = evaluate_to_multiple_slide(prs, self.repeat_range)
+        if repeat_range is None:
+            return
+
         repeat_range = prs.slide_index_to_ID(repeat_range)
 
         repeat_count = len(repeat_range) * (len(self._verses_text) - 1)

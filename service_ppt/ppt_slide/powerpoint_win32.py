@@ -15,7 +15,7 @@ import pywintypes
 import win32api
 import win32com.client
 
-from service_ppt.powerpoint_base import PPTAppBase, PresentationBase, SlideCache
+from service_ppt.ppt_slide.powerpoint_base import PPTAppBase, PresentationBase, SlideCache
 from service_ppt.utils.process_exists import process_exists
 
 

@@ -7,7 +7,7 @@ with a safer alternative.
 
 import pytest
 
-from service_ppt.powerpoint_pptx import App
+from service_ppt.ppt_slide.powerpoint_pptx import App
 from service_ppt.utils.eval_functions import (
     EvalShape,
     evaluate_to_multiple_slide,

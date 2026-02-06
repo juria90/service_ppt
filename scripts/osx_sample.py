@@ -7,7 +7,7 @@ module to automate PowerPoint operations on macOS using AppleScript.
 import os
 from pathlib import Path
 
-import service_ppt.powerpoint_osx as PowerPoint
+import service_ppt.ppt_slide.powerpoint_osx as PowerPoint
 
 
 def ppt_applescript():

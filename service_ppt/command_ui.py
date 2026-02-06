@@ -7,6 +7,7 @@ property grids.
 
 from __future__ import annotations
 
+from collections.abc import Callable
 import copy
 from io import StringIO
 import json
@@ -73,6 +74,50 @@ class StringBuilder:
         :param text: The text to append
         """
         self._file_str.write(text)
+
+
+def call_gui_on_main_thread(gui_operation: Callable[[], None], result_container: dict[str, Any] | None = None) -> None:
+    """Execute a wxPython GUI operation on the main thread from a background thread.
+
+    This function safely schedules a GUI operation to run on the main thread using
+    wx.CallAfter, and blocks the calling thread until the operation completes.
+    This is essential when Command.execute() methods are called from background threads
+    but need to show dialogs or perform other GUI operations.
+
+    :param gui_operation: A callable that performs the GUI operation (e.g., shows a dialog).
+                          This function will be called on the main thread.
+    :param result_container: Optional dictionary to store results from the GUI operation.
+                            The GUI operation can store results in this dict for the caller to access.
+    """
+    import threading
+
+    if result_container is None:
+        result_container = {}
+
+    event = threading.Event()
+
+    def execute_with_error_handling() -> None:
+        """Execute the GUI operation with error handling.
+
+        This nested function ensures that the event is always set, even if
+        the GUI operation raises an exception.
+        """
+        try:
+            gui_operation()
+        finally:
+            # Always signal that the operation is done, even if there was an error
+            event.set()
+
+    # Schedule the GUI operation to be executed on the main thread
+    # This will execute when the main thread processes events, even if it's
+    # currently blocked in another ShowModal() (like BkgndProgressDialog)
+    wx.CallAfter(execute_with_error_handling)
+
+    # Wait for the GUI operation to complete
+    # This blocks the background thread until the main thread completes the operation.
+    # The main thread can still process events (including our CallAfter) even while
+    # blocked in another ShowModal(), so this works correctly.
+    event.wait()
 
 
 def unescape_backslash(s: str) -> str:
@@ -356,14 +401,30 @@ class PopupMessage(Command):
         """
         cm.progress_message(0, _("Displaying PopupMessage."))
 
-        app = wx.App.Get()
-        title = app.GetAppDisplayName()
-        dlg = wx.RichMessageDialog(app.GetTopWindow(), self.message, caption=title, style=wx.OK | wx.ICON_INFORMATION | wx.STAY_ON_TOP)
-        dlg.ShowCheckBox("Refresh page content.", checked=True)
-        dlg.ShowModal()
+        # IMPORTANT: This method may be called from a background thread.
+        # All wxPython GUI operations (including ShowModal()) MUST be called
+        # from the main thread. Use call_gui_on_main_thread to safely execute the dialog.
+        result_container: dict[str, Any] = {"refresh_checked": True}  # Default value
+
+        def show_dialog() -> None:
+            """Show the dialog on the main thread."""
+            app = wx.App.Get()
+            title = app.GetAppDisplayName()
+            parent = app.GetTopWindow()
+            dlg = wx.RichMessageDialog(parent, self.message, caption=title, style=wx.OK | wx.ICON_INFORMATION | wx.STAY_ON_TOP)
+            refresh_checked = result_container["refresh_checked"]
+            dlg.ShowCheckBox("Refresh page content.", checked=refresh_checked)
+            dlg.ShowModal()
+            # Get checkbox state before destroying the dialog
+            result_container["refresh_checked"] = dlg.IsCheckBoxChecked()
+            # Ensure dialog is properly destroyed after ShowModal()
+            dlg.Destroy()
+
+        # Execute the dialog on the main thread and wait for completion
+        call_gui_on_main_thread(show_dialog, result_container)
 
         cm.progress_message(0, _("Refreshing page content."))
-        prs.refresh_page_cache(dlg.IsCheckBoxChecked())
+        prs.refresh_page_cache(result_container["refresh_checked"])
 
 
 class PopupMessageUI(CommandUI):

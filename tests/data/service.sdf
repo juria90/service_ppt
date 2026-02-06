@@ -1,11 +1,19 @@
 [
   {
+    "type": "SymboledDirectory",
+    "name": "directories",
+    "data": {
+      "TEMPLATE_DIR": "/Users/jamesl1/Work/service_ppt/tests/data",
+      "SAVE_DIR": "/Users/jamesl1/Work/OnlineService"
+    }
+  },
+  {
     "type": "OpenFile",
     "name": "New File",
     "data": {
       "enabled": true,
       "filename": "",
-      "notes_filename": "service-notes-template.txt"
+      "notes_filename": "$(TEMPLATE_DIR)/service-notes-template.txt"
     }
   },
   {
@@ -16,7 +24,7 @@
       "insert_location": "",
       "separator_slides": "",
       "filelist": [
-        "Service-Template.pptx"
+        "$(TEMPLATE_DIR)/Service-Template.pptx"
       ]
     }
   },
@@ -30,7 +38,13 @@
       "find_text": "{intro_announcement}",
       "replace_texts": [
         "Welcome."
-      ]
+      ],
+      "preprocessing_script": "",
+      "archive_lyric_file": false,
+      "optional_line_break": 0,
+      "enable_wordwrap": false,
+      "wordwrap_font": "",
+      "wordwrap_pagewidth": 0
     }
   },
   {
@@ -41,7 +55,7 @@
       "format_dict": {
         "datetime": {
           "format_type": "DateTimeFormat",
-          "value": "2021-05-07"
+          "value": "2026-02-06"
         }
       },
       "str_dict": {
@@ -62,24 +76,27 @@
       "find_text": "{announcement}",
       "replace_texts": [
         "Welcome."
-      ]
+      ],
+      "preprocessing_script": "",
+      "archive_lyric_file": false,
+      "optional_line_break": 0,
+      "enable_wordwrap": false,
+      "wordwrap_font": "",
+      "wordwrap_pagewidth": 0
     }
   },
   {
     "type": "GenerateBibleVerse",
     "name": "Bible Verse",
     "data": {
-      "bible_version1": "ESV",
+      "bible_version1": "개역개정",
+      "main_verse_name1": "",
+      "each_verse_name1": "",
+      "bible_version2": "ESV",
+      "main_verse_name2": "",
+      "each_verse_name2": "",
       "main_verses": "Genesis 1:1",
       "additional_verses": "Genesis 1:2",
-      "verse_patterns": [
-        "MK_bible_verse",
-        "MK_book_long",
-        "MK_book_short",
-        "MK_chapter",
-        "MK_verse_no",
-        "MK_verse_text"
-      ],
       "repeat_range": "note.contains_text('MK_bible_verse:repeat')"
     }
   },
@@ -93,7 +110,13 @@
       "find_text": "{sermon_text}",
       "replace_texts": [
         "1. The Creation"
-      ]
+      ],
+      "preprocessing_script": "",
+      "archive_lyric_file": false,
+      "optional_line_break": 0,
+      "enable_wordwrap": false,
+      "wordwrap_font": "",
+      "wordwrap_pagewidth": 0
     }
   },
   {
@@ -109,9 +132,10 @@
     "name": "Save the presentation",
     "data": {
       "enabled": true,
-      "filename": "{datetime:%Y-%m%d-%A}.pptx",
-      "notes_filename": "service-notes.txt",
-      "verses_filename": "bible-verse.txt"
+      "filename": "$(SAVE_DIR)/{datetime:%Y-%m%d-%A}.pptx",
+      "lyrics_archive_filename": "",
+      "notes_filename": "$(SAVE_DIR)/service-notes.txt",
+      "verses_filename": "$(SAVE_DIR)/bible-verse.txt"
     }
   },
   {
@@ -120,7 +144,7 @@
     "data": {
       "enabled": true,
       "slide_range": "note.contains_text('NOTES_intro_export')",
-      "out_dirname": "Slide-Images\\0Announce",
+      "out_dirname": "$(SAVE_DIR)/Slide-Images/0Announce",
       "image_type": "JPEG",
       "flags": 3,
       "color": "#FFFFFF"
@@ -132,7 +156,7 @@
     "data": {
       "enabled": true,
       "slide_range": "note.contains_text('MK_transparent_bible_verse')",
-      "out_dirname": "Slide-Images\\1Verse",
+      "out_dirname": "$(SAVE_DIR)/Slide-Images/1Verse",
       "image_type": "PNG",
       "flags": 1
     }
@@ -143,7 +167,7 @@
     "data": {
       "enabled": true,
       "slide_range": "note.contains_text('MK_transparent_sermon_text')",
-      "out_dirname": "Slide-Images\\2Sermon",
+      "out_dirname": "$(SAVE_DIR)/Slide-Images/2Sermon",
       "image_type": "PNG",
       "flags": 1
     }
@@ -154,7 +178,7 @@
     "data": {
       "enabled": true,
       "slide_range": "note.contains_text('MK_closing_announcement')",
-      "out_dirname": "Slide-Images\\3Ending",
+      "out_dirname": "$(SAVE_DIR)/Slide-Images/3Ending",
       "image_type": "JPEG",
       "flags": 3,
       "color": "#FFFFFF"

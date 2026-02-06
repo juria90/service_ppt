@@ -27,7 +27,7 @@ from typing import Any
 
 # pip install py-applescript
 import applescript
-from service_ppt.powerpoint_base import PPTAppBase, PresentationBase, SlideCache
+from service_ppt.ppt_slide.powerpoint_base import PPTAppBase, PresentationBase, SlideCache
 
 AEKEY_KEYDATA = applescript.AEType(b"seld")
 

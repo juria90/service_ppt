@@ -4,13 +4,13 @@ This module contains unit tests for the Presentation class in powerpoint_pptx,
 testing major features like slide manipulation, text replacement, and file operations.
 """
 
-import tempfile
 from pathlib import Path
+import tempfile
 
 import pytest
 from pptx import Presentation as PptxPres
 
-from service_ppt.powerpoint_pptx import App, Presentation
+from service_ppt.ppt_slide.powerpoint_pptx import App, Presentation
 
 
 @pytest.fixture
@@ -110,10 +110,7 @@ class TestPresentationTextOperations:
 
     def test_replace_texts_multiple_replacements(self, presentation_with_slides):
         """Test _replace_texts_in_slide_shapes() with multiple replacements."""
-        find_replace = {
-            "Slide 0": "First Replacement",
-            "content": "Second Replacement"
-        }
+        find_replace = {"Slide 0": "First Replacement", "content": "Second Replacement"}
         presentation_with_slides._replace_texts_in_slide_shapes(0, find_replace)
 
         cache = presentation_with_slides._fetch_slide_cache(0)
@@ -258,7 +255,9 @@ class TestPresentationCopyPaste:
         # Note: _paste_keep_source_formatting adds slides at the end first, then moves them
         # So the actual count should be initial + source
         final_count = dest_prs.slide_count()
-        assert final_count >= initial_count + source_slide_count, f"Expected at least {initial_count + source_slide_count} slides but got {final_count}"
+        assert final_count >= initial_count + source_slide_count, (
+            f"Expected at least {initial_count + source_slide_count} slides but got {final_count}"
+        )
         assert dest_prs.app._clipboard_presentation is None  # Clipboard should be cleared
 
     def test_paste_keep_source_formatting_empty_clipboard(self, empty_presentation):
@@ -355,7 +354,9 @@ class TestPresentationSaveAndLoad:
             # Verify the duplicated slide is present and has correct content
             duplicated_cache = loaded_prs._fetch_slide_cache(duplicate_index)
             duplicated_text = " ".join(duplicated_cache.slide_text)
-            assert original_text_0 == duplicated_text, f"Duplicated slide content mismatch: expected '{original_text_0}', got '{duplicated_text}'"
+            assert original_text_0 == duplicated_text, (
+                f"Duplicated slide content mismatch: expected '{original_text_0}', got '{duplicated_text}'"
+            )
 
             # Verify original slides are still intact
             loaded_cache_0 = loaded_prs._fetch_slide_cache(0)
@@ -432,12 +433,20 @@ class TestPresentationSaveAndLoad:
                 content_counts_after[text] = content_counts_after.get(text, 0) + 1
 
             # Verify all content is preserved correctly
-            assert content_counts_after.get("Original Slide 0", 0) == 2, f"Expected 2 copies of 'Original Slide 0' after load, found {content_counts_after.get('Original Slide 0', 0)}"
-            assert content_counts_after.get("Original Slide 1", 0) == 1, f"Expected 1 copy of 'Original Slide 1' after load, found {content_counts_after.get('Original Slide 1', 0)}"
-            assert content_counts_after.get("Original Slide 2", 0) == 2, f"Expected 2 copies of 'Original Slide 2' after load, found {content_counts_after.get('Original Slide 2', 0)}"
+            assert content_counts_after.get("Original Slide 0", 0) == 2, (
+                f"Expected 2 copies of 'Original Slide 0' after load, found {content_counts_after.get('Original Slide 0', 0)}"
+            )
+            assert content_counts_after.get("Original Slide 1", 0) == 1, (
+                f"Expected 1 copy of 'Original Slide 1' after load, found {content_counts_after.get('Original Slide 1', 0)}"
+            )
+            assert content_counts_after.get("Original Slide 2", 0) == 2, (
+                f"Expected 2 copies of 'Original Slide 2' after load, found {content_counts_after.get('Original Slide 2', 0)}"
+            )
 
             # Verify content counts match before and after save/load
-            assert content_counts_before == content_counts_after, f"Content counts changed after save/load: before={content_counts_before}, after={content_counts_after}"
+            assert content_counts_before == content_counts_after, (
+                f"Content counts changed after save/load: before={content_counts_before}, after={content_counts_after}"
+            )
 
         finally:
             Path(tmp_path).unlink(missing_ok=True)

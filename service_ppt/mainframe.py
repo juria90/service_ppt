@@ -94,6 +94,7 @@ class Frame(wx.Frame):
         self.filehistory: wx.FileHistory = wx.FileHistory(8)
         self.filehistory.Load(self.config)
         self.m_recent: wx.Menu | None = None
+        self.recent_file_accel_table: wx.AcceleratorTable | None = None
 
         self.window_rect: tuple[int, int, int, int] | None = None
         sw = pc.SW_RESTORED
@@ -154,6 +155,9 @@ class Frame(wx.Frame):
         self.filehistory.AddFilesToMenu()
         self.Bind(wx.EVT_MENU_RANGE, self.on_file_history, id=wx.ID_FILE1, id2=wx.ID_FILE9)
         self.m_recent = m_recent
+
+        # Update menu labels to show keyboard shortcuts and create accelerator table
+        self.update_recent_file_shortcuts()
 
         self.m_save = m_file.Append(wx.ID_SAVE, _("&Save\tCtrl+S"), _("Save to a file."))
         self.Bind(wx.EVT_MENU, self.on_save, self.m_save)
@@ -415,6 +419,9 @@ class Frame(wx.Frame):
             self.filehistory.RemoveMenu(self.m_recent)
             self.filehistory.AddFilesToMenu()
 
+        # Update menu labels to show keyboard shortcuts and update accelerators
+        self.update_recent_file_shortcuts()
+
     def on_execute(self, _event: wx.CommandEvent) -> None:
         def bkgnd_handler(window: BkgndProgressDialog) -> None:
             self.uimgr.execute_commands(window, self.pconfig)
@@ -566,3 +573,63 @@ class Frame(wx.Frame):
         uicls = ILID_TO_UICLS_MAP[command_type]
         ui = uicls(self.uimgr, command_name)
         self.uimgr.insert_item(index, ui)
+
+    def update_recent_file_shortcuts(self) -> None:
+        """Update menu labels and keyboard shortcuts (Cmd+1, Cmd+2, etc.) for recent files.
+
+        Updates both the menu item labels to display shortcuts and creates accelerator
+        table entries for the most recently used files, allowing quick access via
+        Cmd+1, Cmd+2, etc. on macOS, or Ctrl+1, Ctrl+2, etc. on other platforms.
+        """
+        import sys
+
+        # Use Cmd on macOS, Ctrl on other platforms for accelerator table
+        # Note: Menu label text should always use "Ctrl+" - wxPython automatically
+        # displays it as "Cmd+" on macOS
+        if sys.platform == "darwin":
+            modifier = wx.ACCEL_CMD
+        else:
+            modifier = wx.ACCEL_CTRL
+
+        # Always use "Ctrl+" in menu label text - wxPython handles platform display
+        modifier_text = "Ctrl+"
+
+        # Get the number of recent files
+        count = self.filehistory.GetCount()
+
+        # Update menu item labels if menu exists
+        if self.m_recent is not None and count > 0:
+            for i in range(min(count, 9)):
+                menu_id = wx.ID_FILE1 + i
+                menu_item = self.m_recent.FindItemById(menu_id)
+                if menu_item:
+                    # Get the current label (filename)
+                    current_label = menu_item.GetItemLabel()
+                    # Remove any existing shortcut text (in case it was already set)
+                    if "\t" in current_label:
+                        current_label = current_label.split("\t")[0]
+                    # Add the keyboard shortcut
+                    new_label = f"{current_label}\t{modifier_text}{i + 1}"
+                    menu_item.SetItemLabel(new_label)
+
+        # Update accelerator table
+        if count == 0:
+            # No recent files, remove accelerator table if it exists
+            if self.recent_file_accel_table is not None:
+                # Create empty accelerator table to clear previous shortcuts
+                self.recent_file_accel_table = wx.AcceleratorTable()
+                self.SetAcceleratorTable(self.recent_file_accel_table)
+            return
+
+        # Create accelerator entries for recent files (up to 9)
+        accel_entries = []
+        for i in range(min(count, 9)):
+            # Map number keys: 1-9 to wx.ID_FILE1-wx.ID_FILE9
+            # ord("1") = 49, so key_code will be 49, 50, 51, ..., 57 for 1-9
+            key_code = ord("1") + i
+            accel_entries.append((modifier, key_code, wx.ID_FILE1 + i))
+
+        # Create accelerator table
+        if accel_entries:
+            self.recent_file_accel_table = wx.AcceleratorTable(accel_entries)
+            self.SetAcceleratorTable(self.recent_file_accel_table)
